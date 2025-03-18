@@ -3,6 +3,7 @@ package net.SPIS.backend.controllers;
 import net.SPIS.backend.DTO.SPDTO;
 import net.SPIS.backend.service.SPService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,6 +33,12 @@ public class SPController {
     @GetMapping("/student/{studentId}")
     public List<SPDTO> getSPFromStudent(@PathVariable Integer studentId) {
         return spService.getSPFromStudent(studentId);
+    }
+
+    @PostMapping("/{spId}/view")
+    public ResponseEntity<Void> incrementViewCount(@PathVariable Integer spId) {
+        spService.incrementViewCount(spId);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/faculty/{facultyId}")

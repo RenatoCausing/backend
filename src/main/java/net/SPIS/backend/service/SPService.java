@@ -18,4 +18,10 @@ public interface SPService {
     SPDTO createSP(SPDTO spDTO);
 
     List<SPDTO> getSPsWithTags(List<Integer> tagIds);
+
+    // ✅ NEW: Increment View Count
+    void incrementViewCount(Integer spId);
+
+    // ✅ NEW: Get Most Viewed SPs
+    List<SPDTO> getMostViewedSPs(Integer limit);
 }

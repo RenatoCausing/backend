@@ -27,6 +27,8 @@ public class SP {
     private String abstractText;
 
     private String uri;
+    @Column(name = "view_count", nullable = false)
+    private Integer viewCount = 0; // Default value of 0
 
     @Column(name = "document_path")
     private String documentPath;
