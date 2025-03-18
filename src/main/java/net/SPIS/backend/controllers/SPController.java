@@ -1,12 +1,15 @@
 package net.SPIS.backend.controllers;
 
+import net.SPIS.backend.DTO.AdviserDTO;
 import net.SPIS.backend.DTO.SPDTO;
 import net.SPIS.backend.service.SPService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/sp")
@@ -55,4 +58,34 @@ public class SPController {
     public List<SPDTO> getSPsWithTags(@RequestParam(required = false) List<Integer> tagIds) {
         return spService.getSPsWithTags(tagIds);
     }
+
+    @GetMapping("/{spId}/view-count")
+    public ResponseEntity<Integer> getSPViewCount(@PathVariable Integer spId) {
+        return ResponseEntity.ok(spService.getSPViewCount(spId));
+    }
+
+    @GetMapping("/top-sps")
+    public ResponseEntity<List<SPDTO>> getMostViewedSPs() {
+        List<SPDTO> topSPs = spService.getMostViewedSPs(5);
+        if (topSPs.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(topSPs);
+    }
+
+    @GetMapping("/top-advisers")
+    public ResponseEntity<List<AdviserDTO>> getTopAdvisersByViews() { // ✅ FIXED: No @Override
+        System.out.println("🔍 Endpoint /top-advisers was hit!");
+
+        List<AdviserDTO> topAdvisers = spService.getTopAdvisersByViews();
+
+        if (topAdvisers.isEmpty()) {
+            System.out.println("⚠️ No advisers found!");
+            return ResponseEntity.noContent().build();
+        }
+
+        System.out.println("✅ Returning top advisers: " + topAdvisers);
+        return ResponseEntity.ok(topAdvisers);
+    }
+
 }

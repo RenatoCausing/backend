@@ -1,5 +1,6 @@
 package net.SPIS.backend.service;
 
+import net.SPIS.backend.DTO.AdviserDTO;
 import net.SPIS.backend.DTO.SPDTO;
 
 import java.util.List;
@@ -24,4 +25,9 @@ public interface SPService {
 
     // ✅ NEW: Get Most Viewed SPs
     List<SPDTO> getMostViewedSPs(Integer limit);
+
+    Integer getSPViewCount(Integer spId);
+
+    List<AdviserDTO> getTopAdvisersByViews();
+
 }

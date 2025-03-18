@@ -1,11 +1,15 @@
 package net.SPIS.backend.DTO;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.Set;
 
 @Data
+@AllArgsConstructor // ✅ Auto-generates constructor with all fields
+@NoArgsConstructor // ✅ Auto-generates no-arg constructor
 public class SPDTO {
     private Integer spId;
     private String title;
@@ -19,4 +23,5 @@ public class SPDTO {
     private Integer groupId;
     private Integer adviserId;
     private Set<Integer> tagIds; // References tags via SP_Tags
+    private Integer viewCount; // ✅ Add view count
 }

@@ -50,4 +50,5 @@ public class SP {
     @ManyToMany
     @JoinTable(name = "sp_tags", joinColumns = @JoinColumn(name = "sp_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
     private Set<Tag> tags;
+
 }

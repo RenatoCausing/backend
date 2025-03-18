@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -129,7 +130,7 @@ public class SPServiceImpl implements SPService {
      */
     @Override
     public List<SPDTO> getMostViewedSPs(Integer limit) {
-        PageRequest pageable = PageRequest.of(0, limit); // Get 'limit' results from page 0
+        PageRequest pageable = PageRequest.of(0, 5); // Get 'limit' results from page 0
         return spRepository.findTopSPs(pageable).stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
@@ -149,6 +150,34 @@ public class SPServiceImpl implements SPService {
         dto.setGroupId(sp.getGroup().getGroupId());
         dto.setAdviserId(sp.getAdviser().getAdminId());
         dto.setTagIds(sp.getTags().stream().map(Tag::getTagId).collect(Collectors.toSet()));
+        dto.setViewCount(sp.getViewCount());
         return dto;
     }
+
+    @Override
+    public Integer getSPViewCount(Integer spId) {
+        SP sp = spRepository.findById(spId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "SP not found"));
+        return sp.getViewCount();
+    }
+
+    @Override
+    public List<AdviserDTO> getTopAdvisersByViews() {
+        Pageable pageable = PageRequest.of(0, 5);
+        List<Object[]> results = spRepository.findTopAdvisersByViews(pageable);
+
+        return results.stream()
+                .filter(result -> result[1] != null && (Long) result[1] > 0) // Remove 0-view advisers
+                .map(result -> {
+                    Admin adviser = (Admin) result[0];
+                    return new AdviserDTO(
+                            adviser.getAdminId(),
+                            adviser.getFirstName(),
+                            adviser.getLastName(),
+                            adviser.getMiddleName(),
+                            adviser.getFaculty().getFacultyId());
+                })
+                .collect(Collectors.toList());
+    }
+
 }
