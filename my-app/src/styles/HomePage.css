@@ -21,7 +21,7 @@
 
 .browse-section {
   position: relative;
-  height: 80vh;
+  height: 75vh;
   background-color: white;
   z-index: 2; /* Higher than the hero section */
   padding: 2rem 0;
@@ -51,7 +51,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: .2rem;
 }
 
 .refresh-button {
@@ -147,7 +147,7 @@
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   padding: 1.8rem;
   
-  padding-top: 2.5rem;
+  padding-top: 3rem;
   transition: transform 0.3s, box-shadow 0.3s;
   position: relative;
   overflow: hidden;
@@ -192,6 +192,7 @@
 .view-count {
   display: flex;
   align-items: center;
+  padding: .1vh;
   gap: 0.4rem;
 }
 
