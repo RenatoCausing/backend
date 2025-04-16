@@ -26,11 +26,11 @@
   }
   
   .nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.1);
   }
   
   /* Style for the Profile button specifically */
   .nav-link:last-child {
     border: 2px solid white;
-    border-radius: 20px;
+    border-radius: 5px;
   }
