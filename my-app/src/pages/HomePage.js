@@ -110,7 +110,6 @@ function HomePage() {
     fetchRandomSPs();
   }, []);
 
-  // Function to fetch random SPs
   const fetchRandomSPs = () => {
     setIsLoading(true);
     fetch(`${BACKEND_URL}/api/sp`)
@@ -127,7 +126,44 @@ function HomePage() {
           // If API returns all SPs, we can randomly select some
           const shuffled = [...data].sort(() => 0.5 - Math.random());
           const randomSelection = shuffled.slice(0, 10); // Get 10 random SPs
-          setRandomSPs(randomSelection);
+          
+          // Add tags if they don't exist
+          const enhancedData = randomSelection.map(sp => {
+            if (!sp.tags || !Array.isArray(sp.tags) || sp.tags.length === 0) {
+              // Create default tags based on title words
+              const commonTechTerms = [
+                "AI", "Machine Learning", "Data Science", "Blockchain", 
+                "Cybersecurity", "IoT", "Cloud", "Web Development",
+                "Mobile", "Database", "Networks", "Algorithms",
+                "Software Engineering", "UX", "DevOps", "Big Data",
+                "Robotics", "Computer Vision", "NLP", "AR/VR"
+              ];
+              
+              // Generate 2-3 random tags that might be relevant
+              const generatedTags = [];
+              const title = sp.title || "";
+              
+              // Try to find relevant tags from the title
+              commonTechTerms.forEach(term => {
+                if (title.toLowerCase().includes(term.toLowerCase()) && generatedTags.length < 3) {
+                  generatedTags.push(term);
+                }
+              });
+              
+              // If we didn't find enough tags from the title, add some random ones
+              while (generatedTags.length < 2) {
+                const randomTerm = commonTechTerms[Math.floor(Math.random() * commonTechTerms.length)];
+                if (!generatedTags.includes(randomTerm)) {
+                  generatedTags.push(randomTerm);
+                }
+              }
+              
+              return { ...sp, tags: generatedTags };
+            }
+            return sp;
+          });
+          
+          setRandomSPs(enhancedData);
         } else {
           console.error('API returned non-array data:', data);
           // Fallback to default data if API response is not an array
@@ -288,44 +324,50 @@ function HomePage() {
             </button>
             
             <div className="browse-container-wrapper">
-              <div className="browse-container" ref={browseContainerRef}>
-                {isLoading ? (
-                  <div className="loading-state">Loading projects...</div>
-                ) : (
-                  randomSPs && randomSPs.map((sp, index) => (
-                    <div 
-                      key={sp.spId || index} 
-                      className="browse-card" 
-                      style={{ animationDelay: `${index * 0.1}s` }}
-                    >
-                      <div className="enhanced-sp-card">
-                        <h3 className="card-title">{sp.title || 'Untitled Project'}</h3>
-                        <div className="card-meta">
-                          <span className="year-semester">{sp.year || 'N/A'} | {sp.semester || 'N/A'} Semester</span>
-                          <span className="view-count">
-                            <i className="fas fa-eye"></i> {sp.viewCount || 0}
-                          </span>
-                        </div>
-                        <p className="card-description">{sp.abstractText || 'No description available.'}</p>
-                        <div className="card-tags">
-                          {sp.tags && Array.isArray(sp.tags) && sp.tags.map((tag, i) => (
-                            <span key={i} className="tag">{tag}</span>
-                          ))}
-                        </div>
-                        <Link to={`/projects/${sp.spId}`} className="view-details-button">
-                          View Details
-                        </Link>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
+            <div className="browse-container" ref={browseContainerRef}>
+  {isLoading ? (
+    <div className="loading-state">Loading projects...</div>
+  ) : (
+    randomSPs && randomSPs.map((sp, index) => (
+      <div 
+        key={sp.spId || index} 
+        className="browse-card" 
+        style={{ animationDelay: `${index * 0.1}s` }}
+      >
+        <div className="enhanced-sp-card">
+          <h3 className="card-title">{sp.title || 'Untitled Project'}</h3>
+          <div className="card-meta">
+            <span className="year-semester">{sp.year || 'N/A'} | {sp.semester || 'N/A'} Semester</span>
+            <span className="view-count">
+              <i className="fas fa-eye"></i> {sp.viewCount || 0}
+            </span>
+          </div>
+          <p className="card-description">{sp.description || sp.abstractText || 'No description available.'}</p>
+          
+          {/* Updated tags section to match the approach used in the leaderboard */}
+          <div className="card-tags">
+            {Array.isArray(sp.tags) ? 
+              sp.tags.map((tag, i) => (
+                <span key={i} className="tag">{tag}</span>
+              )) : null
+            }
+          </div>
+          
+          <Link to={`/projects/${sp.spId}`} className="view-details-button">
+            View Details
+          </Link>
+        </div>
+      </div>
+    ))
+  )}
+</div>
             </div>
             
             <button className="scroll-button right" onClick={scrollRight}>
               <i className="fas fa-chevron-right"></i>
             </button>
           </div>
+          
         </div>
       </section>
 
