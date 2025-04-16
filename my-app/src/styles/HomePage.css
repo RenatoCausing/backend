@@ -35,11 +35,15 @@
 
 .popular-advisers h2{
   color: #8b0000;
+  
+  font-weight: 600;
   margin-bottom: 10px;
 }
 
 .popular-projects h2 {
     color: #000000;
+    
+  font-weight: 600;
     margin-bottom: 10px;
 }
 .section-description {
