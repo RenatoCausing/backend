@@ -18,7 +18,7 @@ function SPCard({ id, title, year, semester, viewCount, tags = [] }) {
             <span>{viewCount}</span>
           </div>
         </div>
-        <p>Year: {year}, Semester: {semester}</p>
+ <p>Year: {year}, Semester: {semester}</p>
         <div className="sp-tags">
           {projectTags.map((tag, index) => (
             <span key={index} className="sp-tag">{tag}</span>

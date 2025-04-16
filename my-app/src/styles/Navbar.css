@@ -3,7 +3,7 @@
     top: 0;
     right: 0;
     width: 100%;
-    padding: 20px;
+    padding: 55px;
     display: flex;
     justify-content: flex-end;
     z-index: 10;
@@ -17,13 +17,20 @@
   .nav-link {
     color: white;
     text-decoration: none;
-    font-weight: bold;
-    padding: 5px 10px;
-    background-color: rgba(0, 0, 0, 0.5);
+    font-size: 2vh;
+    font-weight: 200;
+    padding: 8px 40px;
+    background-color: transparent;
     border-radius: 4px;
+    transition: background-color 0.3s;
   }
   
   .nav-link:hover {
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(255, 255, 255, 0.2);
   }
   
+  /* Style for the Profile button specifically */
+  .nav-link:last-child {
+    border: 2px solid white;
+    border-radius: 20px;
+  }
