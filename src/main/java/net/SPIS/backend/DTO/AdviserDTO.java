@@ -13,4 +13,6 @@ public class AdviserDTO {
     private String lastName;
     private String middleName;
     private Integer facultyId;
+    private String imagePath;
+    private String description;
 }

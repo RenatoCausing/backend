@@ -6,6 +6,7 @@ import net.SPIS.backend.repositories.*;
 import net.SPIS.backend.service.AdviserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import jakarta.transaction.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -45,6 +46,24 @@ public class AdviserServiceImpl implements AdviserService {
                 .orElseThrow(() -> new RuntimeException("SP not found")).getAdviser());
     }
 
+    @Override
+    @Transactional
+    public AdviserDTO updateAdviserDescription(Integer adviserId, String description) {
+        Admin admin = adminRepository.findById(adviserId)
+                .orElseThrow(() -> new RuntimeException("Adviser not found"));
+        admin.setDescription(description);
+        return toDTO(adminRepository.save(admin));
+    }
+
+    @Override
+    @Transactional
+    public AdviserDTO updateAdviserImage(Integer adviserId, String imagePath) {
+        Admin admin = adminRepository.findById(adviserId)
+                .orElseThrow(() -> new RuntimeException("Adviser not found"));
+        admin.setImagePath(imagePath);
+        return toDTO(adminRepository.save(admin));
+    }
+
     private AdviserDTO toDTO(Admin admin) {
         AdviserDTO dto = new AdviserDTO();
         dto.setAdminId(admin.getAdminId());
@@ -52,6 +71,8 @@ public class AdviserServiceImpl implements AdviserService {
         dto.setLastName(admin.getLastName());
         dto.setMiddleName(admin.getMiddleName());
         dto.setFacultyId(admin.getFaculty() != null ? admin.getFaculty().getFacultyId() : null);
+        dto.setImagePath(admin.getImagePath());
+        dto.setDescription(admin.getDescription());
         return dto;
     }
 }

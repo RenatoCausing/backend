@@ -33,4 +33,18 @@ public class AdviserController {
     public AdviserDTO getAdviserFromSP(@PathVariable Integer spId) {
         return adviserService.getAdviserFromSP(spId);
     }
+
+    // In AdviserController.java
+    @PutMapping("/{adviserId}/description")
+    public AdviserDTO updateAdviserDescription(@PathVariable Integer adviserId,
+            @RequestBody Map<String, String> payload) {
+        String description = payload.get("description");
+        return adviserService.updateAdviserDescription(adviserId, description);
+    }
+
+    @PutMapping("/{adviserId}/image")
+    public AdviserDTO updateAdviserImage(@PathVariable Integer adviserId, @RequestBody Map<String, String> payload) {
+        String imagePath = payload.get("imagePath");
+        return adviserService.updateAdviserImage(adviserId, imagePath);
+    }
 }

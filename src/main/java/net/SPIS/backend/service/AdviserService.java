@@ -12,4 +12,9 @@ public interface AdviserService {
     AdviserDTO getAdviser(Integer adviserId);
 
     AdviserDTO getAdviserFromSP(Integer spId);
+
+    // New methods for updating image and description
+    AdviserDTO updateAdviserDescription(Integer adviserId, String description);
+
+    AdviserDTO updateAdviserImage(Integer adviserId, String imagePath);
 }

@@ -23,6 +23,12 @@ public class Admin {
     @Column(nullable = false)
     private String role;
 
+    @Column(name = "image_path")
+    private String imagePath;
+
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
+
     @ManyToOne
     @JoinColumn(name = "faculty_id")
     private Faculty faculty;

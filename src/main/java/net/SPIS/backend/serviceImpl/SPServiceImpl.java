@@ -170,12 +170,15 @@ public class SPServiceImpl implements SPService {
                 .filter(result -> result[1] != null && (Long) result[1] > 0) // Remove 0-view advisers
                 .map(result -> {
                     Admin adviser = (Admin) result[0];
-                    return new AdviserDTO(
-                            adviser.getAdminId(),
-                            adviser.getFirstName(),
-                            adviser.getLastName(),
-                            adviser.getMiddleName(),
-                            adviser.getFaculty().getFacultyId());
+                    AdviserDTO dto = new AdviserDTO();
+                    dto.setAdminId(adviser.getAdminId());
+                    dto.setFirstName(adviser.getFirstName());
+                    dto.setLastName(adviser.getLastName());
+                    dto.setMiddleName(adviser.getMiddleName());
+                    dto.setFacultyId(adviser.getFaculty().getFacultyId());
+                    dto.setImagePath(adviser.getImagePath());
+                    dto.setDescription(adviser.getDescription());
+                    return dto;
                 })
                 .collect(Collectors.toList());
     }
