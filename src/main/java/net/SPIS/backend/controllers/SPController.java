@@ -19,52 +19,62 @@ public class SPController {
     private SPService spService;
 
     @GetMapping("/{spId}")
+    @CrossOrigin(origins = "http://localhost:3000")
     public SPDTO getSP(@PathVariable Integer spId) {
         return spService.getSP(spId);
     }
 
     @GetMapping
+    @CrossOrigin(origins = "http://localhost:3000")
     public List<SPDTO> getAllSP() {
         return spService.getAllSP();
     }
 
     @GetMapping("/adviser/{adviserId}")
+    @CrossOrigin(origins = "http://localhost:3000")
     public List<SPDTO> getSPFromAdviser(@PathVariable Integer adviserId) {
         return spService.getSPFromAdviser(adviserId);
     }
 
     @GetMapping("/student/{studentId}")
+    @CrossOrigin(origins = "http://localhost:3000")
     public List<SPDTO> getSPFromStudent(@PathVariable Integer studentId) {
         return spService.getSPFromStudent(studentId);
     }
 
     @PostMapping("/{spId}/view")
+    @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<Void> incrementViewCount(@PathVariable Integer spId) {
         spService.incrementViewCount(spId);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/faculty/{facultyId}")
+    @CrossOrigin(origins = "http://localhost:3000")
     public List<SPDTO> getSPFromFaculty(@PathVariable Integer facultyId) {
         return spService.getSPFromFaculty(facultyId);
     }
 
     @PostMapping
+
+    @CrossOrigin(origins = "http://localhost:3000")
     public SPDTO createSP(@RequestBody SPDTO spDTO) {
         return spService.createSP(spDTO);
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/tags")
     public List<SPDTO> getSPsWithTags(@RequestParam(required = false) List<Integer> tagIds) {
         return spService.getSPsWithTags(tagIds);
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/{spId}/view-count")
     public ResponseEntity<Integer> getSPViewCount(@PathVariable Integer spId) {
         return ResponseEntity.ok(spService.getSPViewCount(spId));
     }
 
-    @CrossOrigin(origins = "*")
+    @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/top-sps")
     public ResponseEntity<List<SPDTO>> getMostViewedSPs() {
         List<SPDTO> topSPs = spService.getMostViewedSPs(5);

@@ -71,6 +71,7 @@ public class AdviserServiceImpl implements AdviserService {
         dto.setLastName(admin.getLastName());
         dto.setMiddleName(admin.getMiddleName());
         dto.setFacultyId(admin.getFaculty() != null ? admin.getFaculty().getFacultyId() : null);
+        dto.setEmail(admin.getEmail());
         dto.setImagePath(admin.getImagePath());
         dto.setDescription(admin.getDescription());
         return dto;

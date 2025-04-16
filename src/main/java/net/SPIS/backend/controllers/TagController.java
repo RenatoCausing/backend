@@ -16,16 +16,19 @@ public class TagController {
     private TagService tagService;
 
     @GetMapping
+    @CrossOrigin(origins = "http://localhost:3000")
     public List<TagDTO> getAllTags() {
         return tagService.getAllTags();
     }
 
     @PostMapping
+    @CrossOrigin(origins = "http://localhost:3000")
     public TagDTO createTag(@RequestBody TagDTO tagDTO) {
         return tagService.createTag(tagDTO);
     }
 
     @DeleteMapping("/{tagId}")
+    @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<Void> deleteTag(@PathVariable Integer tagId) {
         tagService.deleteTag(tagId);
         return ResponseEntity.noContent().build();

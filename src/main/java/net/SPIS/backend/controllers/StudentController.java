@@ -16,27 +16,32 @@ public class StudentController {
     private StudentService studentService;
 
     @GetMapping("/faculty/{facultyId}")
+    @CrossOrigin(origins = "http://localhost:3000")
     public List<StudentDTO> getAllStudentsFromFaculty(@PathVariable Integer facultyId) {
         return studentService.getAllStudentsFromFaculty(facultyId);
     }
 
     @GetMapping
+    @CrossOrigin(origins = "http://localhost:3000")
     public List<StudentDTO> getAllStudents() {
         return studentService.getAllStudents();
     }
 
     @PostMapping
+    @CrossOrigin(origins = "http://localhost:3000")
     public StudentDTO createStudent(@RequestBody StudentDTO studentDTO) {
         return studentService.createStudent(studentDTO);
     }
 
     @DeleteMapping("/{studentId}")
+    @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<Void> deleteStudent(@PathVariable Integer studentId) {
         studentService.deleteStudent(studentId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{studentId}")
+    @CrossOrigin(origins = "http://localhost:3000")
     public StudentDTO getStudent(@PathVariable Integer studentId) {
         return studentService.getStudent(studentId);
     }

@@ -1,77 +1,89 @@
-.sp-card {
-  display: flex;
-  background-color: #f9f9f9;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.sp-info {
-  flex: 1;
-}
-
-.sp-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 8px;
-}
-
-.sp-info h3 {
-  font-size: 1rem;
-  color: #333;
-  margin: 0;
+/* src/styles/SPCard.css */
+.sp-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: transform 0.2s ease;
+  }
   
-  font-weight: 600;
-  max-width: 80%; /* Ensure title doesn't overlap view count */
-}
-
-.view-count {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.7rem;
-  color: #777;
-}
-
-.eye-icon {
-  width: 14px;
-  height: 14px;
-}
-
-.sp-info p {
-  font-size: 0.70rem;
-  color: #555;
-  margin-bottom: 6px;
-}
-
-.sp-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-bottom: 10px;
-}
-
-.sp-tag {
-  display: inline-block;
-  font-size: 0.65rem;
-  background-color: #f0f0f0;
-  color: #555;
-  padding: 2px 8px;
-  border-radius: 12px;
-  border: 1px solid #ddd;
-}
-
-.sp-info .browse-button {
-  background-color: #000000;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  margin-top: 5px;
-}
-
-.sp-info .browse-button:hover {
-  background-color: #474747;
-}
+  .sp-card-link:hover {
+    transform: translateY(-3px);
+  }
+  
+  .sp-card {
+    display: flex;
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    position: relative;
+  }
+  
+  .sp-card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .sp-info {
+    flex: 1;
+    position: relative;
+  }
+  
+  .sp-info h3 {
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    color: #333;
+    padding-right: 50px; /* Make space for view count */
+  }
+  
+  .sp-meta {
+    font-size: 0.85rem;
+    color: #555;
+    margin-bottom: 8px;
+  }
+  
+  .view-count {
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: 0.8rem;
+    color: #777;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  
+  .eye-icon {
+    font-style: normal;
+  }
+  
+  .sp-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  
+  .sp-tag {
+    background-color: #f0f0f0;
+    border-radius: 15px;
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    color: #555;
+  }
+  .view-count {
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: 0.8rem;
+    color: #777;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .eye-icon {
+    width: 16px;
+    height: 16px;
+    stroke: #777;
+    margin-right: 2px;
+  }

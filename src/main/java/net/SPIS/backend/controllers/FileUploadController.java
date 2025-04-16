@@ -24,6 +24,7 @@ public class FileUploadController {
     private String uploadDir;
 
     @PostMapping("/images")
+    @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Please select a file to upload"));
@@ -57,6 +58,7 @@ public class FileUploadController {
     }
 
     @GetMapping("/images/{filename:.+}")
+    @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<byte[]> getImage(@PathVariable String filename) {
         try {
             Path path = Paths.get(uploadDir + "/images/" + filename);

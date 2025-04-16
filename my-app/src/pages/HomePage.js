@@ -6,6 +6,8 @@ import AdviserCard from '../components/AdviserCard';
 import SPCard from '../components/SPCard';
 import '../styles/HomePage.css';
 
+import { Link } from 'react-router-dom';
+
 function HomePage() {
   const [topAdvisers, setTopAdvisers] = useState([]);
   const [topSPs, setTopSPs] = useState([]);
@@ -146,44 +148,44 @@ function HomePage() {
         </section>
 
         <div className="popular-sections">
-          <section className="popular-advisers">
-            <h2>MOST POPULAR ADVISERS</h2>
-            <p className="section-description">
-              Explore the most sought-after SP adviser, recognized for their research mentorship.
-            </p>
-            <div className="adviser-cards">
-              {topAdvisers.map(adviser => (
-                <AdviserCard 
-                  key={adviser.adminId}
-                  id={adviser.adminId}
-                  firstName={adviser.firstName}
-                  lastName={adviser.lastName}
-                />
-              ))}
-            </div>
-            <button className="browse-button-adviser">Browse Popular Advisers</button>
-          </section>
+        <section className="popular-advisers">
+  <h2>MOST POPULAR ADVISERS</h2>
+  <p className="section-description">
+    Explore the most sought-after SP adviser, recognized for their research mentorship.
+  </p>
+  <div className="adviser-cards">
+    {topAdvisers.map(adviser => (
+      <AdviserCard 
+        key={adviser.adminId}
+        id={adviser.adminId}
+        firstName={adviser.firstName}
+        lastName={adviser.lastName}
+      />
+    ))}
+  </div>
+  <Link to="/advisers" className="browse-button-adviser">Browse Popular Advisers</Link>
+</section>
 
-          <section className="popular-projects">
-            <h2>MOST POPULAR SPECIAL PROJECTS</h2>
-            <p className="section-description">
-              Discover the most sought-after SPs, each chosen for their creativity, research excellence, and real-world relevance!
-            </p>
-            <div className="sp-cards">
-              {topSPs.map(sp => (
-                <SPCard 
-                  key={sp.spId}
-                  id={sp.spId}
-                  title={sp.title}
-                  year={sp.year}
-                  semester={sp.semester}
-                  viewCount={sp.viewCount}
-                  tags={sp.tags}
-                />
-              ))}
-            </div>
-            <button className="browse-button-sp">Browse Popular SPs</button>
-          </section>
+<section className="popular-projects">
+  <h2>MOST POPULAR SPECIAL PROJECTS</h2>
+  <p className="section-description">
+    Discover the most sought-after SPs, each chosen for their creativity, research excellence, and real-world relevance!
+  </p>
+  <div className="sp-cards">
+    {topSPs.map(sp => (
+      <SPCard 
+        key={sp.spId}
+        id={sp.spId}
+        title={sp.title}
+        year={sp.year}
+        semester={sp.semester}
+        viewCount={sp.viewCount}
+        tags={sp.tags}
+      />
+    ))}
+  </div>
+  <Link to="/projects" className="browse-button-sp">Browse Popular SPs</Link>
+</section>
         </div>
       </div>
     </div>

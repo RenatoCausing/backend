@@ -23,6 +23,10 @@ public class Admin {
     @Column(nullable = false)
     private String role;
 
+    // New fields
+    @Column(name = "email")
+    private String email;
+
     @Column(name = "image_path")
     private String imagePath;
 
