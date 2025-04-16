@@ -1,106 +1,130 @@
+/* HomePage.css */
+
 .home-page {
+  position: relative;
+  overflow-x: hidden;
   min-height: 100vh;
 }
 
+/* Background Elements */
+.hero-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  z-index: -2;
+}
+
+.white-overlay {
+  position: fixed;
+  top: 100vh; /* Start below the viewport */
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: white;
+  z-index: -1;
+  transition: transform 0.05s ease-out; /* Smooth the movement */
+}
+
+.leaderboard-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  z-index: -3; /* Behind the first background */
+}
+
+/* Content Sections */
+.container {
+  position: relative;
+  z-index: 1;
+  padding: 2rem;
+}
+
 .browse-section {
-  margin: 40px 0;
-}
-
-.browse-section h2 {
-  color: #8b0000;
-  margin-bottom: 20px;
-}
-
-.project-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-  
+  background-color: rgba(255, 255, 255, 0.95);
+  padding: 2rem;
+  border-radius: 8px;
+  margin-top: 80vh; /* Position below the hero section */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .popular-sections {
+  margin-top: 4rem;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 30px;
-  margin: 40px 0;
+  gap: 2rem;
+  padding: 2rem 0;
 }
 
-.popular-advisers, .popular-projects {
-  background-color: white;
-  padding: 20px;
+/* Make the cards container a grid layout */
+.project-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.adviser-cards,
+.sp-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+/* Section Styles */
+.popular-advisers,
+.popular-projects {
+  background-color: rgba(255, 255, 255, 0.9);
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
+  padding: 2rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.popular-advisers h2{
-  color: #8b0000;
-  
-  font-weight: 600;
-  margin-bottom: 10px;
+h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  color: #333;
 }
 
-.popular-projects h2 {
-    color: #000000;
-    
-  font-weight: 600;
-    margin-bottom: 10px;
-}
 .section-description {
   color: #666;
-  margin-bottom: 20px;
-  font-size: 13px;
+  margin-bottom: 1.5rem;
 }
 
-.adviser-cards, .sp-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-.browse-button {
-    background-color: #8b0000;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 4px;
-    font-size: 0.9rem;
-  }
-
-  .browse-button:hover {
-    background-color: #6d0000;
-  }
-
-.browse-button-adviser {
-  background-color: #8b0000;
-  color: white;
-  border: none;
-  padding: 8px 15px;
-  border-radius: 4px;
-  font-size: 0.9rem;
-}
+/* Button Styles */
+.browse-button-adviser,
 .browse-button-sp {
-    background-color: #000000;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 4px;
-    font-size: 0.9rem;
-  }
-
-.browse-button-adviser:hover {
-  background-color: #6d0000;
+  display: inline-block;
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  background-color: #0066cc;
+  color: white;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: background-color 0.3s;
 }
 
+.browse-button-adviser:hover,
 .browse-button-sp:hover {
-    background-color: #4b4b4b;
+  background-color: #0055aa;
 }
-  
 
+/* Responsive adjustments */
 @media (max-width: 768px) {
   .popular-sections {
-    
     grid-template-columns: 1fr;
+  }
+  
+  .browse-section {
+    margin-top: 60vh;
   }
 }

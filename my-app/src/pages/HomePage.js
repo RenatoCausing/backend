@@ -6,15 +6,33 @@ import AdviserCard from '../components/AdviserCard';
 import SPCard from '../components/SPCard';
 import '../styles/HomePage.css';
 
+import heroBackground from '../images/hero-background.jpg';
+import leaderboardBackground from '../images/leaderboard-background.jpg';
+
 import { Link } from 'react-router-dom';
 
 function HomePage() {
   const [topAdvisers, setTopAdvisers] = useState([]);
   const [topSPs, setTopSPs] = useState([]);
   const [featuredProjects, setFeaturedProjects] = useState([]);
+  const [scrollPosition, setScrollPosition] = useState(0);
   
   // Backend URL
   const BACKEND_URL = 'http://localhost:8080';
+
+  // Handle scroll events to update parallax effect
+  useEffect(() => {
+    const handleScroll = () => {
+      const position = window.pageYOffset;
+      setScrollPosition(position);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   useEffect(() => {
     // Fetch top advisers with absolute URL
@@ -129,8 +147,20 @@ function HomePage() {
 
   return (
     <div className="home-page">
+      {/* Fixed background image for hero section */}
+      <div className="hero-background" style={{ backgroundImage: `url(${heroBackground})` }}></div>
+      
+      {/* Content */}
       <Navbar />
       <HeroSection />
+      
+      {/* White overlay that moves with scroll */}
+      <div className="white-overlay" style={{ 
+        transform: `translateY(${Math.max(0, scrollPosition - 400)}px)` 
+      }}></div>
+      
+      {/* Second background image for leaderboards */}
+      <div className="leaderboard-background" style={{ backgroundImage: `url(${leaderboardBackground})` }}></div>
       
       <div className="container">
         <section className="browse-section">
@@ -148,44 +178,44 @@ function HomePage() {
         </section>
 
         <div className="popular-sections">
-        <section className="popular-advisers">
-  <h2>MOST POPULAR ADVISERS</h2>
-  <p className="section-description">
-    Explore the most sought-after SP adviser, recognized for their research mentorship.
-  </p>
-  <div className="adviser-cards">
-    {topAdvisers.map(adviser => (
-      <AdviserCard 
-        key={adviser.adminId}
-        id={adviser.adminId}
-        firstName={adviser.firstName}
-        lastName={adviser.lastName}
-      />
-    ))}
-  </div>
-  <Link to="/advisers" className="browse-button-adviser">Browse Popular Advisers</Link>
-</section>
+          <section className="popular-advisers">
+            <h2>MOST POPULAR ADVISERS</h2>
+            <p className="section-description">
+              Explore the most sought-after SP adviser, recognized for their research mentorship.
+            </p>
+            <div className="adviser-cards">
+              {topAdvisers.map(adviser => (
+                <AdviserCard 
+                  key={adviser.adminId}
+                  id={adviser.adminId}
+                  firstName={adviser.firstName}
+                  lastName={adviser.lastName}
+                />
+              ))}
+            </div>
+            <Link to="/advisers" className="browse-button-adviser">Browse Popular Advisers</Link>
+          </section>
 
-<section className="popular-projects">
-  <h2>MOST POPULAR SPECIAL PROJECTS</h2>
-  <p className="section-description">
-    Discover the most sought-after SPs, each chosen for their creativity, research excellence, and real-world relevance!
-  </p>
-  <div className="sp-cards">
-    {topSPs.map(sp => (
-      <SPCard 
-        key={sp.spId}
-        id={sp.spId}
-        title={sp.title}
-        year={sp.year}
-        semester={sp.semester}
-        viewCount={sp.viewCount}
-        tags={sp.tags}
-      />
-    ))}
-  </div>
-  <Link to="/projects" className="browse-button-sp">Browse Popular SPs</Link>
-</section>
+          <section className="popular-projects">
+            <h2>MOST POPULAR SPECIAL PROJECTS</h2>
+            <p className="section-description">
+              Discover the most sought-after SPs, each chosen for their creativity, research excellence, and real-world relevance!
+            </p>
+            <div className="sp-cards">
+              {topSPs.map(sp => (
+                <SPCard 
+                  key={sp.spId}
+                  id={sp.spId}
+                  title={sp.title}
+                  year={sp.year}
+                  semester={sp.semester}
+                  viewCount={sp.viewCount}
+                  tags={sp.tags}
+                />
+              ))}
+            </div>
+            <Link to="/projects" className="browse-button-sp">Browse Popular SPs</Link>
+          </section>
         </div>
       </div>
     </div>
