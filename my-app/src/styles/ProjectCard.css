@@ -1,0 +1,40 @@
+
+.project-card {
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .project-content {
+    padding: 15px;
+  }
+  
+  .project-card h3 {
+    font-weight: normal;
+    font-size: 1rem;
+    margin-bottom: 15px;
+  }
+  
+  .project-author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .author-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #ddd;
+  }
+  
+  .author-name {
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+  
+  .author-department {
+    font-size: 0.8rem;
+    color: #666;
+  }

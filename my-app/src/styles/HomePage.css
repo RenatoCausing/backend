@@ -1,0 +1,102 @@
+.home-page {
+  min-height: 100vh;
+}
+
+.browse-section {
+  margin: 40px 0;
+}
+
+.browse-section h2 {
+  color: #8b0000;
+  margin-bottom: 20px;
+}
+
+.project-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  
+}
+
+.popular-sections {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin: 40px 0;
+}
+
+.popular-advisers, .popular-projects {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+}
+
+.popular-advisers h2{
+  color: #8b0000;
+  margin-bottom: 10px;
+}
+
+.popular-projects h2 {
+    color: #000000;
+    margin-bottom: 10px;
+}
+.section-description {
+  color: #666;
+  margin-bottom: 20px;
+  font-size: 13px;
+}
+
+.adviser-cards, .sp-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.browse-button {
+    background-color: #8b0000;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+  }
+
+  .browse-button:hover {
+    background-color: #6d0000;
+  }
+
+.browse-button-adviser {
+  background-color: #8b0000;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+.browse-button-sp {
+    background-color: #000000;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+  }
+
+.browse-button-adviser:hover {
+  background-color: #6d0000;
+}
+
+.browse-button-sp:hover {
+    background-color: #4b4b4b;
+}
+  
+
+@media (max-width: 768px) {
+  .popular-sections {
+    
+    grid-template-columns: 1fr;
+  }
+}

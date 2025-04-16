@@ -1,0 +1,75 @@
+.sp-card {
+  display: flex;
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.sp-info {
+  flex: 1;
+}
+
+.sp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.sp-info h3 {
+  font-size: 1rem;
+  color: #333;
+  margin: 0;
+  max-width: 80%; /* Ensure title doesn't overlap view count */
+}
+
+.view-count {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  color: #777;
+}
+
+.eye-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.sp-info p {
+  font-size: 0.70rem;
+  color: #555;
+  margin-bottom: 6px;
+}
+
+.sp-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.sp-tag {
+  display: inline-block;
+  font-size: 0.65rem;
+  background-color: #f0f0f0;
+  color: #555;
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+}
+
+.sp-info .browse-button {
+  background-color: #000000;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  margin-top: 5px;
+}
+
+.sp-info .browse-button:hover {
+  background-color: #474747;
+}

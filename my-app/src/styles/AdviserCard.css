@@ -1,0 +1,31 @@
+
+.adviser-card {
+    display: flex;
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .adviser-image {
+    width: 80px;
+    height: 80px;
+    background-color: #ddd;
+    margin-right: 15px;
+    border-radius: 4px;
+  }
+  
+  .adviser-info {
+    flex: 1;
+  }
+  
+  .adviser-info h3 {
+    font-size: 1rem;
+    margin-bottom: 8px;
+  }
+  
+  .adviser-info p {
+    font-size: 0.7rem;
+    color: #555;
+    margin-bottom: 12px;
+  }

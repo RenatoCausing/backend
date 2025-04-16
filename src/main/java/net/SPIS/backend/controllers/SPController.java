@@ -64,6 +64,7 @@ public class SPController {
         return ResponseEntity.ok(spService.getSPViewCount(spId));
     }
 
+    @CrossOrigin(origins = "*")
     @GetMapping("/top-sps")
     public ResponseEntity<List<SPDTO>> getMostViewedSPs() {
         List<SPDTO> topSPs = spService.getMostViewedSPs(5);
@@ -73,6 +74,7 @@ public class SPController {
         return ResponseEntity.ok(topSPs);
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/top-advisers")
     public ResponseEntity<List<AdviserDTO>> getTopAdvisersByViews() { // ✅ FIXED: No @Override
         System.out.println("🔍 Endpoint /top-advisers was hit!");
