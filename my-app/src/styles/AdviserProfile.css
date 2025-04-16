@@ -2,10 +2,12 @@
 
 .adviser-profile-page {
     min-height: 100vh;
+    
     background-color: #FFFFFF;
   }
   
   .Acontainer {
+    
     width:900px;
     margin: 0 auto;
     padding: 20px;

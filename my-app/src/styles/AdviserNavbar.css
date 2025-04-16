@@ -7,9 +7,9 @@
     background-color: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     z-index: 1000;
-  }
-  
-  .navbar-container {
+}
+
+.navbar-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -17,39 +17,37 @@
     height: 60px;
     max-width: 1200px;
     margin: 0 auto;
-  }
-  
-  .navbar-logo {
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: #000;
+}
+
+/* Links and buttons layout */
+.navbar-links {
+    display: flex;
+    gap: 20px; /* Space between the links */
+}
+
+.navbar-link {
+    color: #000; /* Keep font color as black */
     text-decoration: none;
-    padding: 0 15px;
-  }
-  
-  .navbar-links {
+    font-size: 2vh;
+    font-weight: 200;
+    letter-spacing: 1px; /* Consistent with your other navbar */
+    padding: 8px 40px;
+    background-color: transparent;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.navbar-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Profile button style */
+.navbar-buttons {
     display: flex;
     align-items: center;
-  }
-  
-  .navbar-link {
-    color: #000;
-    text-decoration: none;
-    padding: 0 15px;
-    font-size: 1rem;
-    transition: color 0.3s ease;
-  }
-  
-  .navbar-link:hover {
-    color: #8b0000;
-  }
-  
-  .navbar-buttons {
-    display: flex;
-    align-items: center;
-  }
-  
-  .profile-button {
+}
+
+.profile-button {
     background-color: #8b0000;
     color: white;
     border: none;
@@ -59,63 +57,109 @@
     font-size: 1rem;
     cursor: pointer;
     transition: background-color 0.3s ease;
-  }
-  
-  .profile-button:hover {
+}
+
+.profile-button:hover {
     background-color: #6d0000;
-  }
-  
-  .hamburger {
+}
+
+/* Hamburger for mobile menu */
+.hamburger {
     display: none;
     flex-direction: column;
     cursor: pointer;
-  }
-  
-  .bar {
+}
+
+.bar {
     width: 25px;
     height: 3px;
     background-color: #000;
     margin: 3px 0;
     transition: 0.4s;
-  }
-  
-  .mobile-menu {
+}
+
+/* Mobile menu */
+.mobile-menu {
     display: none;
     flex-direction: column;
     background-color: white;
     width: 100%;
     padding: 10px 0;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-  
-  .mobile-link {
+}
+
+.mobile-link {
     color: #000;
     text-decoration: none;
     padding: 12px 20px;
     font-size: 1rem;
     transition: background-color 0.3s ease;
-  }
-  
-  .mobile-link:hover {
+}
+
+.mobile-link:hover {
     background-color: #f5f5f5;
-  }
-  
-  .profile-link {
+}
+
+.profile-link {
     color: #8b0000;
     font-weight: bold;
-  }
-  
-  /* Media queries for responsive design */
-  @media (max-width: 768px) {
-    .navbar-links, .navbar-buttons {
-      display: none;
+}
+
+/* Media queries for responsive design */
+@media (max-width: 768px) {
+    .navbar-links {
+        display: none;
     }
     
+    .navbar-buttons {
+        display: none;
+    }
+
     .hamburger {
-      display: flex;
+        display: flex;
     }
-    
+
     .mobile-menu {
-      display: flex;
+        display: flex;
     }
-  }
+}
+
+.navbar-container {
+    display: flex;
+    justify-content: flex-end; /* Align everything to the right */
+    align-items: center;
+    padding: 0 40px;
+    height: 60px;
+    max-width: 100%;
+    margin: 0 auto;
+    gap: 30px; /* Spacing between each item */
+}
+
+/* Reduce padding and keep spacing tight like in the image */
+.navbar-link {
+    color: white;
+    text-decoration: none;
+    font-size: 2vh;
+    font-weight: 200;
+    padding: 8px 40px;
+    background-color: transparent;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+/* Match the button in the screenshot */
+.profile-button {
+    background-color: #8b0000;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.profile-button:hover {
+    background-color: #6d0000;
+}
