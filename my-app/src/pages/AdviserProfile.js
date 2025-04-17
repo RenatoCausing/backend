@@ -110,11 +110,9 @@ function AdviserProfile() {
         <div className="profile-header">
           <div className="profile-info">
             <h1>{adviser.firstName} {adviser.lastName}</h1>
-            {/* Now using actual email from backend */}
             <p className="email">{adviser.email || 'No email available'}</p>
             
             <div className="bio">
-              {/* Now using actual description from backend */}
               <p>{adviser.description || 
                 `Dr. ${adviser.firstName} ${adviser.lastName}, PhD in Yapping - The undisputed legend of SPIS, 
                 Dr. ${adviser.lastName} has advised more projects than there are stars in the 
@@ -128,24 +126,12 @@ function AdviserProfile() {
           </div>
           
           <div className="profile-image">
-            {/* Using image_path as a full URL now */}
-            {adviser.image_path ? (
-              <img 
-                src={adviser.image_path} 
-                alt={`${adviser.firstName} ${adviser.lastName}`}
-                className="profile-img"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = 'https://via.placeholder.com/150?text=Profile';
-                }}
-              />
-            ) : (
-              <img 
-                src="https://via.placeholder.com/150?text=Profile" 
-                alt="Default profile" 
-                className="profile-img"
-              />
-            )}
+            {/* Just use the image path directly, no error handling */}
+            <img 
+              src={adviser.imagePath} 
+              alt={`${adviser.firstName} ${adviser.lastName}`}
+              className="profile-img"
+            />
           </div>
         </div>
         
