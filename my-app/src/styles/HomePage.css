@@ -39,6 +39,8 @@
   right: 0;
   bottom: 0;
   background: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.5) 100%);
+  
+  background: linear-gradient(90deg, rgba(0,0,0,0) 0%, #c00202cc 100%);
   display: flex;
   align-items: center;
   justify-content: flex-end;
