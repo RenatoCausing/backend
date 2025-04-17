@@ -20,10 +20,9 @@ public class Admin {
     @Column(name = "middle_name")
     private String middleName;
 
-    @Column(nullable = false)
+    @Column(nullable = true) // Change this to true since it can be null initially
     private String role;
 
-    // New fields
     @Column(name = "email")
     private String email;
 

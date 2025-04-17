@@ -64,7 +64,7 @@ public class AdviserServiceImpl implements AdviserService {
         return toDTO(adminRepository.save(admin));
     }
 
-    private AdviserDTO toDTO(Admin admin) {
+    public AdviserDTO toDTO(Admin admin) {
         AdviserDTO dto = new AdviserDTO();
         dto.setAdminId(admin.getAdminId());
         dto.setFirstName(admin.getFirstName());

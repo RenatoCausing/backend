@@ -1,6 +1,7 @@
 package net.SPIS.backend.service;
 
 import net.SPIS.backend.DTO.AdviserDTO;
+import net.SPIS.backend.entities.Admin;
 
 import java.util.List;
 
@@ -17,4 +18,6 @@ public interface AdviserService {
     AdviserDTO updateAdviserDescription(Integer adviserId, String description);
 
     AdviserDTO updateAdviserImage(Integer adviserId, String imagePath);
+
+    AdviserDTO toDTO(Admin admin);
 }
