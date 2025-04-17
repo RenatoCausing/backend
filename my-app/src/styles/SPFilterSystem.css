@@ -100,6 +100,9 @@
   }
   
   .mb-4 {
+    margin-left: auto;
+    margin-right: auto;
+    width:90%;
     margin-bottom: 3rem;
   }
   
@@ -179,7 +182,7 @@
   .border-red-800 {
     border-color: #991b1b;
   }
-  
+ /* 
   .rounded {
     border-radius: 0.25rem;
   }
@@ -202,7 +205,8 @@
     border-bottom-left-radius: 0.25rem;
     border-bottom-right-radius: 0.25rem;
   }
-  
+  */
+
   /* Typography */
   .text-lg {
     font-size: 1.125rem;

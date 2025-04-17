@@ -355,7 +355,7 @@ const SPFilterSystem = () => {
                 <input 
                   type="text" 
                   className="w-full border border-gray-300 rounded-l p-2 text-sm"
-                  placeholder="Search adviser..."
+                  placeholder="Search adviser"
                   value={adviserInput}
                   onChange={(e) => setAdviserInput(e.target.value)}
                   onClick={() => setShowAdviserDropdown(true)}
@@ -407,7 +407,7 @@ const SPFilterSystem = () => {
                 <input 
                   type="text" 
                   className="w-full border border-gray-300 rounded-l p-2 text-sm"
-                  placeholder="Search tags..."
+                  placeholder="Search tags"
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                   onClick={() => setShowTagDropdown(true)}
@@ -485,7 +485,7 @@ const SPFilterSystem = () => {
               <div className="flex flex-1">
                 <input 
                   type="text" 
-                  placeholder="Search..." 
+                  placeholder="Search" 
                   className="flex-1 border border-gray-300 rounded-l p-2"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
