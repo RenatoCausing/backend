@@ -373,12 +373,15 @@ h4{
   font-size: 1.8rem;
   margin-bottom: 1rem;
   color: #800000;
+  font-weight: 500;
   text-shadow: #222;
 }
 h5{
   font-size: 1.8rem;
   margin-bottom: 1rem;
   color: #000000;
+  
+  font-weight: 500;
   text-shadow: #222;
 }
 
@@ -493,4 +496,6 @@ h5{
   .feature-section {
     height: 400px; /* Slightly shorter on mobile */
   }
+
+  
 }
