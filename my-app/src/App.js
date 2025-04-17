@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import HomePage from './pages/HomePage';
 import AdviserProfile from './pages/AdviserProfile';
 import LoginPage from './pages/LoginPage';
+import SPFilterSystem from './pages/SPFilterSystem';
 import OAuthCallback from './components/OAuthCallback';
 import { useUser } from './contexts/UserContext';
 import './App.css';
@@ -84,10 +85,10 @@ function App() {
           } 
         />
         <Route 
-          path="/projects" 
+          path="/search" 
           element={
             <RequireAuth>
-              <div>All Projects Page (To be implemented)</div>
+              <SPFilterSystem/>
             </RequireAuth>
           } 
         />
@@ -100,6 +101,8 @@ function App() {
           } 
         />
         
+
+
         {/* Catch all - redirect to login */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
