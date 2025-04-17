@@ -38,8 +38,8 @@ const handleGuestLogin = () => {
   alt="University Logo" 
   className="logo"
 />
-        <h1>Sign in to WorkOS</h1>
-        <p>This workspace allows you to sign in with your<br />@workos.com Google account.</p>
+        <h1>Sign in to SPIS</h1>
+        <p>This repository allows you to sign in with your<br />UP Google account.</p>
         
         <button 
           className="google-btn" 
