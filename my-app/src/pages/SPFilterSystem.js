@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/SPFilterSystem.css';
+import Navbar from '../components/NavBar';
 
 const SPFilterSystem = () => {
   // State management
@@ -74,21 +75,6 @@ const SPFilterSystem = () => {
       }
     },
     
-    fetchSPsByTags: async (tagIds) => {
-      try {
-        const queryParams = tagIds.map(id => `tagIds=${id}`).join('&');
-        const response = await fetch(`http://localhost:8080/api/sp/tags?${queryParams}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch SPs by tags');
-        }
-        return await response.json();
-      } catch (error) {
-        console.error('Error fetching SPs by tags:', error);
-        return [];
-      }
-    },
-    
-    // Combined filtering - server-side if supported, otherwise client-side
     applyFilters: async (filters) => {
       const { adviserIds, tagIds, departmentId, searchTerm } = filters;
       
@@ -143,14 +129,12 @@ const SPFilterSystem = () => {
         
         if (tagIds && tagIds.length) {
           result = result.filter(sp => {
-            // Check if SP has any of the specified tags
             if (!sp.tagIds) return false;
             return tagIds.some(tagId => sp.tagIds.includes(tagId));
           });
         }
         
         if (departmentId) {
-          // Filter by department ID
           result = result.filter(sp => {
             if (sp.facultyId) return sp.facultyId === parseInt(departmentId);
             return sp.groupId && sp.groupId === parseInt(departmentId);
@@ -175,20 +159,16 @@ const SPFilterSystem = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch advisers
         const adviserData = await SPApiService.fetchAllAdvisers();
         setAdvisers(adviserData || []);
         
-        // Fetch tags
         const tagData = await SPApiService.fetchAllTags();
         setTags(tagData || []);
         
-        // Fetch SPs
         const spData = await SPApiService.fetchAllSPs();
         setSps(spData || []);
         setFilteredSps(spData || []);
         
-        // Initialize active tabs
         const initialActiveTabs = {};
         if (spData && Array.isArray(spData)) {
           spData.forEach(sp => {
@@ -243,7 +223,6 @@ const SPFilterSystem = () => {
         const filteredResults = await SPApiService.applyFilters(filters);
         setFilteredSps(filteredResults || []);
         
-        // Update search results info if search term is provided
         if (searchTerm) {
           setSearchResults({
             term: searchTerm,
@@ -293,6 +272,18 @@ const SPFilterSystem = () => {
     setSelectedTags(selectedTags.filter(t => t.tagId !== tagId));
   };
   
+  // Clear all advisers
+  const clearAllAdvisers = () => {
+    setSelectedAdvisers([]);
+    setAdviserInput('');
+  };
+  
+  // Clear all tags
+  const clearAllTags = () => {
+    setSelectedTags([]);
+    setTagInput('');
+  };
+  
   // Handle department selection
   const handleDepartmentChange = (e) => {
     setSelectedDepartment(e.target.value);
@@ -314,7 +305,6 @@ const SPFilterSystem = () => {
   // Handle search submission
   const handleSearch = (e) => {
     e.preventDefault();
-    // Search term is already being watched in useEffect
   };
   
   // Filter advisers based on input
@@ -324,7 +314,7 @@ const SPFilterSystem = () => {
      (adviser.firstName && adviser.firstName.toLowerCase().includes(adviserInput.toLowerCase())))
   );
   
-  // Filter tags based on input - show all tags that match the input
+  // Filter tags based on input
   const filteredTags = tags.filter(tag => 
     tag && tag.tagName && 
     tag.tagName.toLowerCase().includes(tagInput.toLowerCase())
@@ -346,87 +336,44 @@ const SPFilterSystem = () => {
   };
 
   return (
-    <div className="sp-filter-system">
-      {/* Header Navigation */}
-      <div className="header">
-        <div className="logo-container">
-          <img src="/logo.png" alt="University Logo" className="logo" />
-        </div>
-        <div className="nav-menu">
-          <a href="#" className="nav-item">Search</a>
-          <a href="#" className="nav-item">Leaderboard</a>
-          <a href="#" className="nav-item">Home</a>
-          <a href="#" className="nav-item profile-btn">Profile</a>
-        </div>
-      </div>
-      
-      {/* Search and Filter Area */}
-      <div className="search-filter-area">
-        <form onSubmit={handleSearch} className="search-row">
-          <div className="select-container">
-            <select 
-              className="department-select" 
-              onChange={handleDepartmentChange}
-              value={selectedDepartment}
-            >
-              <option value="">Department</option>
-              <option value="1">BSCS</option>
-              <option value="2">BSBC</option>
-              <option value="3">BSAP</option>
-            </select>
+    <div><Navbar/>
+    <div className="flex w-full justify-center">
+    
+      <div className="flex w-full max-w-6xl">
+        {/* Left Container */}
+        <div className="w-14 p-4 border-r border-gray-200">
+          {/* Logo */}
+          <div className="mb-8">
+            <img src="https://upload.wikimedia.org/wikipedia/en/thumb/3/3d/University_of_the_Philippines_Manila_Seal.svg/640px-University_of_the_Philippines_Manila_Seal.svg.png" alt="University Logo" className="w-48 mx-auto" />
           </div>
           
-          <div className="select-container">
-            <select 
-              className="field-select"
-              onChange={handleFieldChange}
-              value={selectedField}
-            >
-              <option value="">Any Field</option>
-              <option value="1">AI</option>
-              <option value="2">Database</option>
-            </select>
-          </div>
-          
-          <div className="search-container">
-            <input 
-              type="text" 
-              placeholder="Search..." 
-              className="search-input"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <button type="submit" className="search-button">
-              <span className="search-icon">🔍</span>
-            </button>
-          </div>
-        </form>
-        
-        {searchResults && (
-          <div className="search-results-info">
-            Your search for <strong>{searchResults.term}</strong> returned {searchResults.count} records.
-          </div>
-        )}
-        
-        <div className="filters-container">
-          {/* Adviser Filter Section */}
-          <div className="filter-container">
-            <h3 className="filter-title">Advisers</h3>
-            <div className="filter-input-wrapper" ref={adviserDropdownRef}>
-              <input 
-                type="text" 
-                className="filter-input"
-                placeholder="Search advisers..."
-                value={adviserInput}
-                onChange={(e) => setAdviserInput(e.target.value)}
-                onClick={() => setShowAdviserDropdown(true)}
-              />
+          {/* Adviser Filter */}
+          <div className="mb-8">
+            <h3 className="text-lg font-bold mb-2">Advisers</h3>
+            <div className="relative mb-2" ref={adviserDropdownRef}>
+              <div className="flex">
+                <input 
+                  type="text" 
+                  className="w-full border border-gray-300 rounded-l p-2 text-sm"
+                  placeholder="Search adviser..."
+                  value={adviserInput}
+                  onChange={(e) => setAdviserInput(e.target.value)}
+                  onClick={() => setShowAdviserDropdown(true)}
+                />
+                <button 
+                  className="bg-red-700 text-white px-2 rounded-r"
+                  onClick={clearAllAdvisers}
+                >
+                  ×
+                </button>
+              </div>
+              
               {showAdviserDropdown && filteredAdvisers.length > 0 && (
-                <div className="dropdown-list">
+                <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-b mt-1 max-h-40 overflow-y-auto">
                   {filteredAdvisers.map(adviser => (
                     <div 
                       key={adviser.adminId} 
-                      className="dropdown-item"
+                      className="p-2 hover:bg-gray-100 cursor-pointer text-sm"
                       onClick={() => handleSelectAdviser(adviser)}
                     >
                       {formatName(adviser)}
@@ -436,122 +383,189 @@ const SPFilterSystem = () => {
               )}
             </div>
             
-            <div className="selected-items">
+            <div className="flex flex-wrap gap-1 max-h-40 overflow-y-auto">
               {selectedAdvisers.map(adviser => (
-                <div key={adviser.adminId} className="selected-item">
-                  <span className="item-text">{formatName(adviser)}</span>
+                <div key={adviser.adminId} className="bg-red-800 text-white text-sm rounded px-2 py-1 flex items-center mb-1 mr-1">
+                  {adviser.lastName}{adviser.firstName && `, ${adviser.firstName}`}
+                  <span className="ml-1 text-xs">{adviser.count || ''}</span>
                   <button 
-                    type="button"
-                    className="remove-btn" 
+                    className="ml-2 text-white font-bold"
                     onClick={() => removeAdviser(adviser.adminId)}
-                  >×</button>
+                  >
+                    ×
+                  </button>
                 </div>
               ))}
             </div>
           </div>
           
-          {/* Tags Filter Section */}
-          <div className="filter-container">
-            <h3 className="filter-title">Tags</h3>
-            <div className="filter-input-wrapper" ref={tagDropdownRef}>
-              <input 
-                type="text" 
-                className="filter-input"
-                placeholder="Search tags..."
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onClick={() => setShowTagDropdown(true)}
-              />
+          {/* Tags Filter */}
+          <div>
+            <h3 className="text-lg font-bold mb-2">Tags</h3>
+            <div className="relative mb-2" ref={tagDropdownRef}>
+              <div className="flex">
+                <input 
+                  type="text" 
+                  className="w-full border border-gray-300 rounded-l p-2 text-sm"
+                  placeholder="Search tags..."
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onClick={() => setShowTagDropdown(true)}
+                />
+                <button 
+                  className="bg-red-700 text-white px-2 rounded-r"
+                  onClick={clearAllTags}
+                >
+                  ×
+                </button>
+              </div>
+              
               {showTagDropdown && (
-                <div className="dropdown-list">
+                <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-b mt-1 max-h-40 overflow-y-auto">
                   {filteredTags.length > 0 ? (
                     filteredTags.map(tag => (
                       <div 
                         key={tag.tagId} 
-                        className="dropdown-item"
+                        className="p-2 hover:bg-gray-100 cursor-pointer text-sm"
                         onClick={() => handleSelectTag(tag)}
                       >
                         {tag.tagName}
                       </div>
                     ))
                   ) : (
-                    <div className="dropdown-item">No matching tags found</div>
+                    <div className="p-2 text-sm text-gray-500">No matching tags</div>
                   )}
                 </div>
               )}
             </div>
             
-            <div className="selected-items">
+            <div className="flex flex-wrap gap-1 max-h-60 overflow-y-auto">
               {selectedTags.map(tag => (
-                <div key={tag.tagId} className="selected-item">
-                  <span className="item-text">{tag.tagName}</span>
+                <div key={tag.tagId} className="bg-red-800 text-white text-sm rounded px-2 py-1 flex items-center mb-1 mr-1">
+                  {tag.tagName}
+                  <span className="ml-1 text-xs">{tag.count || ''}</span>
                   <button 
-                    type="button"
-                    className="remove-btn" 
+                    className="ml-2 text-white font-bold"
                     onClick={() => removeTag(tag.tagId)}
-                  >×</button>
+                  >
+                    ×
+                  </button>
                 </div>
               ))}
             </div>
           </div>
         </div>
-      </div>
-      
-      {/* Loading and Error States */}
-      {loading && <div className="loading-message">Loading...</div>}
-      {error && <div className="error-message">{error}</div>}
-      
-      {/* SP Results */}
-      <div className="sp-results">
-        {!loading && filteredSps.length === 0 && (
-          <div className="no-results">No results found. Try adjusting your filters.</div>
-        )}
         
-        {filteredSps.map(sp => (
-          <div key={sp.spId} className="sp-card">
-            <h3 className="sp-title">
-              <a href={`/sp/${sp.spId}`}>{sp.title}</a>
-            </h3>
-            
-            <div className="sp-meta">
-              <span className="meta-item">
-                <i className="user-icon">👤</i> By {sp.author || 'Unknown Author'}
-              </span>
-              <span className="meta-item">
-                <i className="calendar-icon">📅</i> {sp.date || sp.year || 'No Date'}
-              </span>
-              <span className="meta-item">
-                <i className="document-icon">📄</i> {sp.type || 'Thesis/Dissertation'}
-              </span>
-            </div>
-            
-            <div className="sp-abstract">{sp.abstractText || 'No abstract available.'}</div>
-            
-            <div className="sp-tags">
-              {getTagsForSp(sp).map(tag => (
-                <span key={tag.tagId} className="sp-tag">{tag.tagName}</span>
-              ))}
-            </div>
-            
-            <div className="sp-tabs">
-              <button 
-                type="button"
-                className={`tab-btn ${activeTabs[sp.spId] === 'AI' ? 'active' : ''}`}
-                onClick={() => handleTabChange(sp.spId, 'AI')}
+        {/* Right Container */}
+        <div className="w-34 p-4">
+          {/* Search and Filter Row */}
+          <div className="mb-4">
+            <form onSubmit={handleSearch} className="flex gap-2 mb-4">
+              <select 
+                className="border border-gray-300 rounded p-2 w-40"
+                onChange={handleDepartmentChange}
+                value={selectedDepartment}
               >
-                AI
-              </button>
-              <button 
-                type="button"
-                className={`tab-btn ${activeTabs[sp.spId] === 'Database' ? 'active' : ''}`}
-                onClick={() => handleTabChange(sp.spId, 'Database')}
+                <option value="">Department</option>
+                <option value="1">BSCS</option>
+                <option value="2">BSBC</option>
+                <option value="3">BSAP</option>
+              </select>
+              
+              <select 
+                className="border border-gray-300 rounded p-2 w-40"
+                onChange={handleFieldChange}
+                value={selectedField}
               >
-                Database
-              </button>
-            </div>
+                <option value="">Any Field</option>
+                <option value="1">AI</option>
+                <option value="2">Database</option>
+              </select>
+              
+              <div className="flex flex-1">
+                <input 
+                  type="text" 
+                  placeholder="Search..." 
+                  className="flex-1 border border-gray-300 rounded-l p-2"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <button 
+                  type="submit" 
+                  className="bg-red-800 text-white px-4 rounded-r"
+                >
+                  🔍
+                </button>
+              </div>
+            </form>
+            
+            {searchResults && (
+              <div className="bg-green-100 p-3 rounded mb-4">
+                Your search for <strong>{searchResults.term}</strong> returned {searchResults.count} records.
+              </div>
+            )}
           </div>
-        ))}
+          
+          {/* Loading and Error States */}
+          {loading && <div className="bg-blue-50 p-4 text-center text-blue-700 rounded">Loading...</div>}
+          {error && <div className="bg-red-50 p-4 text-center text-red-700 rounded">{error}</div>}
+          
+          {/* SP Results */}
+          <div>
+            {!loading && filteredSps.length === 0 && (
+              <div className="bg-gray-100 p-4 text-center text-gray-600 rounded">
+                No results found. Try adjusting your filters.
+              </div>
+            )}
+            
+            {filteredSps.map(sp => (
+              <div key={sp.spId} className="mb-6 border-l-4 border-red-800 bg-gray-50 p-4">
+                <h3 className="text-lg font-semibold mb-2">
+                  <a href={`/sp/${sp.spId}`} className="text-blue-600 hover:underline">{sp.title}</a>
+                </h3>
+                
+                <div className="text-sm text-gray-600 mb-3 flex flex-wrap gap-6">
+                  <span>
+                    👤 By {sp.author || 'Unknown Author'}
+                  </span>
+                  <span>
+                    📅 {sp.date || sp.year || 'No Date'}
+                  </span>
+                  <span>
+                    📄 {sp.type || 'Thesis/Dissertation'}
+                  </span>
+                </div>
+                
+                <div className="text-sm mb-3">{sp.abstractText || 'No abstract available.'}</div>
+                
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {getTagsForSp(sp).map(tag => (
+                    <span key={tag.tagId} className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
+                      {tag.tagName}
+                    </span>
+                  ))}
+                </div>
+                
+                <div className="flex gap-1">
+                  <button 
+                    className={`px-3 py-1 text-sm rounded ${activeTabs[sp.spId] === 'AI' ? 'bg-red-800 text-white' : 'bg-gray-200'}`}
+                    onClick={() => handleTabChange(sp.spId, 'AI')}
+                  >
+                    AI
+                  </button>
+                  <button 
+                    className={`px-3 py-1 text-sm rounded ${activeTabs[sp.spId] === 'Database' ? 'bg-red-800 text-white' : 'bg-gray-200'}`}
+                    onClick={() => handleTabChange(sp.spId, 'Database')}
+                  >
+                    Database
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
+    </div>
     </div>
   );
 };
