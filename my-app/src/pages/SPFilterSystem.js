@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/SPFilterSystem.css';
-import Navbar from '../components/NavBar';
-
+import AdviserNavbar from '../components/AdviserNavbar';
 const SPFilterSystem = () => {
   // State management
   const [advisers, setAdvisers] = useState([]);
@@ -336,7 +335,8 @@ const SPFilterSystem = () => {
   };
 
   return (
-    <div><Navbar/>
+    <div><AdviserNavbar/>
+    
     <div className="flex w-full justify-center">
     
       <div className="flex w-full max-w-6xl">

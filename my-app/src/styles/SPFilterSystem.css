@@ -33,10 +33,12 @@
   }
   
   .w-14 {
+    margin-top: 10rem;
     width: 13%;
   }
   
   .w-34 {
+    margin-top: 8rem;
     width: 50%;
   }
   
@@ -98,7 +100,7 @@
   }
   
   .mb-4 {
-    margin-bottom: 1rem;
+    margin-bottom: 3rem;
   }
   
   .mb-3 {
