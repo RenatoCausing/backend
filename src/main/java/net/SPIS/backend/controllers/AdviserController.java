@@ -72,21 +72,47 @@ public class AdviserController {
     public ResponseEntity<AdviserDTO> getCurrentUser(@AuthenticationPrincipal OAuth2User principal) {
         try {
             if (principal == null) {
-                System.err.println("OAuth principal is null!");
+                System.err.println("ERROR: OAuth principal is null!");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
             String email = principal.getAttribute("email");
+            if (email == null) {
+                System.err.println("ERROR: Email attribute is missing from OAuth principal");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+
             System.out.println("Processing OAuth for email: " + email);
 
-            Admin admin = adminRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+            // Find admin by email or create a new one if not found
+            Admin admin = adminRepository.findByEmail(email).orElse(null);
 
-            System.out.println("Found admin ID: " + admin.getAdminId());
+            if (admin == null) {
+                // Create new admin if not found
+                admin = new Admin();
+                admin.setEmail(email);
+                admin.setFirstName(principal.getAttribute("given_name"));
+                admin.setLastName(principal.getAttribute("family_name"));
+                admin.setImagePath(principal.getAttribute("picture"));
+                admin.setRole(null);
+
+                try {
+                    admin = adminRepository.save(admin);
+                    System.out.println("Created new admin with ID: " + admin.getAdminId());
+                } catch (Exception e) {
+                    System.err.println("ERROR saving admin: " + e.getMessage());
+                    e.printStackTrace();
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body(null);
+                }
+            } else {
+                System.out.println("Found existing admin with ID: " + admin.getAdminId());
+            }
+
             AdviserDTO dto = adviserService.toDTO(admin);
             return ResponseEntity.ok(dto);
         } catch (Exception e) {
-            System.err.println("Error in process-oauth: " + e.getMessage());
+            System.err.println("Unhandled error in process-oauth: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -98,5 +124,31 @@ public class AdviserController {
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.LOCATION, "http://localhost:3000")
                 .build();
+    }
+
+    @PostMapping("/dev-login")
+    @CrossOrigin(origins = "http://localhost:3000")
+    public ResponseEntity<AdviserDTO> devLogin(@RequestBody Map<String, String> body) {
+        // Only enable this in development mode!
+        if (!"development".equals(System.getProperty("spring.profiles.active"))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        String email = body.get("email");
+        if (email == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        // Find or create admin
+        Admin admin = adminRepository.findByEmail(email).orElseGet(() -> {
+            Admin newAdmin = new Admin();
+            newAdmin.setEmail(email);
+            newAdmin.setFirstName("Dev");
+            newAdmin.setLastName("User");
+            newAdmin.setRole(null);
+            return adminRepository.save(newAdmin);
+        });
+
+        return ResponseEntity.ok(adviserService.toDTO(admin));
     }
 }
