@@ -21,7 +21,7 @@
     font-weight: 200;
     padding: 8px 40px;
     background-color: transparent;
-    border-radius: 4px;
+  /*  border-radius: 4px; */
     transition: background-color 0.3s;
   }
   
@@ -32,5 +32,5 @@
   /* Style for the Profile button specifically */
   .nav-link:last-child {
     border: 2px solid white;
-    border-radius: 5px;
+ /*   border-radius: 5px; */
   }
