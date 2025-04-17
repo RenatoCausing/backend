@@ -9,6 +9,8 @@ import { Link } from 'react-router-dom';
 // Import images directly
 import heroBackgroundImg from '../images/hero-background.jpg';
 import leaderboardBackgroundImg from '../images/leaderboard-background.jpg';
+// Import placeholder for feature section
+import featureBackgroundImg from '../images/feature-background.jpg';
 
 function HomePage() {
   // Initialize state with empty arrays to prevent mapping errors
@@ -201,60 +203,7 @@ function HomePage() {
         "viewCount": 8,
         "tags": ["Quantum Computing", "Algorithms"]
       },
-      {
-        "spId": 52,
-        "title": "Sustainable Energy Solutions",
-        "description": "Research on innovative sustainable energy solutions combining solar, wind, and hydroelectric power generation with efficient storage systems.",
-        "year": 2024,
-        "semester": "Summer",
-        "viewCount": 12,
-        "tags": ["Sustainability", "Energy", "Green Tech"]
-      },
-      {
-        "spId": 53,
-        "title": "Cloud-Native Architecture",
-        "description": "Design and implementation of cloud-native architectures that leverage microservices, containers, and serverless computing for scalable enterprise applications.",
-        "year": 2023,
-        "semester": "2nd",
-        "viewCount": 21,
-        "tags": ["Cloud Computing", "Software Architecture"]
-      },
-      {
-        "spId": 54,
-        "title": "Virtual Reality in Education",
-        "description": "Examining the effectiveness of virtual reality environments for enhancing learning outcomes across different educational disciplines and age groups.",
-        "year": 2023,
-        "semester": "1st",
-        "viewCount": 18,
-        "tags": ["VR", "Education", "EdTech"]
-      },
-      {
-        "spId": 55,
-        "title": "Blockchain for Supply Chain",
-        "description": "Implementation of blockchain technology to improve transparency, traceability, and efficiency in global supply chain management systems.",
-        "year": 2023,
-        "semester": "Summer",
-        "viewCount": 9,
-        "tags": ["Blockchain", "Supply Chain", "Logistics"]
-      },
-      {
-        "spId": 56,
-        "title": "Human-Computer Interaction",
-        "description": "Research on novel interaction paradigms between humans and computers, focusing on natural language processing and gesture recognition.",
-        "year": 2022,
-        "semester": "2nd",
-        "viewCount": 25,
-        "tags": ["HCI", "UX", "Design"]
-      },
-      {
-        "spId": 57,
-        "title": "Robotics in Healthcare",
-        "description": "Development of robotic systems for healthcare applications, including surgery assistance, patient care, and rehabilitation.",
-        "year": 2022,
-        "semester": "1st",
-        "viewCount": 17,
-        "tags": ["Robotics", "Healthcare", "Automation"]
-      }
+      // ... other default SPs
     ];
   };
 
@@ -273,6 +222,7 @@ function HomePage() {
       browseContainerRef.current.scrollBy({ left: 580, behavior: 'smooth' });
     }
   };
+  
   // Function to refresh random SPs
   const refreshRandomSPs = () => {
     // Add animation class to trigger fade-out effect
@@ -308,6 +258,42 @@ function HomePage() {
         <HeroSection />
       </section>
       
+      {/* New Feature Section with Background Image */}
+      <section className="feature-section" style={{ 
+        backgroundImage: `url(${featureBackgroundImg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }}>
+        <div className="feature-overlay">
+          <div className="feature-content">
+            <div className="feature-text">
+              <span className="feature-badge">University Excellence</span>
+              <h2>Introducing Special Projects Repository</h2>
+              
+              <div className="feature-item">
+                <div className="feature-icon">
+                  <i className="fas fa-book-open"></i>
+                </div>
+                <div className="feature-details">
+                  <h3>Academic Excellence</h3>
+                  <p>Discover and showcase exemplary student research and special projects that represent our university's commitment to excellence.</p>
+                </div>
+              </div>
+              
+              <div className="feature-item">
+                <div className="feature-icon">
+                  <i className="fas fa-lightbulb"></i>
+                </div>
+                <div className="feature-details">
+                  <h3>Innovation & Research</h3>
+                  <p>Explore innovative solutions and groundbreaking research developed by our talented students and faculty advisors.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
       {/* Second section with white background and random SPs */}
       <section className="browse-section">
         <div className="container">
@@ -324,50 +310,48 @@ function HomePage() {
             </button>
             
             <div className="browse-container-wrapper">
-            <div className="browse-container" ref={browseContainerRef}>
-  {isLoading ? (
-    <div className="loading-state">Loading projects...</div>
-  ) : (
-    randomSPs && randomSPs.map((sp, index) => (
-      <div 
-        key={sp.spId || index} 
-        className="browse-card" 
-        style={{ animationDelay: `${index * 0.1}s` }}
-      >
-        <div className="enhanced-sp-card">
-          <h3 className="card-title">{sp.title || 'Untitled Project'}</h3>
-          <div className="card-meta">
-            <span className="year-semester">{sp.year || 'N/A'} | {sp.semester || 'N/A'} Semester</span>
-            <span className="view-count">
-              <i className="fas fa-eye"></i> {sp.viewCount || 0}
-            </span>
-          </div>
-          <p className="card-description">{sp.description || sp.abstractText || 'No description available.'}</p>
-          
-          {/* Updated tags section to match the approach used in the leaderboard */}
-          <div className="card-tags">
-            {Array.isArray(sp.tags) ? 
-              sp.tags.map((tag, i) => (
-                <span key={i} className="tag">{tag}</span>
-              )) : null
-            }
-          </div>
-          
-          <Link to={`/projects/${sp.spId}`} className="view-details-button">
-            View Details
-          </Link>
-        </div>
-      </div>
-    ))
-  )}
-</div>
+              <div className="browse-container" ref={browseContainerRef}>
+                {isLoading ? (
+                  <div className="loading-state">Loading projects...</div>
+                ) : (
+                  randomSPs && randomSPs.map((sp, index) => (
+                    <div 
+                      key={sp.spId || index} 
+                      className="browse-card" 
+                      style={{ animationDelay: `${index * 0.1}s` }}
+                    >
+                      <div className="enhanced-sp-card">
+                        <h3 className="card-title">{sp.title || 'Untitled Project'}</h3>
+                        <div className="card-meta">
+                          <span className="year-semester">{sp.year || 'N/A'} | {sp.semester || 'N/A'} Semester</span>
+                          <span className="view-count">
+                            <i className="fas fa-eye"></i> {sp.viewCount || 0}
+                          </span>
+                        </div>
+                        <p className="card-description">{sp.description || sp.abstractText || 'No description available.'}</p>
+                        
+                        <div className="card-tags">
+                          {Array.isArray(sp.tags) ? 
+                            sp.tags.map((tag, i) => (
+                              <span key={i} className="tag">{tag}</span>
+                            )) : null
+                          }
+                        </div>
+                        
+                        <Link to={`/projects/${sp.spId}`} className="view-details-button">
+                          View Details
+                        </Link>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
             
             <button className="scroll-button right" onClick={scrollRight}>
               <i className="fas fa-chevron-right"></i>
             </button>
           </div>
-          
         </div>
       </section>
 

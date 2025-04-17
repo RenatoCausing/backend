@@ -1,4 +1,4 @@
-  /* HomePage.css */
+/* HomePage.css */
 
 /* General page setup */
 .home-page {
@@ -19,14 +19,102 @@
   z-index: 1;
 }
 
+/* New Feature Section with Background Image */
+.feature-section {
+  position: relative;
+  height: 505px; /* Match the height of the image */
+  z-index: 2;
+  box-shadow: 0 0px 30px rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  overflow: hidden;
+  background-attachment: fixed; /* This keeps the background fixed while scrolling */
+}
+
+.feature-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.5) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.feature-content {
+  width: 50%;
+  padding: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.feature-text {
+  max-width: 600px;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.feature-badge {
+  background-color: #800000; /* Maroon */
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  display: inline-block;
+  text-shadow: none;
+}
+
+.feature-text h2 {
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  color: white;
+  line-height: 1.2;
+}
+
+.feature-item {
+  display: flex;
+  margin-bottom: 1.5rem;
+}
+
+.feature-icon {
+  font-size: 1.8rem;
+  margin-right: 1.5rem;
+  color: #FFFFFF; /* Maroon */
+  background-color: 800000;
+  flex-shrink: 0;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-shadow: none;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+}
+
+.feature-details h3 {
+  font-size: 1.3rem;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.feature-details p {
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+/* Browse section */
 .browse-section {
   position: relative;
   height: 60vh;
   background-color: white;
   z-index: 2; /* Higher than the hero section */
-  padding: 2rem 0;
-  
-  box-shadow: 0 0px 30px rgba(0, 0, 0, 0.9);
+  padding: 2rem 0;  
+  box-shadow: 0 20px 20px rgba(0, 0, 0, 0.9);
 }
 
 .leaderboard-section {
@@ -59,7 +147,6 @@
   background-color: #800000;
   color: white;
   border: none;
-/*  border-radius: 4px; */
   padding: 0.5rem 1rem;
   font-size: 1rem;
   cursor: pointer;
@@ -144,10 +231,8 @@
   display: flex;
   flex-direction: column;
   background-color: white;
-/*  border-radius: 12px;  */
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   padding: 1.8rem;
-  
   padding-top: 3rem;
   transition: transform 0.3s, box-shadow 0.3s;
   position: relative;
@@ -178,7 +263,7 @@
   /* Add these lines to handle long titles */
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 4; /* Limit to 2 lines */
+  -webkit-line-clamp: 4; /* Limit to 4 lines */
   -webkit-box-orient: vertical;
   height: 3rem; /* Fixed height to ensure consistency */
 }
@@ -243,7 +328,6 @@
   background-color: #800000;
   color: white;
   padding: 0.8rem 1rem;
- /* border-radius: 6px; */
   text-decoration: none;
   font-weight: 600;
   transition: background-color 0.3s;
@@ -273,7 +357,6 @@
 .popular-advisers,
 .popular-projects {
   background-color: rgba(255, 255, 255, 1);
-  /* border-radius: 20px;*/
   padding: 2rem;
   box-shadow: 0 0px 20px rgba(0, 0, 0, 1);
 }
@@ -291,14 +374,12 @@ h4{
   margin-bottom: 1rem;
   color: #800000;
   text-shadow: #222;
-
 }
 h5{
   font-size: 1.8rem;
   margin-bottom: 1rem;
   color: #000000;
   text-shadow: #222;
-
 }
 
 .section-description {
@@ -314,7 +395,6 @@ h5{
   padding: 0.75rem 1.5rem;
   background-color: #800000;
   color: white;
-/*  border-radius: 4px; */
   text-decoration: none;
   font-weight: 600;
   transition: background-color 0.3s;
@@ -356,7 +436,7 @@ h5{
   }
 }
 
-/* Responsive adjustments */
+/* Media Queries for Responsive Design */
 @media (max-width: 1200px) {
   .scroll-button.left {
     left: -40px;
@@ -364,6 +444,10 @@ h5{
   
   .scroll-button.right {
     right: -40px;
+  }
+  
+  .feature-content {
+    width: 60%;
   }
 }
 
@@ -379,6 +463,14 @@ h5{
   .scroll-button.right {
     right: -25px;
   }
+  
+  .feature-content {
+    width: 75%;
+  }
+  
+  .feature-text h2 {
+    font-size: 2rem;
+  }
 }
 
 @media (max-width: 768px) {
@@ -388,5 +480,17 @@ h5{
   
   .browse-card {
     min-width: calc(100% - 10px); /* 1 card per view on small screens */
+  }
+  
+  .feature-content {
+    width: 90%;
+  }
+  
+  .feature-text h2 {
+    font-size: 1.8rem;
+  }
+  
+  .feature-section {
+    height: 400px; /* Slightly shorter on mobile */
   }
 }
