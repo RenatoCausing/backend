@@ -16,7 +16,7 @@ function AdviserNavbar() {
         <div className="navbar-links">
           <Link to="/search" className="mobile-link" onClick={toggleMenu}>Search</Link>
           <Link to="/leaderboard" className="mobile-link" onClick={toggleMenu}>Leaderboard</Link>
-          <Link to="/home" className="mobile-link" onClick={toggleMenu}>Home</Link>
+          <Link to="/" className="mobile-link" onClick={toggleMenu}>Home</Link>
         </div>
         
         <div className="navbar-buttons">
@@ -34,7 +34,7 @@ function AdviserNavbar() {
         <div className="mobile-menu">
           <Link to="/search" className="mobile-link" onClick={toggleMenu}>Search</Link>
           <Link to="/leaderboard" className="mobile-link" onClick={toggleMenu}>Leaderboard</Link>
-          <Link to="/home" className="mobile-link" onClick={toggleMenu}>Home</Link>
+          <Link to="/" className="mobile-link" onClick={toggleMenu}>Home</Link>
           <Link to="/profile" className="mobile-link profile-link" onClick={toggleMenu}>Profile</Link>
         </div>
       )}

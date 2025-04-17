@@ -86,7 +86,7 @@ public class SPController {
 
     @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/top-advisers")
-    public ResponseEntity<List<AdviserDTO>> getTopAdvisersByViews() { // ✅ FIXED: No @Override
+    public ResponseEntity<List<AdviserDTO>> getTopAdvisersByViews() { 
         System.out.println("🔍 Endpoint /top-advisers was hit!");
 
         List<AdviserDTO> topAdvisers = spService.getTopAdvisersByViews();
