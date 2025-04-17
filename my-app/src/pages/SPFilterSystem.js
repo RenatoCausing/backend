@@ -460,7 +460,7 @@ const SPFilterSystem = () => {
         <div className="w-34 p-4">
           {/* Search and Filter Row */}
           <div className="mb-4">
-            <form onSubmit={handleSearch} className="flex gap-2 mb-4">
+            <form onSubmit={handleSearch} className="flex gap-2 mb-9">
               <select 
                 className="border border-gray-300 rounded p-2 w-40"
                 onChange={handleDepartmentChange}
@@ -493,14 +493,13 @@ const SPFilterSystem = () => {
                 <button 
                   type="submit" 
                   className="bg-red-800 text-white px-4 rounded-r"
-                >
-                  🔍
+                ><i class="fa fa-search"></i>
                 </button>
               </div>
             </form>
             
             {searchResults && (
-              <div className="bg-green-100 p-3 rounded mb-4">
+              <div className="bg-green-100 p-3 rounded">
                 Your search for <strong>{searchResults.term}</strong> returned {searchResults.count} records.
               </div>
             )}
