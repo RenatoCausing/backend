@@ -17,25 +17,41 @@ function SPDetails() {
   const [numPages, setNumPages] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [scale, setScale] = useState(1.0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fetch SP data
-    axios.get(`http://localhost:8080/api/sp/${spId}`)
-      .then(response => {
-        setSpData(response.data);
+    const fetchData = async () => {
+      if (!spId) {
+        setError("SP ID not found in URL");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        
+        // Fetch SP data
+        const spResponse = await axios.get(`http://localhost:8080/api/sp/${spId}`);
+        setSpData(spResponse.data);
         
         // Increment view count
-        axios.post(`http://localhost:8080/api/sp/${spId}/view`)
+        await axios.post(`http://localhost:8080/api/sp/${spId}/view`)
           .catch(error => console.error("Error incrementing view count:", error));
-      })
-      .catch(error => console.error("Error fetching SP data:", error));
-    
-    // Fetch adviser data
-    axios.get(`http://localhost:8080/api/advisers/sp/${spId}`)
-      .then(response => {
-        setAdviser(response.data);
-      })
-      .catch(error => console.error("Error fetching adviser data:", error));
+        
+        // Fetch adviser data
+        const adviserResponse = await axios.get(`http://localhost:8080/api/advisers/sp/${spId}`);
+        setAdviser(adviserResponse.data);
+        
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setError("Failed to load data. Please check API connection and try again.");
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [spId]);
 
   const onDocumentLoadSuccess = ({ numPages }) => {
@@ -52,7 +68,9 @@ function SPDetails() {
   const zoomIn = () => setScale(prevScale => Math.min(prevScale + 0.1, 2.0));
   const zoomOut = () => setScale(prevScale => Math.max(prevScale - 0.1, 0.5));
 
-  if (!spData) return <div>Loading...</div>;
+  if (loading) return <div className="loading">Loading...</div>;
+  if (error) return <div className="error-message">{error}</div>;
+  if (!spData) return <div className="error-message">SP data not found</div>;
 
   return (
     <div className="sp-details-container">
@@ -63,11 +81,13 @@ function SPDetails() {
         <div className="sp-header-content">
           <h1>{spData.title}</h1>
           <p>Semester: {spData.semester} | Date Issued: {new Date(spData.date_issued).toLocaleDateString()}</p>
-          <p>Tags: {spData.tags}</p>
+          <p>Tags: {Array.isArray(spData.tags) ? spData.tags.join(', ') : spData.tags}</p>
           
-          <a href={spData.uri} className="download-button" download>
-            <FontAwesomeIcon icon={faDownload} /> Download PDF
-          </a>
+          {spData.uri && (
+            <a href={spData.uri} className="download-button" download>
+              <FontAwesomeIcon icon={faDownload} /> Download PDF
+            </a>
+          )}
           
           <span className="access-info">
             Access provided by University of the Philippines Diliman
@@ -83,14 +103,16 @@ function SPDetails() {
       {/* Author information */}
       <section className="author-section">
         {adviser && (
-          <p>FROM sp.author_id MATCH WITH admin.admin_id, 
-            <a href={`/advisers/${adviser.id}`}>{adviser.firstName} {adviser.lastName}</a>
+          <p>
+            <a href={`/advisers/${adviser.admin_id}`}>
+              {adviser.first_name} {adviser.last_name}
+            </a>
           </p>
         )}
         
         {/* View counter */}
         <div className="view-counter">
-          <FontAwesomeIcon icon={faEye} /> {spData.view_count} Views
+          <FontAwesomeIcon icon={faEye} /> {spData.view_count || 0} Views
         </div>
       </section>
       
@@ -98,43 +120,48 @@ function SPDetails() {
       <section className="abstract-section">
         <h2>Abstract</h2>
         <div className="abstract-content">
-          <p>FROM sp.abstract --&gt; {spData.abstract_text}</p>
+          <p>{spData.abstract_text || spData.abstract}</p>
         </div>
       </section>
       
       {/* PDF Viewer section */}
-      <section className="pdf-section">
-        <h2>Article PDF</h2>
-        <div className="pdf-container">
-          <div className="pdf-controls">
-            <button onClick={previousPage} disabled={pageNumber <= 1}>
-              ‹
-            </button>
-            <span>{pageNumber} / {numPages}</span>
-            <button onClick={nextPage} disabled={pageNumber >= numPages}>
-              ›
-            </button>
-            <span className="zoom-controls">
-              <button onClick={zoomOut}>−</button>
-              <span>{Math.round(scale * 100)}%</span>
-              <button onClick={zoomIn}>+</button>
-            </span>
+      {spData.uri && (
+        <section className="pdf-section">
+          <h2>Article PDF</h2>
+          <div className="pdf-container">
+            <div className="pdf-controls">
+              <button onClick={previousPage} disabled={pageNumber <= 1}>
+                ‹
+              </button>
+              <span>{pageNumber} / {numPages || '?'}</span>
+              <button onClick={nextPage} disabled={!numPages || pageNumber >= numPages}>
+                ›
+              </button>
+              <span className="zoom-controls">
+                <button onClick={zoomOut}>−</button>
+                <span>{Math.round(scale * 100)}%</span>
+                <button onClick={zoomIn}>+</button>
+              </span>
+            </div>
+            
+            <Document
+              file={spData.uri}
+              onLoadSuccess={onDocumentLoadSuccess}
+              onLoadError={(error) => console.error("PDF load error:", error)}
+              className="pdf-document"
+            >
+              {numPages > 0 && (
+                <Page 
+                  pageNumber={pageNumber} 
+                  scale={scale}
+                  renderTextLayer={false}
+                  renderAnnotationLayer={false}
+                />
+              )}
+            </Document>
           </div>
-          
-          <Document
-            file={spData.uri}
-            onLoadSuccess={onDocumentLoadSuccess}
-            className="pdf-document"
-          >
-            <Page 
-              pageNumber={pageNumber} 
-              scale={scale}
-              renderTextLayer={false}
-              renderAnnotationLayer={false}
-            />
-          </Document>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 }
