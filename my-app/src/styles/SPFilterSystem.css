@@ -271,6 +271,18 @@
     color: #181818b0;
 
   }
+  .text-dm {
+
+    
+    /*font-size: 0.8rem;
+    color: #181818b0;
+    */
+
+    font-size: 0.8rem;
+    line-height: 1.4rem;
+    color: #181818b0;
+
+  }
   
   .text-xs {
     font-size: 0.75rem;
@@ -301,6 +313,7 @@
     display: flex;
     align-items: center;
     flex-wrap: wrap;
+    font-size: .85rem; /* change */
     gap: 1rem;
   }
   .text-gray-600 span {
