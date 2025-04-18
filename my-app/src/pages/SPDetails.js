@@ -1,29 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/AdviserNavbar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faDownload, faEye } from '@fortawesome/free-solid-svg-icons';
-import { Document, Page, pdfjs } from 'react-pdf';
+import { 
+  faDownload, 
+  faEye, 
+  faChevronLeft, 
+  faChevronRight, 
+  faMinus, 
+  faPlus,
+  faEdit,
+  faUser
+} from '@fortawesome/free-solid-svg-icons';
 import '../styles/SPDetails.css';
-
-// Configure PDF.js worker with correct CDN URL and version
-// Use specific version that exists on CDN
-pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js`;
 
 function SPDetails() {
   const { spId } = useParams();
+  const navigate = useNavigate();
   const [spData, setSpData] = useState(null);
   const [adviser, setAdviser] = useState(null);
-  const [numPages, setNumPages] = useState(null);
-  const [pageNumber, setPageNumber] = useState(1);
-  const [scale, setScale] = useState(1.0);
+  const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [pdfError, setPdfError] = useState(null);
+  const [tags, setTags] = useState([]);
   
   // Backend URL
   const BACKEND_URL = 'http://localhost:8080';
-
+  const [thumbnailFailed, setThumbnailFailed] = useState(false);
+  
   useEffect(() => {
     const fetchData = async () => {
       if (!spId) {
@@ -64,6 +68,32 @@ function SPDetails() {
           setAdviser(adviserData);
         }
         
+        // Fetch students if SP has a group_id
+        if (spDataResponse.groupId) {
+          const studentsResponse = await fetch(`${BACKEND_URL}/api/students/group/${spDataResponse.groupId}`);
+          if (studentsResponse.ok) {
+            const studentsData = await studentsResponse.json();
+            console.log('Students data:', studentsData);
+            setStudents(studentsData || []);
+          } else {
+            console.error(`Students API responded with ${studentsResponse.status}: ${studentsResponse.statusText}`);
+          }
+        }
+        
+        // Fetch all tags
+        try {
+          const tagsResponse = await fetch(`${BACKEND_URL}/api/tags`);
+          if (tagsResponse.ok) {
+            const allTags = await tagsResponse.json();
+            console.log('All tags:', allTags);
+            setTags(allTags || []);
+          } else {
+            console.error(`Tags API responded with ${tagsResponse.status}: ${tagsResponse.statusText}`);
+          }
+        } catch (tagError) {
+          console.error("Error fetching tags:", tagError);
+        }
+        
         setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -75,25 +105,100 @@ function SPDetails() {
     fetchData();
   }, [spId]);
 
-  const onDocumentLoadSuccess = ({ numPages }) => {
-    setNumPages(numPages);
-    setPdfError(null);
+  // Format student name according to LASTNAME, first name middle_name format
+  const formatStudentName = (student) => {
+    if (!student) return '';
+    
+    let formattedName = `${student.lastName || ''}`;
+    
+    if (student.firstName) {
+      formattedName += `, ${student.firstName}`;
+    }
+    
+    if (student.middleName) {
+      formattedName += ` ${student.middleName}`;
+    }
+    
+    return formattedName;
   };
-
-  const onDocumentLoadError = (error) => {
-    console.error("PDF load error:", error);
-    setPdfError("Failed to load PDF. Please try again later.");
-  };
-
-  const changePage = (offset) => {
-    setPageNumber(prevPageNumber => prevPageNumber + offset);
-  };
-
-  const previousPage = () => changePage(-1);
-  const nextPage = () => changePage(1);
   
-  const zoomIn = () => setScale(prevScale => Math.min(prevScale + 0.1, 2.0));
-  const zoomOut = () => setScale(prevScale => Math.max(prevScale - 0.1, 0.5));
+  // Get tags for this SP
+  const getTagsForSp = () => {
+    if (!tags || !Array.isArray(tags) || !spData) return [];
+    return tags.filter(tag => 
+      (spData.tagIds && Array.isArray(spData.tagIds) && spData.tagIds.includes(tag.tagId))
+    );
+  };
+
+  // Handle tag click to redirect to search page with selected tag
+  const handleTagClick = (tagName) => {
+    // Redirect to search page with tag name in query params
+    navigate(`/search?tag=${encodeURIComponent(tagName)}`);
+  };
+
+  // Extract Google Drive file ID from various URL formats
+  const extractGoogleDriveFileId = (url) => {
+    if (!url) return null;
+    
+    // Handle direct file IDs
+    if (!url.includes('/') && !url.includes('drive.google.com')) {
+      return url;
+    }
+    
+    // Extract from standard Drive URLs
+    const fileIdMatch = url.match(/\/d\/([^\/]+)/) || 
+                       url.match(/id=([^&]+)/) ||
+                       url.match(/file\/d\/([^\/]+)/);
+                      
+    if (fileIdMatch && fileIdMatch[1]) {
+      return fileIdMatch[1];
+    }
+    
+    return null;
+  };
+
+  // Get Google Drive thumbnail URL (uses Google's thumbnail service)
+  const getGoogleDriveThumbnailUrl = (driveUrl) => {
+    const fileId = extractGoogleDriveFileId(driveUrl);
+    if (!fileId) return null;
+    
+    return `https://drive.google.com/thumbnail?id=${fileId}&sz=w480`;
+  };
+
+  // Get the Google Drive PDF URL for direct download
+  const getGoogleDriveDownloadUrl = (driveUrl) => {
+    const fileId = extractGoogleDriveFileId(driveUrl);
+    if (!fileId) return null;
+    
+    return `https://drive.google.com/uc?export=download&id=${fileId}`;
+  };
+
+  // Get the Google Drive PDF viewer URL
+  const getGoogleDrivePdfViewerUrl = (driveUrl) => {
+    const fileId = extractGoogleDriveFileId(driveUrl);
+    if (!fileId) return null;
+    
+    return `https://drive.google.com/file/d/${fileId}/preview`;
+  };
+
+  // Get tag color based on tag name
+  const getTagColor = (tagName) => {
+    if (!tagName) return '#6c757d'; // Default gray
+    
+    // Map specific tag categories to colors
+    const tagColors = {
+      'Machine Learning': '#007bff',
+      'Web Development': '#6c757d',
+      'Data Science': '#17a2b8',
+      'Artificial Intelligence': '#28a745',
+      'Mobile Development': '#fd7e14',
+      'Database': '#dc3545',
+      'Security': '#e83e8c',
+    };
+    
+    // Return specific color if defined, otherwise return default
+    return tagColors[tagName] || '#6c757d';
+  };
 
   if (loading) return (
     <div>
@@ -116,20 +221,40 @@ function SPDetails() {
     </div>
   );
 
+  const thumbnailUrl = getGoogleDriveThumbnailUrl(spData.documentPath);
+  const downloadUrl = getGoogleDriveDownloadUrl(spData.documentPath);
+  const pdfViewerUrl = getGoogleDrivePdfViewerUrl(spData.documentPath);
+
   return (
     <div className="sp-details-container">
       <Navbar />
       
-      {/* Header Section with deep red background */}
       <div className="Acontainer">
+        {/* Header Section with deep red background */}
         <header className="sp-header">
           <div className="sp-header-content">
             <h1>{spData.title}</h1>
             <p>Semester: {spData.semester} | Date Issued: {new Date(spData.dateIssued || spData.date_issued).toLocaleDateString()}</p>
-            <p>Tags: {Array.isArray(spData.tags) ? spData.tags.join(', ') : (spData.tags || '')}</p>
             
-            {(spData.documentPath || spData.uri) && (
-              <a href={spData.documentPath || spData.uri} className="download-button" download>
+            {/* Updated tag display with pill styling */}
+            <div className="tags-container">
+              {tags && tags.length > 0 ? 
+                getTagsForSp().map((tag, index) => (
+                  <span 
+                    key={index}
+                    className="tag-pill"
+                    style={{ backgroundColor: getTagColor(tag.tagName || tag.name) }}
+                    onClick={() => handleTagClick(tag.tagName || tag.name)}
+                  >
+                    {tag.tagName || tag.name || 'Unknown Tag'}
+                  </span>
+                )) 
+                : <span>No tags available</span>
+              }
+            </div>
+            
+            {downloadUrl && (
+              <a href={downloadUrl} className="download-button" target="_blank" rel="noopener noreferrer">
                 <FontAwesomeIcon icon={faDownload} /> Download PDF
               </a>
             )}
@@ -137,28 +262,64 @@ function SPDetails() {
             <span className="access-info">
               Access provided by University of the Philippines Manila
             </span>
+            
+            {/* Moved view counter below access info */}
+            <div className="view-counter-header">
+              <FontAwesomeIcon icon={faEye} /> {spData.viewCount || spData.view_count || 0} views
+            </div>
           </div>
           
-          {/* Journal image on the right */}
+          {/* PDF thumbnail only - no default journal image */}
           <div className="journal-image">
-            <img src="/images/journal-cover.png" alt="Journal Cover" />
+            {thumbnailUrl && !thumbnailFailed ? (
+              <img 
+                src={thumbnailUrl} 
+                alt="PDF Preview" 
+                className="pdf-thumbnail"
+                onError={() => {
+                  console.log(thumbnailUrl);
+                  console.log("Thumbnail failed to load, removing image.");
+                  setThumbnailFailed(true);
+                }} 
+              />
+            ) : null}
           </div>
         </header>
         
-        {/* Author information */}
-        <section className="author-section">
-          {adviser && (
-            <p>
-              <a href={`/adviser/${adviser.adminId || adviser.admin_id}`}>
-                {adviser.firstName || adviser.first_name} {adviser.lastName || adviser.last_name}
-              </a>
-            </p>
+        {/* Author section as a column */}
+        <section className="contributors-section">
+          {/* Display student authors with icon */}
+          {students.length > 0 && (
+            <div className="student-authors">
+              <div className="author-header">
+                <FontAwesomeIcon icon={faEdit} className="author-icon" />
+                <h3>Authors</h3>
+              </div>
+              <p>
+                {students.map((student, index) => (
+                  <span key={student.studentId || index}>
+                    {formatStudentName(student)}
+                    {index < students.length - 1 ? '; ' : ''}
+                  </span>
+                ))}
+              </p>
+            </div>
           )}
           
-          {/* View counter */}
-          <div className="view-counter">
-            <FontAwesomeIcon icon={faEye} /> {spData.viewCount || spData.view_count || 0} Views
-          </div>
+          {/* Display adviser with icon */}
+          {adviser && (
+            <div className="adviser-info">
+              <div className="adviser-header">
+                <FontAwesomeIcon icon={faUser} className="adviser-icon" />
+                <h3>Adviser</h3>
+              </div>
+              <p>
+                <a href={`/adviser/${adviser.adminId || adviser.admin_id}`}>
+                  {adviser.firstName || adviser.first_name} {adviser.lastName || adviser.last_name}
+                </a>
+              </p>
+            </div>
+          )}
         </section>
         
         {/* Abstract section */}
@@ -169,50 +330,21 @@ function SPDetails() {
           </div>
         </section>
         
-        {/* PDF Viewer section */}
-        {(spData.documentPath || spData.uri) && (
+        {/* Google Drive PDF Viewer section */}
+        {pdfViewerUrl && (
           <section className="pdf-section">
             <h2>Article PDF</h2>
             <div className="pdf-container">
-              <div className="pdf-controls">
-                <button onClick={previousPage} disabled={pageNumber <= 1}>
-                  ‹
-                </button>
-                <span>{pageNumber} / {numPages || '?'}</span>
-                <button onClick={nextPage} disabled={!numPages || pageNumber >= numPages}>
-                  ›
-                </button>
-                <span className="zoom-controls">
-                  <button onClick={zoomOut}>−</button>
-                  <span>{Math.round(scale * 100)}%</span>
-                  <button onClick={zoomIn}>+</button>
-                </span>
+              <div className="google-drive-viewer">
+                <iframe
+                  src={pdfViewerUrl}
+                  width="100%"
+                  height="600px"
+                  frameBorder="0"
+                  allowFullScreen
+                  title="PDF Viewer"
+                ></iframe>
               </div>
-              
-              {pdfError ? (
-                <div className="pdf-error">
-                  <p>{pdfError}</p>
-                  <p>You can still download the PDF using the download button above.</p>
-                </div>
-              ) : (
-                <Document
-                  file={spData.documentPath || spData.uri}
-                  onLoadSuccess={onDocumentLoadSuccess}
-                  onLoadError={onDocumentLoadError}
-                  className="pdf-document"
-                  loading="Loading PDF..."
-                >
-                  {numPages > 0 && (
-                    <Page 
-                      pageNumber={pageNumber} 
-                      scale={scale}
-                      renderTextLayer={false}
-                      renderAnnotationLayer={false}
-                      loading="Loading page..."
-                    />
-                  )}
-                </Document>
-              )}
             </div>
           </section>
         )}

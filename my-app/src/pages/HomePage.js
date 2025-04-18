@@ -19,6 +19,7 @@ function HomePage() {
   const [randomSPs, setRandomSPs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const browseContainerRef = useRef(null);
+  const [tags, setTags] = useState([]);
   
   // Backend URL
   const BACKEND_URL = 'http://localhost:8080';
@@ -26,6 +27,7 @@ function HomePage() {
   useEffect(() => {
     // Set loading state
     setIsLoading(true);
+    
     
     // Fetch top advisers with absolute URL
     fetch(`${BACKEND_URL}/api/sp/top-advisers`)
@@ -49,6 +51,26 @@ function HomePage() {
         ]);
       });
 
+      // Fetch tags
+      fetch(`${BACKEND_URL}/api/tags`)
+      .then(response => {
+        if (!response.ok) throw new Error(`API responded with ${response.status}`);
+        return response.json();
+      })
+      .then(data => {
+        console.log('Tags data:', data);
+        setTags(Array.isArray(data) ? data : []);
+      })
+      .catch(error => {
+        console.error('Error fetching tags:', error);
+        // Default tags if API fails
+        setTags([
+          { tagId: 1, tagName: "AI" },
+          { tagId: 2, tagName: "Machine Learning" },
+          // Add more default tags as needed
+        ]);
+      });
+
     // Fetch top SPs with absolute URL
     fetch(`${BACKEND_URL}/api/sp/top-sps`)
       .then(response => {
@@ -68,6 +90,14 @@ function HomePage() {
     // Fetch random SPs
     fetchRandomSPs();
   }, []);
+  
+  // Add this helper function
+  const getTagsForSp = (sp) => {
+    if (!sp.tagIds || !Array.isArray(sp.tagIds)) return [];
+    return tags
+      .filter(tag => sp.tagIds.includes(tag.tagId))
+      .map(tag => tag.tagName || 'Unknown Tag');
+  };
 
   const fetchRandomSPs = () => {
     setIsLoading(true);
@@ -288,10 +318,16 @@ function HomePage() {
                         <p className="card-description">{sp.description || sp.abstractText || 'No description available.'}</p>
                         
                         <div className="card-tags">
-                          {Array.isArray(sp.tags) ? 
-                            sp.tags.map((tag, i) => (
-                              <span key={i} className="tag">{tag}</span>
-                            )) : null
+                          {sp.tagIds && Array.isArray(sp.tagIds) ? 
+                            getTagsForSp(sp).map((tagName, i) => (
+                              <span key={i} className="tag">{tagName}</span>
+                            )) : (
+                              // Fallback if sp.tags is available as direct strings
+                              Array.isArray(sp.tags) ? 
+                                sp.tags.map((tag, i) => (
+                                  <span key={i} className="tag">{tag}</span>
+                                )) : null
+                            )
                           }
                         </div>
                         

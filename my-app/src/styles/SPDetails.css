@@ -1,151 +1,209 @@
 /* SPDetails.css */
 .sp-details-container {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0;
-    font-family: Arial, sans-serif;
-  }
-  
-  /* Header styling with deep red background */
-  .sp-header {
-    background-color: #5e0000;
-    color: white;
-    padding: 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-  }
-  
-  .sp-header-content {
-    width: 70%;
-  }
-  
-  .sp-header h1 {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-  }
-  
-  .sp-header p {
-    margin: 0.5rem 0;
-  }
-  
-  .journal-image {
-    width: 25%;
-    max-width: 180px;
-  }
-  
-  .journal-image img {
-    width: 100%;
-    height: auto;
-  }
-  
-  .download-button {
-    display: inline-block;
-    margin-top: 1rem;
-    padding: 0.75rem 1.5rem;
-    background-color: white;
-    color: #333;
-    text-decoration: none;
-    border-radius: 50px;
-    font-weight: bold;
-  }
-  
-  .access-info {
-    display: block;
-    margin-top: 1rem;
-    font-size: 0.9rem;
-  }
-  
-  /* Author section */
-  .author-section {
-    padding: 1rem 0;
-    border-bottom: 1px solid #eee;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .author-section a {
-    color: #5e0000;
-    text-decoration: none;
-  }
-  
-  .author-section a:hover {
-    text-decoration: underline;
-  }
-  
-  .view-counter {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #666;
-  }
-  
-  /* Abstract section */
-  .abstract-section {
-    padding: 1.5rem 0;
-    border-bottom: 1px solid #eee;
-  }
-  
-  .abstract-section h2 {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    color: #333;
-  }
-  
-  .abstract-content {
-    line-height: 1.6;
-  }
-  
-  /* PDF viewer */
-  .pdf-section {
-    padding: 1.5rem 0;
-  }
-  
-  .pdf-section h2 {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    color: #333;
-  }
-  
-  .pdf-container {
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    overflow: hidden;
-  }
-  
-  .pdf-controls {
-    display: flex;
-    align-items: center;
-    padding: 0.5rem;
-    background-color: #f5f5f5;
-    border-bottom: 1px solid #ddd;
-  }
-  
-  .pdf-controls button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0.25rem 0.5rem;
-    margin: 0 0.25rem;
-  }
-  
-  .pdf-controls button:disabled {
-    color: #ccc;
-    cursor: not-allowed;
-  }
-  
-  .zoom-controls {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-  }
-  
-  .pdf-document {
-    display: flex;
-    justify-content: center;
-    background-color: #525659;
-    padding: 1rem;
-    min-height: 500px;
-  }
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+
+/* Header styling with deep red background */
+.sp-header {
+  background-color: #5e0000;
+  background: linear-gradient(90deg, rgb(64, 0, 0) 0%, #800000 100%);
+  color: white;
+  padding: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.sp-header-content {
+  width: 70%;
+}
+
+.sp-header h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.sp-header p {
+  margin: 0.5rem 0;
+}
+
+/* Updated tag styling with pill design */
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.tag-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  color: white;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.tag-pill:hover {
+  opacity: 0.8;
+}
+
+.journal-image {
+  width: 25%;
+  max-width: 180px;
+}
+
+.journal-image img {
+  width: 100%;
+  height: auto;
+}
+
+.download-button {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  background-color: white;
+  color: #333;
+  text-decoration: none;
+  border-radius: 10px;
+  font-weight: bold;
+}
+
+.access-info {
+  display: block;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+/* New view counter in header */
+.view-counter-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+  padding: 4px 10px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  width: fit-content;
+}
+
+/* Contributors section for authors and adviser */
+.contributors-section {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 0;
+  border-bottom: 1px solid #eee;
+  gap: 1rem;
+}
+
+.contributors-section a {
+  color: #5e0000;
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+.contributors-section a:hover {
+  text-decoration: underline;
+}
+
+/* Styling for author header with icon */
+.author-header, .adviser-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.author-icon, .adviser-icon {
+  margin-right: 8px;
+  color: #5e0000;
+}
+
+/* Abstract section */
+.abstract-section {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.abstract-section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.abstract-content {
+  line-height: 1.6;
+}
+
+/* PDF viewer */
+.pdf-section {
+  padding: 1.5rem 0;
+}
+
+.pdf-section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.pdf-container {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.pdf-controls {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #ddd;
+}
+
+.pdf-controls button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  margin: 0 0.25rem;
+}
+
+.pdf-controls button:disabled {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
+.zoom-controls {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+.pdf-document {
+  display: flex;
+  justify-content: center;
+  background-color: #525659;
+  padding: 1rem;
+  min-height: 500px;
+}
+
+/* New styling for student and adviser sections */
+.student-authors, .adviser-info {
+  margin-bottom: 10px;
+}
+
+.student-authors h3, .adviser-info h3 {
+  margin: 0 0 5px 0;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.student-authors p, .adviser-info p {
+  margin: 0;
+  color: #555;
+}
