@@ -41,6 +41,13 @@
     width: 100%;
 
   }
+  .w1-full {
+    background-color: #FFFFFF;
+    margin-left: 15vw;
+    width: 80vw;
+
+  }
+
   
   .w-14 {
     margin-top: 10rem;
@@ -171,6 +178,9 @@
   
   .mx-auto {
     margin-left: auto;
+    margin-right: auto;
+  }  
+  .mx1-auto {
     margin-right: auto;
   }
   

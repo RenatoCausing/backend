@@ -1,3 +1,5 @@
+
+import { ProjectProvider } from './contexts/ProjectContext';
 // src/App.js 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
@@ -9,6 +11,7 @@ import OAuthCallback from './components/OAuthCallback';
 import { useUser } from './contexts/UserContext';
 import './App.css';
 import SPDetails from './pages/SPDetails';
+import SPProjectView from './components/SPProjectView';
 
 // This component checks if user is authenticated
 const RequireAuth = ({ children }) => {
@@ -91,6 +94,16 @@ function App() {
             <RequireAuth>
               <SPFilterSystem/>
             </RequireAuth>
+          } 
+        />
+                <Route 
+          path="/dashboard" 
+          element={
+            <ProjectProvider>
+            <RequireAuth>
+              <SPProjectView/>
+            </RequireAuth>
+            </ProjectProvider>
           } 
         />
         <Route 
