@@ -23,6 +23,9 @@ public class SPServiceImpl implements SPService {
     private SPRepository spRepository;
 
     @Autowired
+    private GroupsRepository groupRepository;
+
+    @Autowired
     private AdminRepository adminRepository;
 
     @Autowired
@@ -177,10 +180,16 @@ public class SPServiceImpl implements SPService {
                     dto.setMiddleName(adviser.getMiddleName());
                     dto.setFacultyId(adviser.getFaculty().getFacultyId());
                     dto.setImagePath(adviser.getImagePath());
-                    dto.setDescription(adviser.getDescription());
-                    return dto;
-                })
-                .collect(Collectors.toList());
-    }
+                    dto.setDesc
 
+    
+                ist<StudentDTO> getStudentsByGroupId(Integer groupId) {
+
+            .orElseThrow(() -> new ResourceNotFoundException("Group not found with id " + groupId));
+        
+                <Student> students = stu
+                rn students.stream()
+            .map(this::convertToDto)
+            .collect(Collectors.toList());
+    }
 }

@@ -45,4 +45,10 @@ public class StudentController {
     public StudentDTO getStudent(@PathVariable Integer studentId) {
         return studentService.getStudent(studentId);
     }
+
+    @GetMapping("/group/{groupId}")
+    @CrossOrigin(origins = "http://localhost:3000")
+    public List<StudentDTO> getStudentsByGroupId(@PathVariable Integer groupId) {
+        return studentService.getStudentsByGroupId(groupId);
+    }
 }

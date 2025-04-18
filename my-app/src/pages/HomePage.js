@@ -63,49 +63,6 @@ function HomePage() {
       })
       .catch(error => {
         console.error('Error fetching top SPs:', error);
-        // Default data
-        setTopSPs([
-          {
-            "spId": 45,
-            "title": "Blockchain Security",
-            "year": 2025,
-            "semester": "2nd",
-            "viewCount": 31,
-            "tags": ["Blockchain", "Cybersecurity", "Cryptography"]
-          },
-          {
-            "spId": 44,
-            "title": "AI in Healthcare",
-            "year": 2025,
-            "semester": "1st",
-            "viewCount": 2,
-            "tags": ["AI", "Healthcare", "Machine Learning"]
-          },
-          {
-            "spId": 47,
-            "title": "Cybersecurity Trends",
-            "year": 2025,
-            "semester": "Summer",
-            "viewCount": 0,
-            "tags": ["Cybersecurity", "Network Security"]
-          },
-          {
-            "spId": 48,
-            "title": "IoT for Smart Homes",
-            "year": 2025,
-            "semester": "1st",
-            "viewCount": 0,
-            "tags": ["IoT", "Smart Home", "Automation"]
-          },
-          {
-            "spId": 49,
-            "title": "Machine Learning Ethics",
-            "year": 2025,
-            "semester": "2nd",
-            "viewCount": 0,
-            "tags": ["Machine Learning", "Ethics", "AI"]
-          }
-        ]);
       });
 
     // Fetch random SPs

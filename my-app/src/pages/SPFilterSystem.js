@@ -9,6 +9,8 @@ const SPFilterSystem = () => {
   const [filteredSps, setFilteredSps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [adviserData, setAdviserData] = useState({});
+const [studentGroups, setStudentGroups] = useState({});
   
   // Filter states
   const [selectedAdvisers, setSelectedAdvisers] = useState([]);
@@ -150,8 +152,105 @@ const SPFilterSystem = () => {
         
         return result;
       }
+    },
+
+    // Add this function to SPApiService
+fetchAdviserById: async (adviserId) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/advisers/${adviserId}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch adviser with ID ${adviserId}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error(`Error fetching adviser ${adviserId}:`, error);
+      return null;
     }
+  },
+  
+  // Add this function to fetch students by group ID
+  fetchStudentsByGroupId: async (groupId) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/students/group/${groupId}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch students for group ID ${groupId}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error(`Error fetching students for group ${groupId}:`, error);
+      return [];
+    }
+  },
   };
+
+  useEffect(() => {
+    const fetchAdviserDetails = async () => {
+      const adviserIds = filteredSps
+        .filter(sp => sp.adviserId)
+        .map(sp => sp.adviserId);
+      
+      // Remove duplicates
+      const uniqueAdviserIds = [...new Set(adviserIds)];
+      
+      const adviserPromises = uniqueAdviserIds.map(id => SPApiService.fetchAdviserById(id));
+      const results = await Promise.all(adviserPromises);
+      
+      const adviserMap = {};
+      results.forEach(adviser => {
+        if (adviser && adviser.adminId) {
+          adviserMap[adviser.adminId] = adviser;
+        }
+      });
+      
+      setAdviserData(adviserMap);
+    };
+  
+    if (filteredSps.length > 0) {
+      fetchAdviserDetails();
+    }
+  }, [filteredSps]);
+
+
+  useEffect(() => {
+    const fetchStudentGroups = async () => {
+      const groupIds = filteredSps
+        .filter(sp => sp.groupId)
+        .map(sp => sp.groupId);
+      
+      // Remove duplicates
+      const uniqueGroupIds = [...new Set(groupIds)];
+      
+      const groupMap = {};
+      for (const groupId of uniqueGroupIds) {
+        const students = await SPApiService.fetchStudentsByGroupId(groupId);
+        groupMap[groupId] = students || [];
+      }
+      
+      setStudentGroups(groupMap);
+    };
+  
+    if (filteredSps.length > 0) {
+      fetchStudentGroups();
+    }
+  }, [filteredSps]);
+
+  const getAdviserName = (adviserId) => {
+    const adviser = adviserData[adviserId];
+    if (!adviser) return 'Unknown Adviser';
+    
+    return `${adviser.lastName}${adviser.firstName ? ', ' + adviser.firstName : ''}`;
+  };
+  
+  // Helper function to format student authors
+  const getAuthors = (groupId) => {
+    const students = studentGroups[groupId] || [];
+    if (students.length === 0) return 'Unknown Author';
+    
+    return students
+      .map(student => `${student.lastName}${student.firstName ? ', ' + student.firstName : ''}`)
+      .join('; ');
+  };
+
 
   // Fetch data on component mount
   useEffect(() => {
@@ -189,6 +288,34 @@ const SPFilterSystem = () => {
     
     fetchData();
   }, []);
+
+  // Add this function to SPApiService
+fetchAdviserById: async (adviserId) => {
+  try {
+    const response = await fetch(`http://localhost:8080/api/advisers/${adviserId}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch adviser with ID ${adviserId}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching adviser ${adviserId}:`, error);
+    return null;
+  }
+},
+
+// Add this function to fetch students by group ID
+fetchStudentsByGroupId: async (groupId) => {
+  try {
+    const response = await fetch(`http://localhost:8080/api/students/group/${groupId}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch students for group ID ${groupId}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching students for group ${groupId}:`, error);
+    return [];
+  }
+},  
   
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -518,49 +645,43 @@ const SPFilterSystem = () => {
             )}
             
             {filteredSps.map(sp => (
-              <div key={sp.spId} className="mb-6 border-l-4 border-red-800 bg-gray-50 p-4">
-                <h3 className="text-lg font-semibold mb-2">
-                  <a href={`/sp/${sp.spId}`} className="text-blue-600 hover:underline">{sp.title}</a>
-                </h3>
-                
-                <div className="text-sm text-gray-600 mb-3 flex flex-wrap gap-6">
-                  <span>
-                    👤 By {sp.author || 'Unknown Author'}
-                  </span>
-                  <span>
-                    📅 {sp.date || sp.year || 'No Date'}
-                  </span>
-                  <span>
-                    📄 {sp.type || 'Thesis/Dissertation'}
-                  </span>
-                </div>
-                
-                <div className="text-sm mb-3">{sp.abstractText || 'No abstract available.'}</div>
-                
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {getTagsForSp(sp).map(tag => (
-                    <span key={tag.tagId} className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
-                      {tag.tagName}
-                    </span>
-                  ))}
-                </div>
-                
-                <div className="flex gap-1">
-                  <button 
-                    className={`px-3 py-1 text-sm rounded ${activeTabs[sp.spId] === 'AI' ? 'bg-red-800 text-white' : 'bg-gray-200'}`}
-                    onClick={() => handleTabChange(sp.spId, 'AI')}
-                  >
-                    AI
-                  </button>
-                  <button 
-                    className={`px-3 py-1 text-sm rounded ${activeTabs[sp.spId] === 'Database' ? 'bg-red-800 text-white' : 'bg-gray-200'}`}
-                    onClick={() => handleTabChange(sp.spId, 'Database')}
-                  >
-                    Database
-                  </button>
-                </div>
-              </div>
-            ))}
+  <div key={sp.spId} className="mb-6 border-l-4 border-red-800 bg-gray-50 p-4">
+    <h3 className="text-lg font-semibold mb-2">
+      <a href={`/sp/${sp.spId}`} className="text-blue-600 hover:underline">{sp.title}</a>
+    </h3>
+    
+    <div className="text-sm text-gray-600 mb-3">
+      <p>👤 By {sp.groupId ? getAuthors(sp.groupId) : (sp.author || 'Unknown Author')}</p>
+      <p>📅 {sp.date || sp.year || 'No Date'}</p>
+      <p>📄 {sp.adviserId ? getAdviserName(sp.adviserId) : 'Unknown Adviser'}</p>
+    </div>
+    
+    <div className="text-sm mb-3">{sp.abstractText || 'No abstract available.'}</div>
+    
+    <div className="flex flex-wrap gap-1 mb-2">
+      {getTagsForSp(sp).map(tag => (
+        <span key={tag.tagId} className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
+          {tag.tagName}
+        </span>
+      ))}
+    </div>
+    
+    <div className="flex gap-1">
+      <button 
+        className={`px-3 py-1 text-sm rounded ${activeTabs[sp.spId] === 'AI' ? 'bg-red-800 text-white' : 'bg-gray-200'}`}
+        onClick={() => handleTabChange(sp.spId, 'AI')}
+      >
+        AI
+      </button>
+      <button 
+        className={`px-3 py-1 text-sm rounded ${activeTabs[sp.spId] === 'Database' ? 'bg-red-800 text-white' : 'bg-gray-200'}`}
+        onClick={() => handleTabChange(sp.spId, 'Database')}
+      >
+        Database
+      </button>
+    </div>
+  </div>
+))}
           </div>
         </div>
       </div>

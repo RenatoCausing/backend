@@ -2,6 +2,7 @@ package net.SPIS.backend.service;
 
 import net.SPIS.backend.DTO.AdviserDTO;
 import net.SPIS.backend.DTO.SPDTO;
+import net.SPIS.backend.DTO.StudentDTO;
 
 import java.util.List;
 
@@ -29,5 +30,7 @@ public interface SPService {
     Integer getSPViewCount(Integer spId);
 
     List<AdviserDTO> getTopAdvisersByViews();
+
+    List<StudentDTO> getStudentsByGroupId(Integer groupId);
 
 }
