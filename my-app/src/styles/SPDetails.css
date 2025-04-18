@@ -29,6 +29,7 @@
 
 .sp-header p {
   margin: 0.5rem 0;
+  font-size: 0.85rem;
 }
 
 /* Updated tag styling with pill design */
@@ -112,6 +113,19 @@
   text-decoration: underline;
 }
 
+.author-name {
+  font-size: 1rem;
+  line-height: 1.4rem;
+  color: #000000;
+}
+
+.abstract-text {
+  font-size: 1rem;
+  line-height: 1.4rem;
+  color: #000000;
+
+}
+
 /* Styling for author header with icon */
 .author-header, .adviser-header {
   display: flex;
@@ -131,9 +145,9 @@
 }
 
 .abstract-section h2 {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   margin-bottom: 1rem;
-  color: #333;
+  color: #1f1f1f;
 }
 
 .abstract-content {
@@ -145,10 +159,10 @@
   padding: 1.5rem 0;
 }
 
-.pdf-section h2 {
-  font-size: 1.5rem;
+.abstract-section h2 {
+  font-size: 1.8rem;
   margin-bottom: 1rem;
-  color: #333;
+  color: #1f1f1f;
 }
 
 .pdf-container {
@@ -199,7 +213,7 @@
 
 .student-authors h3, .adviser-info h3 {
   margin: 0 0 5px 0;
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   color: #333;
 }
 

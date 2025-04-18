@@ -295,7 +295,7 @@ function SPDetails() {
                 <FontAwesomeIcon icon={faEdit} className="author-icon" />
                 <h3>Authors</h3>
               </div>
-              <p>
+              <p className= "author-name">
                 {students.map((student, index) => (
                   <span key={student.studentId || index}>
                     {formatStudentName(student)}
@@ -326,7 +326,7 @@ function SPDetails() {
         <section className="abstract-section">
           <h2>Abstract</h2>
           <div className="abstract-content">
-            <p>{spData.abstractText || spData.abstract_text || spData.abstract}</p>
+            <p className='abstract-text'>{spData.abstractText || spData.abstract_text || spData.abstract}</p>
           </div>
         </section>
         
