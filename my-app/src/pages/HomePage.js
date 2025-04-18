@@ -295,7 +295,7 @@ function HomePage() {
                           }
                         </div>
                         
-                        <Link to={`/projects/${sp.spId}`} className="view-details-button">
+                        <Link to={`/project/${sp.spId}`} className="view-details-button">
                           View Details
                         </Link>
                       </div>
