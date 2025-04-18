@@ -131,6 +131,7 @@
 
 /* Container styles */
 .container {
+  background-color: #FFFFFF00;
   height:100%;
   margin: 0 auto;
   padding: 2rem;
@@ -347,8 +348,13 @@
   gap: 2rem;
 }
 
-.adviser-cards,
-.sp-cards {
+.sp-cards{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: .5rem;
+  margin-top: 1.5rem;
+}
+.adviser-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 1.5rem;

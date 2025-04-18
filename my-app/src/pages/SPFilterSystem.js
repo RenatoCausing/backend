@@ -678,7 +678,7 @@ const getTagsForSp = (sp) => {
           </h3>
           
           <div className="text-sm text-gray-600 mb-3">
-          <span className="mr-4"><i className="fa-solid fa-pen-to-square"></i> {sp.groupId ? getAuthors(sp.groupId) : (sp.author || 'Unknown Author')}</span>
+ <span className="mr-4"><i className="fa-solid fa-pen-to-square"></i> {sp.groupId ? getAuthors(sp.groupId) : (sp.author || 'Unknown Author')}</span>
   <span className="mr-4"><i className="fa-regular fa-clock"></i> {sp.date || sp.year || 'No Date'}</span>
   <span><i className="fa-solid fa-user"></i> {sp.adviserId ? getAdviserName(sp.adviserId) : 'Unknown Adviser'}</span>
           </div>
