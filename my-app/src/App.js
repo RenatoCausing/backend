@@ -93,7 +93,7 @@ function App() {
           } 
         />
         <Route 
-          path="/project/:projectId" 
+          path="/project/:spId" 
           element={
             <RequireAuth>
               <div>Project Details Page (To be implemented)</div>
