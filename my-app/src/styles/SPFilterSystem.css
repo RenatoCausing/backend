@@ -49,7 +49,7 @@
   
   .w-34 {
     margin-top: 8rem;
-    width: 50%;
+    width: 55%;
   }
   
   .w-40 {
@@ -104,15 +104,42 @@
     width: 100%;
     margin-bottom: 2rem;
   }
-  
+
   .mb-6 {
+    position: relative;
+    width: 100%;
+    padding: 1.5rem 1rem 1.5rem 1.5rem;
     margin-bottom: 1.5rem;
+    border-left: 4px solid #991b1b;
+    background-color: transparent;
   }
-  
+  .mb-6:not(:last-child)::after {
+    content: "";
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background-color: #e5e7eb;
+    margin-bottom: -1.5rem;
+  }
+  .sp-divider {
+    width: 100%;
+    height: 1px;
+    background-color: rgba(229, 231, 235, 0.7); /* Color with opacity */
+    margin: 0.5rem 0 2rem 0;
+  }
+
+  /* First divider at the top of results */
+.top-divider {
+  margin-bottom: 2rem;
+  margin-top: 0;
+}
   .mb-4 {
     margin-left: auto;
     margin-right: auto;
-    width:90%;
+    width:60%;
     margin-bottom: rem;
   }
   .mb-9{
@@ -166,6 +193,9 @@
   .flex-wrap {
     flex-wrap: wrap;
   }
+  p {
+    font-size: 12px;
+  }
   
   .items-center {
     align-items: center;
@@ -183,6 +213,7 @@
   
   .border-l-4 {
     border-left-width: 4px;
+    background-color: transparent !important;
   }
   
   .border-gray-200 {
@@ -257,6 +288,17 @@
   
   .text-gray-600 {
     color: #4b5563;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .text-gray-600 span {
+    display: inline-flex;
+    align-items: center;
+  }
+  .text-gray-600 i {
+    margin-right: 0.5rem;
   }
   
   .text-gray-500 {
@@ -291,11 +333,10 @@
   .bg-gray-100 {
     background-color: #f3f4f6;
   }
-  
   .bg-gray-50 {
-    background-color: #f9fafb;
-  }
-  
+  background-color: transparent;
+  box-shadow: none;
+}
   .bg-red-800 {
     background-color: #800000;
     border-width: 0;
@@ -575,5 +616,8 @@
     .sp-meta {
       flex-direction: column;
       gap: 0.25rem;
+    }
+    .bg-gray-50, body, .w-full, .container {
+      background-color: #FFFFFF !important;
     }
   }

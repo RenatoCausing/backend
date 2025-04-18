@@ -212,6 +212,8 @@ fetchAdviserById: async (adviserId) => {
   };
 
   useEffect(() => {
+
+
     const fetchAdviserDetails = async () => {
       const adviserIds = filteredSps
         .filter(sp => sp.adviserId)
@@ -336,6 +338,13 @@ fetchAdviserById: async (adviserId) => {
     };
   }, []);
   
+
+
+
+
+
+
+  
   // Apply filters whenever filter states change
   useEffect(() => {
     const applyFilters = async () => {
@@ -399,6 +408,16 @@ fetchAdviserById: async (adviserId) => {
   const removeTag = (tagId) => {
     setSelectedTags(selectedTags.filter(t => t.tagId !== tagId));
   };
+
+  // Add this function to handle tag clicks
+const handleTagClick = (tagName) => {
+  // Find the tag object by name
+  const tag = tags.find(t => t.tagName === tagName);
+  if (tag && !selectedTags.some(t => t.tagId === tag.tagId)) {
+    setSelectedTags([...selectedTags, tag]);
+  }
+};
+  
   
   // Clear all advisers
   const clearAllAdvisers = () => {
@@ -457,11 +476,13 @@ fetchAdviserById: async (adviserId) => {
     return parts.join(', ');
   };
 
-  // Get tags for an SP
-  const getTagsForSp = (sp) => {
-    if (!sp.tagIds || !Array.isArray(sp.tagIds)) return [];
-    return tags.filter(tag => sp.tagIds.includes(tag.tagId));
-  };
+// Get tags for an SP
+const getTagsForSp = (sp) => {
+  if (!sp.tagIds || !Array.isArray(sp.tagIds)) return [];
+  return tags
+    .filter(tag => sp.tagIds.includes(tag.tagId))
+    .map(tag => tag.tagName || 'Unknown Tag');
+};
 
   return (
     <div><AdviserNavbar/>
@@ -628,64 +649,66 @@ fetchAdviserById: async (adviserId) => {
             </form>
             
             {searchResults && (
-              <div className="bg-green-100 p-3 rounded">
-                Your search for <strong>{searchResults.term}</strong> returned {searchResults.count} records.
-              </div>
-            )}
+      <div className="bg-green-100 p-3 rounded">
+        Your search for <strong>{searchResults.term}</strong> returned {searchResults.count} records.
+      </div>
+    )}
+  </div>
+  
+  {/* Loading and Error States */}
+  {loading && <div className="bg-blue-50 p-4 text-center text-blue-700 rounded">Loading...</div>}
+  {error && <div className="bg-red-50 p-4 text-center text-red-700 rounded">{error}</div>}
+  
+  {/* SP Results */}
+  <div style={{width: '100%'}}>
+    {/* Top divider */}
+    <div className="sp-divider top-divider" style={{backgroundColor: 'rgba(229, 231, 235, 0.7)'}}></div>
+    
+    {!loading && filteredSps.length === 0 && (
+      <div className="bg-gray-100 p-4 text-center text-gray-600 rounded">
+        No results found. Try adjusting your filters.
+      </div>
+    )}
+    
+    {filteredSps.map((sp, index) => (
+      <div key={sp.spId}>
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold mb-2">
+            <a href={`/sp/${sp.spId}`} className="text-blue-600 hover:underline">{sp.title}</a>
+          </h3>
+          
+          <div className="text-sm text-gray-600 mb-3">
+          <span className="mr-4"><i className="fa-solid fa-pen-to-square"></i> {sp.groupId ? getAuthors(sp.groupId) : (sp.author || 'Unknown Author')}</span>
+  <span className="mr-4"><i className="fa-regular fa-clock"></i> {sp.date || sp.year || 'No Date'}</span>
+  <span><i className="fa-solid fa-user"></i> {sp.adviserId ? getAdviserName(sp.adviserId) : 'Unknown Adviser'}</span>
           </div>
           
-          {/* Loading and Error States */}
-          {loading && <div className="bg-blue-50 p-4 text-center text-blue-700 rounded">Loading...</div>}
-          {error && <div className="bg-red-50 p-4 text-center text-red-700 rounded">{error}</div>}
+          <div className="text-sm mb-3">{sp.abstractText || 'No abstract available.'}</div>
           
-          {/* SP Results */}
-          <div>
-            {!loading && filteredSps.length === 0 && (
-              <div className="bg-gray-100 p-4 text-center text-gray-600 rounded">
-                No results found. Try adjusting your filters.
-              </div>
-            )}
-            
-            {filteredSps.map(sp => (
-  <div key={sp.spId} className="mb-6 border-l-4 border-red-800 bg-gray-50 p-4">
-    <h3 className="text-lg font-semibold mb-2">
-      <a href={`/sp/${sp.spId}`} className="text-blue-600 hover:underline">{sp.title}</a>
-    </h3>
-    
-    <div className="text-sm text-gray-600 mb-3">
-      <p><i class="fa-solid fa-user"></i> {sp.groupId ? getAuthors(sp.groupId) : (sp.author || 'Unknown Author')}</p>
-      <p>📅 {sp.date || sp.year || 'No Date'}</p>
-      <p>📄 {sp.adviserId ? getAdviserName(sp.adviserId) : 'Unknown Adviser'}</p>
-    </div>
-    
-    <div className="text-sm mb-3">{sp.abstractText || 'No abstract available.'}</div>
-    
-    <div className="flex flex-wrap gap-1 mb-2">
-      {getTagsForSp(sp).map(tag => (
-        <span key={tag.tagId} className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
-          {tag.tagName}
-        </span>
-      ))}
-    </div>
-    
-    <div className="flex gap-1">
-      <button 
-        className={`px-3 py-1 text-sm rounded ${activeTabs[sp.spId] === 'AI' ? 'bg-red-800 text-white' : 'bg-gray-200'}`}
-        onClick={() => handleTabChange(sp.spId, 'AI')}
-      >
-        AI
-      </button>
-      <button 
-        className={`px-3 py-1 text-sm rounded ${activeTabs[sp.spId] === 'Database' ? 'bg-red-800 text-white' : 'bg-gray-200'}`}
-        onClick={() => handleTabChange(sp.spId, 'Database')}
-      >
-        Database
-      </button>
-    </div>
-  </div>
-))}
+          <div className="flex flex-wrap gap-1 mb-2">
+            {getTagsForSp(sp).map((tagName, index) => (
+              <span 
+                key={index} 
+                className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs cursor-pointer hover:bg-gray-300"
+                onClick={() => handleTagClick(tagName)}
+              >
+                {tagName}
+              </span>
+            ))}
           </div>
         </div>
+        
+        {/* Custom divider with editable color/opacity */}
+        {index < filteredSps.length - 1 && (
+          <div 
+            className="sp-divider"
+            style={{backgroundColor: 'rgba(229, 231, 235, 0.7)'}}
+          ></div>
+        )}
+      </div>
+    ))}
+  </div>
+</div>
       </div>
     </div>
     </div>
