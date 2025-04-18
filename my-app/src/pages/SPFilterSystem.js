@@ -37,6 +37,34 @@ const [studentGroups, setStudentGroups] = useState({});
 
   // API service methods
   const SPApiService = {
+
+      // Add this function to SPApiService
+fetchAdviserById: async (adviserId) => {
+  try {
+    const response = await fetch(`http://localhost:8080/api/advisers/${adviserId}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch adviser with ID ${adviserId}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching adviser ${adviserId}:`, error);
+    return null;
+  }
+},
+
+// Add this function to fetch students by group ID
+fetchStudentsByGroupId: async (groupId) => {
+  try {
+    const response = await fetch(`http://localhost:8080/api/students/group/${groupId}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch students for group ID ${groupId}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching students for group ${groupId}:`, error);
+    return [];
+  }
+},  
     fetchAllAdvisers: async () => {
       try {
         const response = await fetch('http://localhost:8080/api/advisers');
@@ -289,33 +317,7 @@ fetchAdviserById: async (adviserId) => {
     fetchData();
   }, []);
 
-  // Add this function to SPApiService
-fetchAdviserById: async (adviserId) => {
-  try {
-    const response = await fetch(`http://localhost:8080/api/advisers/${adviserId}`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch adviser with ID ${adviserId}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error(`Error fetching adviser ${adviserId}:`, error);
-    return null;
-  }
-},
 
-// Add this function to fetch students by group ID
-fetchStudentsByGroupId: async (groupId) => {
-  try {
-    const response = await fetch(`http://localhost:8080/api/students/group/${groupId}`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch students for group ID ${groupId}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error(`Error fetching students for group ${groupId}:`, error);
-    return [];
-  }
-},  
   
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -651,7 +653,7 @@ fetchStudentsByGroupId: async (groupId) => {
     </h3>
     
     <div className="text-sm text-gray-600 mb-3">
-      <p>👤 By {sp.groupId ? getAuthors(sp.groupId) : (sp.author || 'Unknown Author')}</p>
+      <p><i class="fa-solid fa-user"></i> {sp.groupId ? getAuthors(sp.groupId) : (sp.author || 'Unknown Author')}</p>
       <p>📅 {sp.date || sp.year || 'No Date'}</p>
       <p>📄 {sp.adviserId ? getAdviserName(sp.adviserId) : 'Unknown Adviser'}</p>
     </div>

@@ -6,6 +6,8 @@ import net.SPIS.backend.DTO.StudentDTO;
 
 import java.util.List;
 
+import javax.management.relation.RelationNotFoundException;
+
 public interface SPService {
     SPDTO getSP(Integer spId);
 
@@ -30,7 +32,5 @@ public interface SPService {
     Integer getSPViewCount(Integer spId);
 
     List<AdviserDTO> getTopAdvisersByViews();
-
-    List<StudentDTO> getStudentsByGroupId(Integer groupId);
 
 }

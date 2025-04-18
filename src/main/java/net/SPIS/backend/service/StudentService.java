@@ -14,4 +14,6 @@ public interface StudentService {
     void deleteStudent(Integer studentId);
 
     StudentDTO getStudent(Integer studentId);
+
+    List<StudentDTO> getStudentsByGroupId(Integer groupId);
 }

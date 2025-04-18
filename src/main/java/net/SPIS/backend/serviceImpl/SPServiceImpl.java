@@ -16,14 +16,15 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.management.relation.RelationNotFoundException;
+
 @Service
 public class SPServiceImpl implements SPService {
 
     @Autowired
-    private SPRepository spRepository;
-
+    private StudentRepository studentRepository;
     @Autowired
-    private GroupsRepository groupRepository;
+    private SPRepository spRepository;
 
     @Autowired
     private AdminRepository adminRepository;
@@ -180,16 +181,21 @@ public class SPServiceImpl implements SPService {
                     dto.setMiddleName(adviser.getMiddleName());
                     dto.setFacultyId(adviser.getFaculty().getFacultyId());
                     dto.setImagePath(adviser.getImagePath());
-                    dto.setDesc
-
-    
-                ist<StudentDTO> getStudentsByGroupId(Integer groupId) {
-
-            .orElseThrow(() -> new ResourceNotFoundException("Group not found with id " + groupId));
-        
-                <Student> students = stu
-                rn students.stream()
-            .map(this::convertToDto)
-            .collect(Collectors.toList());
+                    dto.setDescription(adviser.getDescription());
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
+
+    private StudentDTO toDTO(Student student) {
+        StudentDTO dto = new StudentDTO();
+        dto.setStudentId(student.getStudentId());
+        dto.setFirstName(student.getFirstName());
+        dto.setLastName(student.getLastName());
+        dto.setMiddleName(student.getMiddleName());
+        dto.setFacultyId(student.getFaculty().getFacultyId());
+        dto.setGroupId(student.getGroup() != null ? student.getGroup().getGroupId() : null);
+        return dto;
+    }
+
 }

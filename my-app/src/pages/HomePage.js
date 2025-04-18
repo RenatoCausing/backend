@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import Navbar from '../components/AdviserNavbar';
+import Navbar from '../components/NavBar';
 import HeroSection from '../components/HeroSection';
 import AdviserCard from '../components/AdviserCard';
 import SPCard from '../components/SPCard';

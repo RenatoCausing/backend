@@ -8,7 +8,6 @@ import SPFilterSystem from './pages/SPFilterSystem';
 import OAuthCallback from './components/OAuthCallback';
 import { useUser } from './contexts/UserContext';
 import './App.css';
-import SPDetails from './pages/SPDetails';
 
 // This component checks if user is authenticated
 const RequireAuth = ({ children }) => {
@@ -97,7 +96,7 @@ function App() {
           path="/project/:projectId" 
           element={
             <RequireAuth>
-              <SPDetails/>
+              <div>Project Details Page (To be implemented)</div>
             </RequireAuth>
           } 
         />

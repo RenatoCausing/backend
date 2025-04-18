@@ -5,7 +5,9 @@ import net.SPIS.backend.entities.*;
 import net.SPIS.backend.repositories.*;
 import net.SPIS.backend.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -65,5 +67,17 @@ public class StudentServiceImpl implements StudentService {
         dto.setFacultyId(student.getFaculty().getFacultyId());
         dto.setGroupId(student.getGroup() != null ? student.getGroup().getGroupId() : null);
         return dto;
+    }
+
+    @Override
+    public List<StudentDTO> getStudentsByGroupId(Integer groupId) {
+        Groups group = groupsRepository.findById(groupId)
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Group not found with id " + groupId));
+
+        List<Student> students = studentRepository.findByGroup(group);
+        return students.stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 }
