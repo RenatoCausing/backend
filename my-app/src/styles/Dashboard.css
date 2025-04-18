@@ -20,6 +20,7 @@ position: fixed;
   }
   
   .logo-container {
+    margin-top: 2vw;
     padding: 20px;
     display: flex;
     justify-content: center;

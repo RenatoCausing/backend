@@ -11,7 +11,7 @@ import OAuthCallback from './components/OAuthCallback';
 import { useUser } from './contexts/UserContext';
 import './App.css';
 import SPDetails from './pages/SPDetails';
-import SPProjectView from './components/SPProjectView';
+import SPProjectView from './pages/SPProjectView';
 
 // This component checks if user is authenticated
 const RequireAuth = ({ children }) => {
