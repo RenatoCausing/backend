@@ -19,7 +19,6 @@ const SPProjectView = () => {
 
   return (
 
-    <body class="white-background">
     <div className="flex flex-col min-h-screen">
       <AdviserNavbar />
       
@@ -64,7 +63,6 @@ const SPProjectView = () => {
         )}
       </div>
     </div>
-    </body>
   );
 };
 

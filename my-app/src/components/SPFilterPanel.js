@@ -7,6 +7,7 @@ const SPFilterPanel = ({ onSPSelect }) => {
   const [tags, setTags] = useState([]);
   const [sps, setSps] = useState([]);
   const [filteredSps, setFilteredSps] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [adviserData, setAdviserData] = useState({});
   const [studentGroups, setStudentGroups] = useState({});
@@ -17,6 +18,7 @@ const SPFilterPanel = ({ onSPSelect }) => {
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedField, setSelectedField] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState(null);
   
   // Input states
@@ -33,6 +35,7 @@ const SPFilterPanel = ({ onSPSelect }) => {
   // Refs for click outside detection
   const adviserDropdownRef = useRef(null);
   const tagDropdownRef = useRef(null);
+  const searchTimeoutRef = useRef(null);
 
   // API service methods
   const SPApiService = {
@@ -180,6 +183,26 @@ const SPFilterPanel = ({ onSPSelect }) => {
     }
   };
 
+  // Implement debouncing for search term
+  useEffect(() => {
+    // Clear any existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    // Set a new timeout for 300ms
+    searchTimeoutRef.current = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+    
+    // Cleanup on unmount or when searchTerm changes
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchTerm]);
+
   // Parse URL parameters when component mounts
   useEffect(() => {
     const parseUrlParams = () => {
@@ -257,6 +280,7 @@ const SPFilterPanel = ({ onSPSelect }) => {
   // Fetch data on component mount
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const adviserData = await SPApiService.fetchAllAdvisers();
         setAdvisers(adviserData || []);
@@ -282,33 +306,14 @@ const SPFilterPanel = ({ onSPSelect }) => {
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Failed to load data. Please try again later.');
+      } finally {
+        setLoading(false);
       }
     };
     
     fetchData();
   }, []);
   
-  const renderEditButton = (sp) => (
-    <button 
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log("Edit button clicked for:", sp.title);
-        const projectForEdit = {
-          ...sp,
-          editMode: true,
-          adviserName: sp.adviserId ? getAdviserName(sp.adviserId) : 'Unknown Adviser',
-          author: sp.groupId ? getAuthors(sp.groupId) : (sp.author || 'Unknown Author'),
-          tags: getTagsForSp(sp)
-        };
-        console.log("Sending project with editMode=true:", projectForEdit);
-        handleSPSelect(projectForEdit); // Use our safe handler
-      }}
-      className="text-gray-500 hover:text-gray-700 p-1 mr-2"
-    >
-      <i className="fa-solid fa-pen"></i> Edit
-    </button>
-  );
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -326,23 +331,24 @@ const SPFilterPanel = ({ onSPSelect }) => {
     };
   }, []);
   
-  // Apply filters whenever filter states change
+  // Apply filters whenever filter states change - use debouncedSearchTerm instead of searchTerm
   useEffect(() => {
     const applyFilters = async () => {
+      setLoading(true);
       try {
         const filters = {
           adviserIds: selectedAdvisers.map(adviser => adviser.adminId),
           tagIds: selectedTags.map(tag => tag.tagId),
           departmentId: selectedDepartment,
-          searchTerm: searchTerm
+          searchTerm: debouncedSearchTerm
         };
         
         const filteredResults = await SPApiService.applyFilters(filters);
         setFilteredSps(filteredResults || []);
         
-        if (searchTerm) {
+        if (debouncedSearchTerm) {
           setSearchResults({
-            term: searchTerm,
+            term: debouncedSearchTerm,
             count: filteredResults.length
           });
         } else {
@@ -351,13 +357,15 @@ const SPFilterPanel = ({ onSPSelect }) => {
       } catch (err) {
         console.error('Error applying filters:', err);
         setError('Failed to apply filters. Please try again.');
+      } finally {
+        setLoading(false);
       }
     };
     
     if (sps.length > 0) {
       applyFilters();
     }
-  }, [selectedAdvisers, selectedTags, selectedDepartment, searchTerm, sps]);
+  }, [selectedAdvisers, selectedTags, selectedDepartment, debouncedSearchTerm, sps]);
   
   // Helper functions
   const getAdviserName = (adviserId) => {
@@ -402,6 +410,17 @@ const SPFilterPanel = ({ onSPSelect }) => {
   // Remove tag from filter
   const removeTag = (tagId) => {
     setSelectedTags(selectedTags.filter(t => t.tagId !== tagId));
+    
+    // Update URL to remove the tag if needed
+    const url = new URL(window.location);
+    const currentTag = selectedTags.find(t => t.tagId === tagId);
+    if (currentTag) {
+      const tagParam = url.searchParams.get('tag');
+      if (tagParam && tagParam.toLowerCase() === encodeURIComponent(currentTag.tagName).toLowerCase()) {
+        url.searchParams.delete('tag');
+        window.history.pushState({}, '', url);
+      }
+    }
   };
 
   // Handle tag clicks
@@ -456,6 +475,7 @@ const SPFilterPanel = ({ onSPSelect }) => {
   // Handle search submission
   const handleSearch = (e) => {
     e.preventDefault();
+    // The debounce effect will handle the search when the input changes
   };
   
   // Filter advisers based on input
@@ -496,13 +516,28 @@ const SPFilterPanel = ({ onSPSelect }) => {
       console.error("onSPSelect is not a function. Check your component props.");
     }
   };
+  
+  // Handle file upload (placeholder)
+  const handleUpload = () => {
+    console.log("Upload button clicked - functionality to be implemented");
+  };
+  
   return (
-    <div className="flex w1-full max-w-6xl mx1-auto">
+    <div className="flex w-full max-w-6xl mx-auto" style={{backgroundColor: 'white'}}>
       {/* Central SP Results Container */}
-      <div className="w-34 p-4">
+      <div className="w-34 p-4" style={{backgroundColor: 'white'}}>
         {/* Search and Filter Row */}
         <div className="mb-4">
           <form onSubmit={handleSearch} className="flex gap-2 mb-9">
+            {/* Upload Button - Moved to left of Department dropdown */}
+            <button
+              type="button"
+              className="bg-red-800 text-white rounded p-2 flex items-center justify-center gap-1"
+              onClick={handleUpload}
+            >
+              <i className="fa fa-upload"></i> UPLOAD
+            </button>
+            
             <select 
               className="border border-gray-300 rounded p-2 w-40"
               onChange={handleDepartmentChange}
@@ -548,29 +583,32 @@ const SPFilterPanel = ({ onSPSelect }) => {
           )}
         </div>
         
-        {/* Error State */}
+        {/* Loading and Error States */}
+        {loading && <div className="bg-blue-50 p-4 text-center text-blue-700 rounded">Loading...</div>}
         {error && <div className="bg-red-50 p-4 text-center text-red-700 rounded">{error}</div>}
         
         {/* SP Results */}
-        <div style={{width: '100%'}}>
+        <div style={{width: '100%', backgroundColor: 'white'}}>
           {/* Top divider */}
           <div className="sp-divider top-divider" style={{backgroundColor: 'rgba(229, 231, 235, 0.7)'}}></div>
           
-          {filteredSps.length === 0 && (
+          {!loading && filteredSps.length === 0 && (
             <div className="bg-gray-100 p-4 text-center text-gray-600 rounded">
               No results found. Try adjusting your filters.
             </div>
           )}
           
           {filteredSps.map((sp, index) => (
-            <div key={sp.spId}>
+            <div key={sp.spId} className="relative">
               <div className="mb-6">
-                <div className="flex justify-between items-center mb-2">
-                  <h3 className="text-lg font-semibold">
+                {/* Modified header to position buttons properly */}
+                <div className="flex mb-2">
+                  <h3 className="text-lg font-semibold flex-1">
                     <a href={`/project/${sp.spId}`} className="text-blue-600 hover:underline">{sp.title}</a>
                   </h3>
                   
-                  <div>
+                  {/* Buttons now positioned at the far right */}
+                  <div className="flex ml-auto">
                     <button 
                       onClick={(e) => {
                         e.preventDefault();
@@ -584,14 +622,16 @@ const SPFilterPanel = ({ onSPSelect }) => {
                           tags: getTagsForSp(sp)
                         };
                         console.log("Sending project with editMode=true:", projectForEdit);
-                        handleSPSelect(projectForEdit); // Use our handler
+                        handleSPSelect(projectForEdit);
                       }}
-                      className="text-gray-500 hover:text-gray-700 p-1 mr-2"
+                      className="text-gray-500 hover:text-gray-700 p-2"
                     >
-                      <i className="fa-solid fa-pen"></i> Edit
+                      <i className="fa-solid fa-pen"></i>
                     </button>
-                    <button className="text-red-600 hover:text-red-800">
-                      <i className="fa fa-trash"></i> Delete
+                    <button 
+                      className="text-red-600 hover:text-red-800 p-2"
+                    >
+                      <i className="fa fa-trash"></i>
                     </button>
                   </div>
                 </div>
@@ -630,7 +670,7 @@ const SPFilterPanel = ({ onSPSelect }) => {
       </div>
 
       {/* Right Sidebar - Filter Section */}
-      <div className="w-14 p-4 border-l border-gray-200">
+      <div className="w-14 p-4 border-l border-gray-200" style={{backgroundColor: 'white'}}>
         {/* Logo */}
         <div className="mb-8">
           <img src="https://upload.wikimedia.org/wikipedia/commons/4/45/White_box_55x90.png" alt="University Logo" className="w-48 mx-auto" />
