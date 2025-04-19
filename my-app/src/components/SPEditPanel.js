@@ -191,8 +191,7 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
   return (
     <div className="h-full flex flex-col bg-white overflow-hidden relative" ref={panelContainerRef}>
       {/* Panel header with minimal styling */}
-      <div className="bg-red-800 text-white px-4 py-3 flex justify-between items-center sticky top-0 z-10">
-        <h2 className="text-lg font-semibold">Edit Project</h2>
+      <div className="bg-red-800 text-white px-2 py-3 flex justify-between items-center sticky top-0 z-10">
         
         {/* Close button positioned to stick out like in the image */}
         <button 
@@ -200,7 +199,7 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
           className="absolute -right-4 top-1/2 transform -translate-y-1/2 bg-white text-red-800 rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-100 shadow-md"
           aria-label="Close panel"
         >
-          <span className="text-xl font-bold">×</span>
+          <span className="text-xl font-bold">{'>'}</span>
         </button>
       </div>
       
@@ -499,7 +498,7 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
           </div>
           
           {/* Panel footer - kept inside form for better UX */}
-          <div className="border-t border-gray-200 pt-4 flex justify-between mt-8">
+          <div className="flex flex-wrap gap-2 mb-2">
             <button 
               type="button"
               className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
