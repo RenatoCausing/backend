@@ -29,5 +29,19 @@ public interface SPService {
     Integer getSPViewCount(Integer spId);
 
     List<AdviserDTO> getTopAdvisersByViews();
-
+    
+    // Missing methods that need to be added:
+    SPDTO updateSP(Integer spId, SPDTO spDTO);
+    
+    void deleteSP(Integer spId);
+    
+    SPDTO addTagToSP(Integer spId, Integer tagId);
+    
+    SPDTO removeTagFromSP(Integer spId, Integer tagId);
+    
+    SPDTO updateSPTags(Integer spId, List<Integer> tagIds);
+    
+    List<SPDTO> searchSPs(String query);
+    
+    List<SPDTO> advancedSearch(String title, String author, String adviser, String year, String semester, List<Integer> tagIds);
 }
