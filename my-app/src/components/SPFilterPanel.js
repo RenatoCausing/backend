@@ -7,7 +7,6 @@ const SPFilterPanel = ({ onSPSelect }) => {
   const [tags, setTags] = useState([]);
   const [sps, setSps] = useState([]);
   const [filteredSps, setFilteredSps] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [adviserData, setAdviserData] = useState({});
   const [studentGroups, setStudentGroups] = useState({});
@@ -258,7 +257,6 @@ const SPFilterPanel = ({ onSPSelect }) => {
   // Fetch data on component mount
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
       try {
         const adviserData = await SPApiService.fetchAllAdvisers();
         setAdvisers(adviserData || []);
@@ -284,8 +282,6 @@ const SPFilterPanel = ({ onSPSelect }) => {
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Failed to load data. Please try again later.');
-      } finally {
-        setLoading(false);
       }
     };
     
@@ -333,7 +329,6 @@ const SPFilterPanel = ({ onSPSelect }) => {
   // Apply filters whenever filter states change
   useEffect(() => {
     const applyFilters = async () => {
-      setLoading(true);
       try {
         const filters = {
           adviserIds: selectedAdvisers.map(adviser => adviser.adminId),
@@ -356,8 +351,6 @@ const SPFilterPanel = ({ onSPSelect }) => {
       } catch (err) {
         console.error('Error applying filters:', err);
         setError('Failed to apply filters. Please try again.');
-      } finally {
-        setLoading(false);
       }
     };
     
@@ -555,8 +548,7 @@ const SPFilterPanel = ({ onSPSelect }) => {
           )}
         </div>
         
-        {/* Loading and Error States */}
-        {loading && <div className="bg-blue-50 p-4 text-center text-blue-700 rounded">Loading...</div>}
+        {/* Error State */}
         {error && <div className="bg-red-50 p-4 text-center text-red-700 rounded">{error}</div>}
         
         {/* SP Results */}
@@ -564,13 +556,13 @@ const SPFilterPanel = ({ onSPSelect }) => {
           {/* Top divider */}
           <div className="sp-divider top-divider" style={{backgroundColor: 'rgba(229, 231, 235, 0.7)'}}></div>
           
-          {!loading && filteredSps.length === 0 && (
+          {filteredSps.length === 0 && (
             <div className="bg-gray-100 p-4 text-center text-gray-600 rounded">
               No results found. Try adjusting your filters.
             </div>
           )}
           
- {filteredSps.map((sp, index) => (
+          {filteredSps.map((sp, index) => (
             <div key={sp.spId}>
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-2">
@@ -579,25 +571,25 @@ const SPFilterPanel = ({ onSPSelect }) => {
                   </h3>
                   
                   <div>
-                  <button 
-  onClick={(e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log("Edit button clicked for:", sp.title);
-    const projectForEdit = {
-      ...sp,
-      editMode: true,
-      adviserName: sp.adviserId ? getAdviserName(sp.adviserId) : 'Unknown Adviser',
-      author: sp.groupId ? getAuthors(sp.groupId) : (sp.author || 'Unknown Author'),
-      tags: getTagsForSp(sp)
-    };
-    console.log("Sending project with editMode=true:", projectForEdit);
-    handleSPSelect(projectForEdit); // Use our handler
-  }}
-  className="text-gray-500 hover:text-gray-700 p-1 mr-2"
->
-  <i className="fa-solid fa-pen"></i> Edit
-</button>
+                    <button 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log("Edit button clicked for:", sp.title);
+                        const projectForEdit = {
+                          ...sp,
+                          editMode: true,
+                          adviserName: sp.adviserId ? getAdviserName(sp.adviserId) : 'Unknown Adviser',
+                          author: sp.groupId ? getAuthors(sp.groupId) : (sp.author || 'Unknown Author'),
+                          tags: getTagsForSp(sp)
+                        };
+                        console.log("Sending project with editMode=true:", projectForEdit);
+                        handleSPSelect(projectForEdit); // Use our handler
+                      }}
+                      className="text-gray-500 hover:text-gray-700 p-1 mr-2"
+                    >
+                      <i className="fa-solid fa-pen"></i> Edit
+                    </button>
                     <button className="text-red-600 hover:text-red-800">
                       <i className="fa fa-trash"></i> Delete
                     </button>

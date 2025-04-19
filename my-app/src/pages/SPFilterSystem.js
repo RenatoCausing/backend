@@ -8,8 +8,6 @@ const SPFilterSystem = () => {
   const [tags, setTags] = useState([]);
   const [sps, setSps] = useState([]);
   const [filteredSps, setFilteredSps] = useState([]);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [filterLoading, setFilterLoading] = useState(false);
   const [error, setError] = useState(null);
   const [adviserData, setAdviserData] = useState({});
   const [studentGroups, setStudentGroups] = useState({});
@@ -282,7 +280,6 @@ const SPFilterSystem = () => {
   // Fetch data on component mount
   useEffect(() => {
     const fetchData = async () => {
-      setInitialLoading(true);
       try {
         const adviserData = await SPApiService.fetchAllAdvisers();
         setAdvisers(adviserData || []);
@@ -308,8 +305,6 @@ const SPFilterSystem = () => {
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Failed to load data. Please try again later.');
-      } finally {
-        setInitialLoading(false);
       }
     };
     
@@ -336,7 +331,6 @@ const SPFilterSystem = () => {
   // Apply filters when filter states change (but not on every keypress in search)
   useEffect(() => {
     const applyFilters = async () => {
-      setFilterLoading(true);
       try {
         const filters = {
           adviserIds: selectedAdvisers.map(adviser => adviser.adminId),
@@ -359,8 +353,6 @@ const SPFilterSystem = () => {
       } catch (err) {
         console.error('Error applying filters:', err);
         setError('Failed to apply filters. Please try again.');
-      } finally {
-        setFilterLoading(false);
       }
     };
     
@@ -511,6 +503,7 @@ const SPFilterSystem = () => {
   };
 
   return (
+    
     <div><AdviserNavbar/>
     
     <div className="flex w-full justify-center">
@@ -682,8 +675,6 @@ const SPFilterSystem = () => {
             )}
           </div>
           
-          {/* Only show loading indicator on initial load */}
-          {initialLoading && <div className="bg-blue-50 p-4 text-center text-blue-700 rounded">Loading...</div>}
           {error && <div className="bg-red-50 p-4 text-center text-red-700 rounded">{error}</div>}
           
           {/* SP Results */}
@@ -691,54 +682,49 @@ const SPFilterSystem = () => {
             {/* Top divider */}
             <div className="sp-divider top-divider" style={{backgroundColor: 'rgba(229, 231, 235, 0.7)'}}></div>
             
-            {/* Show a subtle loading indicator when filtering, but keep showing results */}
-            {filterLoading && !initialLoading && (
-              <div className="text-blue-500 text-sm mb-2">Updating results...</div>
-            )}
-            
-            {!initialLoading && filteredSps.length === 0 && (
+            {filteredSps.length === 0 ? (
               <div className="bg-gray-100 p-4 text-center text-gray-600 rounded">
                 No results found. Try adjusting your filters.
               </div>
-            )}
-            
-            {filteredSps.map((sp, index) => (
-              <div key={sp.spId}>
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold mb-2">
-                    <a href={`/project/${sp.spId}`} className="text-blue-600 hover:underline">{sp.title}</a>
-                  </h3>
-                  
-                  <div className="text-sm text-gray-600 mb-3">
-                    <span className="mr-4"><i className="fa-solid fa-pen-to-square"></i> {sp.groupId ? getAuthors(sp.groupId) : (sp.author || 'Unknown Author')}</span>
-                    <span className="mr-4"><i className="fa-regular fa-clock"></i> {sp.date || sp.year || 'No Date'}</span>
-                    <span><i className="fa-solid fa-user"></i> {sp.adviserId ? getAdviserName(sp.adviserId) : 'Unknown Adviser'}</span>
+            ) : (
+              filteredSps.map((sp, index) => (
+                <div key={sp.spId}>
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold mb-2">
+                      <a href={`/project/${sp.spId}`} className="text-blue-600 hover:underline">{sp.title}</a>
+                    </h3>
+                    
+                    <div className="text-sm text-gray-600 mb-3">
+                      <span className="mr-4"><i className="fa-solid fa-pen-to-square"></i> {sp.groupId ? getAuthors(sp.groupId) : (sp.author || 'Unknown Author')}</span>
+                      <span className="mr-4"><i className="fa-regular fa-clock"></i> {sp.date || sp.year || 'No Date'}</span>
+                      <span><i className="fa-solid fa-user"></i> {sp.adviserId ? getAdviserName(sp.adviserId) : 'Unknown Adviser'}</span>
+                    </div>
+                    
+                    <div className="text-sm mb-3">{sp.abstractText || 'No abstract available.'}</div>
+                    
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {getTagsForSp(sp).map((tagName, index) => (
+                        <span 
+                          key={index} 
+                          className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs cursor-pointer hover:bg-gray-300"
+                          onClick={() => handleTagClick(tagName)}
+                        >
+                          {tagName}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                   
-                  <div className="text-sm mb-3">{sp.abstractText || 'No abstract available.'}</div>
-                  
-                  <div className="flex flex-wrap gap-1 mb-2">
-                    {getTagsForSp(sp).map((tagName, index) => (
-                      <span 
-                        key={index} 
-                        className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs cursor-pointer hover:bg-gray-300"
-                        onClick={() => handleTagClick(tagName)}
-                      >
-                        {tagName}
-                      </span>
-                    ))}
-                  </div>
+                  {/* Custom divider with editable color/opacity */}
+                  {index < filteredSps.length - 1 && (
+                    <div 
+                      className="sp-divider"
+                      style={{backgroundColor: 'rgba(229, 231, 235, 0.7)'}}
+                    ></div>
+                  )}
                 </div>
-                
-                {/* Custom divider with editable color/opacity */}
-                {index < filteredSps.length - 1 && (
-                  <div 
-                    className="sp-divider"
-                    style={{backgroundColor: 'rgba(229, 231, 235, 0.7)'}}
-                  ></div>
-                )}
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>
