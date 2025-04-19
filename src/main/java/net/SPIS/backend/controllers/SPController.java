@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -56,7 +57,6 @@ public class SPController {
     }
 
     @PostMapping
-
     @CrossOrigin(origins = "http://localhost:3000")
     public SPDTO createSP(@RequestBody SPDTO spDTO) {
         return spService.createSP(spDTO);
@@ -86,7 +86,7 @@ public class SPController {
 
     @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/top-advisers")
-    public ResponseEntity<List<AdviserDTO>> getTopAdvisersByViews() { 
+    public ResponseEntity<List<AdviserDTO>> getTopAdvisersByViews() {
         System.out.println("🔍 Endpoint /top-advisers was hit!");
 
         List<AdviserDTO> topAdvisers = spService.getTopAdvisersByViews();
@@ -100,4 +100,12 @@ public class SPController {
         return ResponseEntity.ok(topAdvisers);
     }
 
+    // Add these methods to your existing SPController class
+
+    @PutMapping("/{spId}/update")
+    @CrossOrigin(origins = "http://localhost:3000")
+    public ResponseEntity<SPDTO> updateSP(@PathVariable Integer spId, @RequestBody SPDTO spDTO) {
+        SPDTO updatedSP = spService.updateSP(spId, spDTO);
+        return ResponseEntity.ok(updatedSP);
+    }
 }

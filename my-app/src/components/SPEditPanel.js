@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-
+import axios from 'axios';
 const SPEditPanel = ({ project, onClose, onSave }) => {
   // Initialize state with project data
   const [formData, setFormData] = useState({
@@ -127,19 +127,35 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("Saving project with data:", formData);
     
-    // Create updated project object
-    const updatedProject = {
-      ...project,
-      ...formData
-    };
-    
-    // Call the parent's onSave function
-    onSave(updatedProject);
-    onClose();
+    try {
+      // Create updated project object with only the editable fields
+      const updatedProjectData = {
+        title: formData.title,
+        year: formData.year,
+        semester: formData.semester,
+        abstractText: formData.abstractText,
+        uri: formData.uri
+      };
+      
+      // Make the API call to update the project
+      const response = await axios.put(
+        `http://localhost:8080/api/sp/${project.spId}/update`, 
+        updatedProjectData
+      );
+      
+      console.log("Project updated successfully:", response.data);
+      
+      // Call the parent's onSave function with updated data
+      onSave(response.data);
+      onClose();
+    } catch (error) {
+      console.error("Error updating project:", error);
+      alert("Failed to update project. Please try again.");
+    }
   };
   
   const removeTag = (tagToRemove) => {
@@ -188,10 +204,12 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
     setShowUploadedBySelector(false);
   };
 
+
   return (
     <div className="h-full flex flex-col bg-white overflow-hidden relative" ref={panelContainerRef}>
       {/* Panel header with minimal styling */}
       <div className="bg-red-800 text-white px-2 py-3 flex justify-between items-center sticky top-0 z-10">
+        <h2 className="text-lg font-semibold">Edit Project</h2>
         
         {/* Close button positioned to stick out like in the image */}
         <button 
@@ -249,7 +267,7 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
               >
                 <option value="1st Semester">1st Semester</option>
                 <option value="2nd Semester">2nd Semester</option>
-                <option value="Midyear">Midyear</option>
+                <option value="Summer">Summer</option>
               </select>
             </div>
           </div>
@@ -268,150 +286,6 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
             />
           </div>
           
-          <div className="relative" ref={authorSelectorRef}>
-            <div className="flex justify-between items-center mb-1">
-              <label className="block text-sm font-medium text-gray-700" htmlFor="author">
-                Authors
-              </label>
-              <button 
-                type="button" 
-                className="bg-red-800 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-700"
-                onClick={() => setShowAuthorSelector(!showAuthorSelector)}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-              </button>
-            </div>
-            <input 
-              id="author"
-              name="author"
-              type="text" 
-              className="w-full border border-gray-300 rounded p-2"
-              value={formData.author}
-              onChange={handleChange}
-              readOnly
-              onClick={() => setShowAuthorSelector(!showAuthorSelector)}
-              placeholder="Select authors"
-            />
-            
-            {showAuthorSelector && (
-              <div className="absolute z-20 bg-white border border-gray-300 rounded shadow-lg w-full mt-1 max-h-48 overflow-y-auto">
-                <div className="p-2 border-b border-gray-200 font-medium text-sm">
-                  Select Author
-                </div>
-                {availableAuthors.map((author) => (
-                  <div 
-                    key={author.studentId} 
-                    className="p-2 hover:bg-gray-100 cursor-pointer"
-                    onClick={() => selectAuthor(author)}
-                  >
-                    {author.lastName}, {author.firstName}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="relative" ref={adviserSelectorRef}>
-              <div className="flex justify-between items-center mb-1">
-                <label className="block text-sm font-medium text-gray-700" htmlFor="adviserName">
-                  Adviser
-                </label>
-                <button 
-                  type="button" 
-                  className="bg-red-800 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-700"
-                  onClick={() => setShowAdviserSelector(!showAdviserSelector)}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                </button>
-              </div>
-              <input 
-                id="adviserName"
-                name="adviserName"
-                type="text" 
-                className="w-full border border-gray-300 rounded p-2"
-                value={formData.adviserName}
-                onChange={handleChange}
-                readOnly
-                onClick={() => setShowAdviserSelector(!showAdviserSelector)}
-                placeholder="Select adviser"
-              />
-              
-              {showAdviserSelector && (
-                <div className="absolute z-20 bg-white border border-gray-300 rounded shadow-lg w-full mt-1 max-h-48 overflow-y-auto">
-                  <div className="p-2 border-b border-gray-200 font-medium text-sm">
-                    Select Adviser
-                  </div>
-                  {availableAdvisers.map((adviser) => (
-                    <div 
-                      key={adviser.adminId} 
-                      className="p-2 hover:bg-gray-100 cursor-pointer"
-                      onClick={() => selectAdviser(adviser)}
-                    >
-                      {adviser.lastName}, {adviser.firstName}
-                    </div>
-                  ))}
-                </div>
-              )}
-              
-              <input 
-                id="adviserId"
-                name="adviserId"
-                type="hidden" 
-                value={formData.adviserId}
-              />
-            </div>
-            
-            <div className="relative" ref={uploaderSelectorRef}>
-              <div className="flex justify-between items-center mb-1">
-                <label className="block text-sm font-medium text-gray-700" htmlFor="uploadedBy">
-                  Uploaded By
-                </label>
-                <button 
-                  type="button" 
-                  className="bg-red-800 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-700"
-                  onClick={() => setShowUploadedBySelector(!showUploadedBySelector)}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                </button>
-              </div>
-              <input 
-                id="uploadedBy"
-                name="uploadedBy"
-                type="text" 
-                className="w-full border border-gray-300 rounded p-2"
-                value={formData.uploadedBy}
-                onChange={handleChange}
-                readOnly
-                onClick={() => setShowUploadedBySelector(!showUploadedBySelector)}
-                placeholder="Select uploader"
-              />
-              
-              {showUploadedBySelector && (
-                <div className="absolute z-20 bg-white border border-gray-300 rounded shadow-lg w-full mt-1 max-h-48 overflow-y-auto">
-                  <div className="p-2 border-b border-gray-200 font-medium text-sm">
-                    Select Uploader
-                  </div>
-                  {availableUploaders.map((uploader) => (
-                    <div 
-                      key={uploader.id} 
-                      className="p-2 hover:bg-gray-100 cursor-pointer"
-                      onClick={() => selectUploader(uploader)}
-                    >
-                      {uploader.name}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-          
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="uri">
               URI
@@ -424,77 +298,6 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
               value={formData.uri}
               onChange={handleChange}
             />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="documentPath">
-              Document Path
-            </label>
-            <input 
-              id="documentPath"
-              name="documentPath"
-              type="text" 
-              className="w-full border border-gray-300 rounded p-2"
-              value={formData.documentPath}
-              onChange={handleChange}
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="dateIssued">
-              Date Issued
-            </label>
-            <input 
-              id="dateIssued"
-              name="dateIssued"
-              type="date" 
-              className="w-full border border-gray-300 rounded p-2"
-              value={formData.dateIssued}
-              onChange={handleChange}
-            />
-          </div>
-          
-          <div className="relative" ref={tagSelectorRef}>
-            <div className="flex justify-between items-center mb-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Tags
-              </label>
-              <button 
-                type="button" 
-                className="bg-red-800 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-700"
-                onClick={() => setShowTagSelector(!showTagSelector)}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-              </button>
-            </div>
-            
-            <div className="flex flex-wrap gap-2 mb-2">
-              {formData.tags && formData.tags.map((tag, index) => (
-                <span key={index} className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs flex items-center">
-                  {tag}
-                  <span 
-                    onClick={() => removeTag(tag)}
-                    className="ml-1 text-red-500 hover:text-red-700 cursor-pointer"
-                  >
-                    ×
-                  </span>
-                </span>
-              ))}
-            </div>
-            
-            {/* Tag selector dropdown */}
-            {showTagSelector && (
-              <div className="absolute z-10 w-full p-2 border border-gray-300 rounded bg-white shadow-md max-h-48 overflow-y-auto">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Select tags to add:</h4>
-                {availableTags.filter(tag => !formData.tags.includes(tag.name)).map(tag => (
-                  <div key={tag.id} className="flex items-center p-1 hover:bg-gray-100 cursor-pointer" onClick={() => addTag(tag)}>
-                    <span className="text-sm">{tag.name}</span>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
           
           {/* Panel footer - kept inside form for better UX */}

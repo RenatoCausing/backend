@@ -198,4 +198,34 @@ public class SPServiceImpl implements SPService {
         return dto;
     }
 
+    @Override
+    @Transactional
+    public SPDTO updateSP(Integer spId, SPDTO spDTO) {
+        SP sp = spRepository.findById(spId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "SP not found"));
+
+        // Only update the fields you want to allow editing
+        if (spDTO.getTitle() != null) {
+            sp.setTitle(spDTO.getTitle());
+        }
+
+        if (spDTO.getYear() != null) {
+            sp.setYear(spDTO.getYear());
+        }
+
+        if (spDTO.getSemester() != null) {
+            sp.setSemester(spDTO.getSemester());
+        }
+
+        if (spDTO.getAbstractText() != null) {
+            sp.setAbstractText(spDTO.getAbstractText());
+        }
+
+        if (spDTO.getUri() != null) {
+            sp.setUri(spDTO.getUri());
+        }
+
+        return toDTO(spRepository.save(sp));
+    }
+
 }

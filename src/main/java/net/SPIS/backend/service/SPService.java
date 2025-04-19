@@ -33,4 +33,5 @@ public interface SPService {
 
     List<AdviserDTO> getTopAdvisersByViews();
 
+    SPDTO updateSP(Integer spId, SPDTO spDTO);
 }

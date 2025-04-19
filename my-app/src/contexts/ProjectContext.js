@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
-
+import axios from 'axios';
 const ProjectContext = createContext();
 
 export function useProjectContext() {
@@ -41,11 +41,28 @@ export function ProjectProvider({ children }) {
     setShowEditPanel(false);
   };
   
-  const updateProject = (updatedProject) => {
-    console.log("Project updated in context:", updatedProject);
-    setSelectedProject(updatedProject);
-    // In a real app, you would also update your data store/API here
-  };
+// Update the updateProject function in your ProjectProvider
+const updateProject = async (updatedProject) => {
+  try {
+    console.log("Updating project in context:", updatedProject);
+    
+    // Make API call to update the project in the backend
+    const response = await axios.put(
+      `http://localhost:8080/api/sp/${updatedProject.spId}/update`,
+      updatedProject
+    );
+    
+    console.log("Project updated successfully:", response.data);
+    setSelectedProject(response.data);
+    
+    // Close the edit panel and show the detail panel with updated data
+    setShowEditPanel(false);
+    setShowDetailPanel(true);
+  } catch (error) {
+    console.error("Error updating project:", error);
+    alert("Failed to update project. Please try again.");
+  }
+};
   
   const value = {
     selectedProject,
