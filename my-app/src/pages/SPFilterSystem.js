@@ -8,7 +8,8 @@ const SPFilterSystem = () => {
   const [tags, setTags] = useState([]);
   const [sps, setSps] = useState([]);
   const [filteredSps, setFilteredSps] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [filterLoading, setFilterLoading] = useState(false);
   const [error, setError] = useState(null);
   const [adviserData, setAdviserData] = useState({});
   const [studentGroups, setStudentGroups] = useState({});
@@ -19,6 +20,7 @@ const SPFilterSystem = () => {
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedField, setSelectedField] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState(null);
   
   // Input states
@@ -35,6 +37,7 @@ const SPFilterSystem = () => {
   // Refs for click outside detection
   const adviserDropdownRef = useRef(null);
   const tagDropdownRef = useRef(null);
+  const searchTimeoutRef = useRef(null);
 
   // API service methods
   const SPApiService = {
@@ -182,6 +185,26 @@ const SPFilterSystem = () => {
     }
   };
 
+  // Implement debouncing for search term
+  useEffect(() => {
+    // Clear any existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    // Set a new timeout for 300ms
+    searchTimeoutRef.current = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+    
+    // Cleanup on unmount or when searchTerm changes
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchTerm]);
+
   // Parse URL parameters when component mounts
   useEffect(() => {
     const parseUrlParams = () => {
@@ -259,7 +282,7 @@ const SPFilterSystem = () => {
   // Fetch data on component mount
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
+      setInitialLoading(true);
       try {
         const adviserData = await SPApiService.fetchAllAdvisers();
         setAdvisers(adviserData || []);
@@ -286,7 +309,7 @@ const SPFilterSystem = () => {
         console.error('Error fetching data:', err);
         setError('Failed to load data. Please try again later.');
       } finally {
-        setLoading(false);
+        setInitialLoading(false);
       }
     };
     
@@ -310,24 +333,24 @@ const SPFilterSystem = () => {
     };
   }, []);
   
-  // Apply filters whenever filter states change
+  // Apply filters when filter states change (but not on every keypress in search)
   useEffect(() => {
     const applyFilters = async () => {
-      setLoading(true);
+      setFilterLoading(true);
       try {
         const filters = {
           adviserIds: selectedAdvisers.map(adviser => adviser.adminId),
           tagIds: selectedTags.map(tag => tag.tagId),
           departmentId: selectedDepartment,
-          searchTerm: searchTerm
+          searchTerm: debouncedSearchTerm
         };
         
         const filteredResults = await SPApiService.applyFilters(filters);
         setFilteredSps(filteredResults || []);
         
-        if (searchTerm) {
+        if (debouncedSearchTerm) {
           setSearchResults({
-            term: searchTerm,
+            term: debouncedSearchTerm,
             count: filteredResults.length
           });
         } else {
@@ -337,14 +360,14 @@ const SPFilterSystem = () => {
         console.error('Error applying filters:', err);
         setError('Failed to apply filters. Please try again.');
       } finally {
-        setLoading(false);
+        setFilterLoading(false);
       }
     };
     
     if (sps.length > 0) {
       applyFilters();
     }
-  }, [selectedAdvisers, selectedTags, selectedDepartment, searchTerm, sps]);
+  }, [selectedAdvisers, selectedTags, selectedDepartment, debouncedSearchTerm, sps]);
   
   // Helper functions
   const getAdviserName = (adviserId) => {
@@ -354,6 +377,7 @@ const SPFilterSystem = () => {
     return `${adviser.lastName}${adviser.firstName ? ', ' + adviser.firstName : ''}`;
   };
   
+  // Helper function to format student authors
   const getAuthors = (groupId) => {
     const students = studentGroups[groupId] || [];
     if (students.length === 0) return 'Unknown Author';
@@ -389,11 +413,21 @@ const SPFilterSystem = () => {
   // Remove tag from filter
   const removeTag = (tagId) => {
     setSelectedTags(selectedTags.filter(t => t.tagId !== tagId));
+    
+    // Update URL to remove the tag if needed
+    const url = new URL(window.location);
+    const currentTag = selectedTags.find(t => t.tagId === tagId);
+    if (currentTag) {
+      const tagParam = url.searchParams.get('tag');
+      if (tagParam && tagParam.toLowerCase() === encodeURIComponent(currentTag.tagName).toLowerCase()) {
+        url.searchParams.delete('tag');
+        window.history.pushState({}, '', url);
+      }
+    }
   };
 
-  // Handle tag clicks
+  // Handle tag clicks from search results
   const handleTagClick = (tagName) => {
-    // Find the tag object by name
     const tag = tags.find(t => t.tagName === tagName);
     if (tag && !selectedTags.some(t => t.tagId === tag.tagId)) {
       setSelectedTags([...selectedTags, tag]);
@@ -443,6 +477,7 @@ const SPFilterSystem = () => {
   // Handle search submission
   const handleSearch = (e) => {
     e.preventDefault();
+    // The search is already handled by the debounce effect
   };
   
   // Filter advisers based on input
@@ -634,7 +669,8 @@ const SPFilterSystem = () => {
                 <button 
                   type="submit" 
                   className="bg-red-800 text-white px-4 rounded-r"
-                ><i className="fa fa-search"></i>
+                >
+                  <i className="fa fa-search"></i>
                 </button>
               </div>
             </form>
@@ -646,8 +682,8 @@ const SPFilterSystem = () => {
             )}
           </div>
           
-          {/* Loading and Error States */}
-          {loading && <div className="bg-blue-50 p-4 text-center text-blue-700 rounded">Loading...</div>}
+          {/* Only show loading indicator on initial load */}
+          {initialLoading && <div className="bg-blue-50 p-4 text-center text-blue-700 rounded">Loading...</div>}
           {error && <div className="bg-red-50 p-4 text-center text-red-700 rounded">{error}</div>}
           
           {/* SP Results */}
@@ -655,7 +691,12 @@ const SPFilterSystem = () => {
             {/* Top divider */}
             <div className="sp-divider top-divider" style={{backgroundColor: 'rgba(229, 231, 235, 0.7)'}}></div>
             
-            {!loading && filteredSps.length === 0 && (
+            {/* Show a subtle loading indicator when filtering, but keep showing results */}
+            {filterLoading && !initialLoading && (
+              <div className="text-blue-500 text-sm mb-2">Updating results...</div>
+            )}
+            
+            {!initialLoading && filteredSps.length === 0 && (
               <div className="bg-gray-100 p-4 text-center text-gray-600 rounded">
                 No results found. Try adjusting your filters.
               </div>
