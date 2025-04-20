@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import '../styles/Dashboard.css';
 import { useUser } from '../contexts/UserContext';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const [activePanel, setActivePanel] = useState('SP');
   const { currentUser, logout } = useUser();
+  const navigate = useNavigate();
   
   const renderContent = () => {
     switch (activePanel) {
@@ -13,16 +15,38 @@ const Dashboard = () => {
       case 'User':
         return <div className="user-panel">User Content</div>;
       case 'SP':
-        // No longer rendering SPFilterPanel directly
         return <div className="sp-panel">SP panel is rendered in the main content area</div>;
       default:
         return <div className="home-panel">Home Content</div>;
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    window.location.href = '/';
+  const handleLogout = async () => {
+    try {
+      // Call backend to invalidate the session (if needed)
+      await fetch('http://localhost:8080/api/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      // Clear local user data
+      logout();
+      
+      // Redirect to login page
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Fallback - still logout locally even if server request fails
+      logout();
+      navigate('/login');
+    }
+  };
+
+  // Get user display name
+  const getUserDisplayName = () => {
+    if (!currentUser) return "Guest User";
+    if (currentUser.isGuest) return "Guest User";
+    return `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || "User";
   };
 
   return (
@@ -63,20 +87,19 @@ const Dashboard = () => {
         {/* User profile at bottom */}
         <div className="user-profile">
           <div className="profile-circle">
-            {currentUser?.photoURL ? (
-              <img src={currentUser.photoURL} alt="Profile" />
+            {currentUser?.imagePath ? (
+              <img src={currentUser.imagePath} alt="Profile" />
             ) : (
               <i className="fas fa-user"></i>
             )}
           </div>
           <div className="user-info">
-            <h3>{currentUser?.displayName || "Guest User"}</h3>
+            <h3>{getUserDisplayName()}</h3>
             <button className="logout-button" onClick={handleLogout}>Logout</button>
           </div>
         </div>
       </div>
       
-
     </div>
   );
 };

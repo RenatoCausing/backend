@@ -77,36 +77,66 @@ public class AdviserController {
             }
 
             String email = principal.getAttribute("email");
-            if (email == null) {
-                System.err.println("ERROR: Email attribute is missing from OAuth principal");
+            String firstName = principal.getAttribute("given_name");
+            String lastName = principal.getAttribute("family_name");
+
+            if (firstName == null || lastName == null) {
+                System.err.println("ERROR: Name attributes are missing from OAuth principal");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             }
 
-            System.out.println("Processing OAuth for email: " + email);
+            System.out.println("Processing OAuth for user: " + firstName + " " + lastName);
 
-            // Find admin by email or create a new one if not found
-            Admin admin = adminRepository.findByEmail(email).orElse(null);
+            // First check if admin exists with this name
+            List<Admin> admins = adminRepository.findByFirstNameAndLastName(firstName, lastName);
+            Admin admin = null;
 
-            if (admin == null) {
-                // Create new admin if not found
-                admin = new Admin();
-                admin.setEmail(email);
-                admin.setFirstName(principal.getAttribute("given_name"));
-                admin.setLastName(principal.getAttribute("family_name"));
-                admin.setImagePath(principal.getAttribute("picture"));
-                admin.setRole(null);
+            if (!admins.isEmpty()) {
+                // Found existing admin with this name
+                admin = admins.get(0); // Take the first match
+                System.out.println("Found existing admin with ID: " + admin.getAdminId());
 
-                try {
+                // Update email and image if they're missing
+                boolean needsUpdate = false;
+
+                if (admin.getEmail() == null || admin.getEmail().isEmpty()) {
+                    admin.setEmail(email);
+                    needsUpdate = true;
+                }
+
+                if (admin.getImagePath() == null || admin.getImagePath().isEmpty()) {
+                    admin.setImagePath(principal.getAttribute("picture"));
+                    needsUpdate = true;
+                }
+
+                if (needsUpdate) {
                     admin = adminRepository.save(admin);
-                    System.out.println("Created new admin with ID: " + admin.getAdminId());
-                } catch (Exception e) {
-                    System.err.println("ERROR saving admin: " + e.getMessage());
-                    e.printStackTrace();
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .body(null);
+                    System.out.println("Updated existing admin with Google account details");
                 }
             } else {
-                System.out.println("Found existing admin with ID: " + admin.getAdminId());
+                // If no match by name, then try by email as fallback
+                admin = adminRepository.findByEmail(email).orElse(null);
+
+                if (admin == null) {
+                    // Create new admin if not found by name or email
+                    admin = new Admin();
+                    admin.setEmail(email);
+                    admin.setFirstName(firstName);
+                    admin.setLastName(lastName);
+                    admin.setImagePath(principal.getAttribute("picture"));
+                    admin.setRole(null);
+
+                    try {
+                        admin = adminRepository.save(admin);
+                        System.out.println("Created new admin with ID: " + admin.getAdminId());
+                    } catch (Exception e) {
+                        System.err.println("ERROR saving admin: " + e.getMessage());
+                        e.printStackTrace();
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                    }
+                } else {
+                    System.out.println("Found existing admin by email with ID: " + admin.getAdminId());
+                }
             }
 
             AdviserDTO dto = adviserService.toDTO(admin);
@@ -117,6 +147,7 @@ public class AdviserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
 
     @GetMapping("/check-guest")
     @CrossOrigin(origins = "http://localhost:3000")

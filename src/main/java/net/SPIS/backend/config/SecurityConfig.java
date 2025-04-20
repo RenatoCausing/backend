@@ -18,7 +18,6 @@ import net.SPIS.backend.service.CustomOAuth2UserService;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -32,11 +31,17 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/advisers/process-oauth").authenticated()
+                        .requestMatchers("/api/logout").permitAll()
                         .anyRequest().permitAll())
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(oAuth2UserService))
                         .successHandler(successHandler()))
+                .logout(logout -> logout
+                        .logoutUrl("/api/logout")
+                        .logoutSuccessUrl("http://localhost:3000/login")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID"))
                 .csrf().disable();
 
         return http.build();
@@ -74,5 +79,4 @@ public class SecurityConfig {
             }
         };
     }
-
 }

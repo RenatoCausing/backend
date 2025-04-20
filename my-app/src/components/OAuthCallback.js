@@ -1,4 +1,3 @@
-// src/components/OAuthCallback.js
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
@@ -7,6 +6,7 @@ const OAuthCallback = () => {
   const navigate = useNavigate();
   const { login } = useUser();
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -20,23 +20,37 @@ const OAuthCallback = () => {
         if (response.ok) {
           const userData = await response.json();
           console.log("OAuth callback: User data received:", userData);
+          
+          // Make sure the user object has the needed properties
+          if (!userData.firstName || !userData.lastName) {
+            console.warn("Warning: User data missing name properties:", userData);
+          }
+          
           login(userData); // Store user in context
           navigate('/'); // Redirect to home page
         } else {
           console.error('Authentication failed', response.status);
           setError(`Authentication failed with status: ${response.status}`);
-          // Don't redirect yet, show the error
         }
       } catch (error) {
         console.error('Error during OAuth callback:', error);
         setError(`Error during OAuth callback: ${error.message}`);
-        // Don't redirect yet, show the error
+      } finally {
+        setLoading(false);
       }
     };
 
-    // We're already on the oauth-callback page
     fetchUserData();
   }, [login, navigate]);
+
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <h2>Processing authentication...</h2>
+        <p>Please wait while we complete your login</p>
+      </div>
+    );
+  }
 
   if (error) {
     return (
@@ -48,12 +62,7 @@ const OAuthCallback = () => {
     );
   }
 
-  return (
-    <div className="loading-container">
-      <h2>Processing authentication...</h2>
-      <p>Please wait while we complete your login</p>
-    </div>
-  );
+  return null; // This shouldn't render as we navigate away in the useEffect
 };
 
 export default OAuthCallback;
