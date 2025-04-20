@@ -62,20 +62,13 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
   };
 
   // Get Google Drive thumbnail URL
-  const getGoogleDriveThumbnailUrl = (driveUrl) => {
-    const fileId = extractGoogleDriveFileId(driveUrl);
-    if (!fileId) return null;
-    
-    return `https://drive.google.com/thumbnail?id=${fileId}&sz=w480`;
-  };
-
-  // Get the Google Drive PDF viewer URL
-  const getGoogleDrivePdfViewerUrl = (driveUrl) => {
-    const fileId = extractGoogleDriveFileId(driveUrl);
-    if (!fileId) return null;
-    
-    return `https://drive.google.com/file/d/${fileId}/preview`;
-  };
+const getGoogleDrivePreviewUrl = (driveUrl) => {
+  const fileId = extractGoogleDriveFileId(driveUrl);
+  if (!fileId) return null;
+  
+  // This returns a preview URL that can be used in an iframe
+  return `https://drive.google.com/file/d/${fileId}/preview`;
+};
   
   // Update form data whenever the project prop changes
   useEffect(() => {
@@ -95,6 +88,7 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
         tags: project.tags || [],
         tagIds: project.tagIds || []
       });
+      setThumbnailFailed(false);
     }
   }, [project]);
   
@@ -229,9 +223,8 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
     tag.tagName.toLowerCase().includes(tagInput.toLowerCase())
   );
 
-  // Generate thumbnail and PDF viewer URLs
-  const thumbnailUrl = getGoogleDriveThumbnailUrl(formData.documentPath);
-  const pdfViewerUrl = getGoogleDrivePdfViewerUrl(formData.documentPath);
+  // Generate thumbnail URL for document
+  const thumbnailUrl = getGoogleDrivePreviewUrl(formData.documentPath);
 
   return (
     <div className="panel-container">
@@ -253,40 +246,22 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
       
       {/* Panel content */}
       <div className="panel-content" ref={panelContainerRef}>
-        {/* PDF Preview Section - Added at the top */}
-        {pdfViewerUrl && (
-          <div className="document-preview-section">
-            <h3>Document Preview</h3>
-            <div className="pdf-container">
-              {/* Thumbnail preview */}
-              {thumbnailUrl && !thumbnailFailed && (
-                <div className="thumbnail-container">
-                  <img 
-                    src={thumbnailUrl} 
-                    alt="PDF Preview" 
-                    className="pdf-thumbnail"
-                    onError={() => {
-                      console.log("Thumbnail failed to load");
-                      setThumbnailFailed(true);
-                    }} 
-                  />
-                </div>
-              )}
-              
-              {/* PDF viewer iframe */}
-              <div className="google-drive-viewer">
-                <iframe
-                  src={pdfViewerUrl}
-                  width="100%"
-                  height="300px"
-                  frameBorder="0"
-                  allowFullScreen
-                  title="PDF Viewer"
-                ></iframe>
-              </div>
-            </div>
-          </div>
-        )}
+      {formData.documentPath && (
+  <div className="document-thumbnail-container">
+    {extractGoogleDriveFileId(formData.documentPath) ? (
+      <iframe 
+        src={getGoogleDrivePreviewUrl(formData.documentPath)}
+        width="100%" 
+        height="300" 
+        title="Document Preview"
+      ></iframe>
+    ) : (
+      <div className="document-thumbnail-placeholder">
+        <p>No preview available. Check document link.</p>
+      </div>
+    )}
+  </div>
+)}
 
         <form onSubmit={handleSubmit}>
           {/* Edit fields */}
@@ -492,9 +467,9 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
             </div>
           </div>
           
-
           {/* URI field */}
-{/*}  
+{/*
+
           <div className="form-group">
             <label className="form-label" htmlFor="uri">
               URI
@@ -512,7 +487,7 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
           {/* Document Path field */}
           <div className="form-group">
             <label className="form-label" htmlFor="documentPath">
-              Document Path
+              PDF Link
             </label>
             <input 
               id="documentPath"

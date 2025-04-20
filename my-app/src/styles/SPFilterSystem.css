@@ -6,6 +6,11 @@
     
     font-family: Arial, sans-serif;
   }
+  .sp-filter-panel-container {
+    background-color: white;
+    width: 100%;
+    min-height: 100vh; /* This will make it at least as tall as the viewport */
+  }
   /* Hide scrollbar but keep scroll functionality */
 .hide-scrollbar {
     scrollbar-width: none; /* Firefox */

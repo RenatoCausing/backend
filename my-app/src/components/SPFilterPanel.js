@@ -529,6 +529,7 @@ const SPFilterPanel = ({ onSPSelect }) => {
   };
   
   return (
+    <div className="sp-filter-panel-container">
     <div className="flex w-full max-w-6xl mx-auto" style={{backgroundColor: 'white'}}>
       {/* Central SP Results Container */}
       <div className="w-34 p-4" style={{backgroundColor: 'white'}}>
@@ -790,6 +791,7 @@ const SPFilterPanel = ({ onSPSelect }) => {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };

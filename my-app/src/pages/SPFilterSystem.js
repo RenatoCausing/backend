@@ -503,7 +503,7 @@ const SPFilterSystem = () => {
   };
 
   return (
-    
+    <div className="sp-filter-panel-container">
     <div><AdviserNavbar/>
     
     <div className="flex w-full justify-center">
@@ -728,6 +728,7 @@ const SPFilterSystem = () => {
           </div>
         </div>
       </div>
+    </div>
     </div>
     </div>
   );
