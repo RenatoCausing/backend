@@ -152,6 +152,7 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
       semester: formData.semester,
       abstractText: formData.abstractText,
       uri: formData.uri,
+      documentPath: formData.documentPath,
       adviserId: formData.adviserId ? parseInt(formData.adviserId) : null,
       tagIds: formData.tagIds && formData.tagIds.length > 0 ? formData.tagIds : []
     };
@@ -493,6 +494,7 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
           
 
           {/* URI field */}
+{/*}  
           <div className="form-group">
             <label className="form-label" htmlFor="uri">
               URI
@@ -506,15 +508,15 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
               onChange={handleChange}
             />
           </div>
-
+*/}
           {/* Document Path field */}
           <div className="form-group">
-            <label className="form-label" htmlFor="document_path">
+            <label className="form-label" htmlFor="documentPath">
               Document Path
             </label>
             <input 
-              id="document_path"
-              name="document_path"
+              id="documentPath"
+              name="documentPath"
               type="text" 
               className="form-control"
               value={formData.documentPath}

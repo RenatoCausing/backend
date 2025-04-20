@@ -244,8 +244,8 @@ public class SPServiceImpl implements SPService {
             sp.setAbstractText(spDTO.getAbstractText());
         }
 
-        if (spDTO.getUri() != null) {
-            sp.setUri(spDTO.getUri());
+        if (spDTO.getDocumentPath() != null) {
+            sp.setDocumentPath(spDTO.getDocumentPath());
         }
 
         // Update adviser if provided
