@@ -232,16 +232,16 @@ const getGoogleDrivePreviewUrl = (driveUrl) => {
       <div className="panel-header plain-header">
         <h2 className="panel-title">Edit Project</h2>
         
-        {/* Close button */}
-        <button 
-          onClick={onClose}
-          className="close-button"
-          aria-label="Close panel"
-        >
-          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
+{/* Close button */}
+<button
+  onClick={onClose}
+  className="close-button"
+  aria-label="Close panel"
+>
+  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+  </svg>
+</button>
       </div>
       
       {/* Panel content */}
