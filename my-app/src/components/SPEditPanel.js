@@ -506,6 +506,21 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
               onChange={handleChange}
             />
           </div>
+
+          {/* Document Path field */}
+          <div className="form-group">
+            <label className="form-label" htmlFor="document_path">
+              Document Path
+            </label>
+            <input 
+              id="document_path"
+              name="document_path"
+              type="text" 
+              className="form-control"
+              value={formData.documentPath}
+              onChange={handleChange}
+            />
+          </div>
         </form>
       </div>
       
