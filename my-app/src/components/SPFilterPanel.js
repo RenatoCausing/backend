@@ -1,13 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useProjectContext } from '../contexts/ProjectContext';
 import '../styles/SPFilterSystem.css';
 
 const SPFilterPanel = ({ onSPSelect }) => {
+  // Get the refresh trigger from context
+  const { refreshTrigger } = useProjectContext();
+  
   // State management
   const [advisers, setAdvisers] = useState([]);
   const [tags, setTags] = useState([]);
   const [sps, setSps] = useState([]);
   const [filteredSps, setFilteredSps] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true); // Separate state for initial loading
   const [error, setError] = useState(null);
   const [adviserData, setAdviserData] = useState({});
   const [studentGroups, setStudentGroups] = useState({});
@@ -277,10 +282,10 @@ const SPFilterPanel = ({ onSPSelect }) => {
     }
   }, [filteredSps]);
 
-  // Fetch data on component mount
+  // Fetch data on component mount and when refreshTrigger changes
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
+      setInitialLoading(true);
       try {
         const adviserData = await SPApiService.fetchAllAdvisers();
         setAdvisers(adviserData || []);
@@ -307,12 +312,12 @@ const SPFilterPanel = ({ onSPSelect }) => {
         console.error('Error fetching data:', err);
         setError('Failed to load data. Please try again later.');
       } finally {
-        setLoading(false);
+        setInitialLoading(false);
       }
     };
     
     fetchData();
-  }, []);
+  }, [refreshTrigger]); // Add refreshTrigger as dependency
   
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -334,7 +339,8 @@ const SPFilterPanel = ({ onSPSelect }) => {
   // Apply filters whenever filter states change - use debouncedSearchTerm instead of searchTerm
   useEffect(() => {
     const applyFilters = async () => {
-      setLoading(true);
+      // Don't show loading indicator during search filtering
+      // setLoading(true); - REMOVED to avoid twitchy UI
       try {
         const filters = {
           adviserIds: selectedAdvisers.map(adviser => adviser.adminId),
@@ -358,7 +364,7 @@ const SPFilterPanel = ({ onSPSelect }) => {
         console.error('Error applying filters:', err);
         setError('Failed to apply filters. Please try again.');
       } finally {
-        setLoading(false);
+        // setLoading(false); - REMOVED to avoid twitchy UI
       }
     };
     
@@ -583,8 +589,8 @@ const SPFilterPanel = ({ onSPSelect }) => {
           )}
         </div>
         
-        {/* Loading and Error States */}
-        {loading && <div className="bg-blue-50 p-4 text-center text-blue-700 rounded">Loading...</div>}
+        {/* Loading and Error States - Only show loading during initial load */}
+        {initialLoading && <div className="bg-blue-50 p-4 text-center text-blue-700 rounded">Loading...</div>}
         {error && <div className="bg-red-50 p-4 text-center text-red-700 rounded">{error}</div>}
         
         {/* SP Results */}
@@ -592,7 +598,7 @@ const SPFilterPanel = ({ onSPSelect }) => {
           {/* Top divider */}
           <div className="sp-divider top-divider" style={{backgroundColor: 'rgba(229, 231, 235, 0.7)'}}></div>
           
-          {!loading && filteredSps.length === 0 && (
+          {!initialLoading && filteredSps.length === 0 && (
             <div className="bg-gray-100 p-4 text-center text-gray-600 rounded">
               No results found. Try adjusting your filters.
             </div>

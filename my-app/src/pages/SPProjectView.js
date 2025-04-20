@@ -17,8 +17,10 @@ const SPProjectView = () => {
     updateProject
   } = useProjectContext();
 
-  return (
+  // Get navbar height - you can adjust this value to match your actual navbar height
+  const navbarHeight = 64; // height in pixels
 
+  return (
     <div className="flex flex-col min-h-screen">
       <AdviserNavbar />
       
@@ -44,10 +46,10 @@ const SPProjectView = () => {
       <div 
         style={{ 
           position: 'fixed',
-          top: '64px', /* Assuming navbar height is 64px (16rem) */
+          top: `${navbarHeight}px`, // Use the navbar height variable
           right: '0',
           bottom: '0',
-          height: '100vh',
+          height: `calc(100vh - ${navbarHeight}px)`, // Calculate remaining height
           width: '400px',
           zIndex: 50,
           transform: showEditPanel ? 'translateX(0)' : 'translateX(100%)',

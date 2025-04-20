@@ -13,7 +13,9 @@ import org.springframework.web.server.ResponseStatusException;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Pageable;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.management.relation.RelationNotFoundException;
@@ -150,10 +152,28 @@ public class SPServiceImpl implements SPService {
         dto.setUri(sp.getUri());
         dto.setDocumentPath(sp.getDocumentPath());
         dto.setDateIssued(sp.getDateIssued());
-        dto.setUploadedById(sp.getUploadedBy().getAdminId());
-        dto.setGroupId(sp.getGroup().getGroupId());
-        dto.setAdviserId(sp.getAdviser().getAdminId());
-        dto.setTagIds(sp.getTags().stream().map(Tag::getTagId).collect(Collectors.toSet()));
+
+        if (sp.getUploadedBy() != null) {
+            dto.setUploadedById(sp.getUploadedBy().getAdminId());
+        }
+
+        if (sp.getGroup() != null) {
+            dto.setGroupId(sp.getGroup().getGroupId());
+        }
+
+        if (sp.getAdviser() != null) {
+            dto.setAdviserId(sp.getAdviser().getAdminId());
+        }
+
+        if (sp.getTags() != null) {
+            Set<Integer> tagIds = sp.getTags().stream()
+                    .map(Tag::getTagId)
+                    .collect(Collectors.toSet());
+            dto.setTagIds(tagIds);
+        } else {
+            dto.setTagIds(new HashSet<>());
+        }
+
         dto.setViewCount(sp.getViewCount());
         return dto;
     }
@@ -201,10 +221,13 @@ public class SPServiceImpl implements SPService {
     @Override
     @Transactional
     public SPDTO updateSP(Integer spId, SPDTO spDTO) {
+        System.out.println("Updating SP with ID: " + spId);
+        System.out.println("Received DTO: " + spDTO);
+
         SP sp = spRepository.findById(spId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "SP not found"));
 
-        // Only update the fields you want to allow editing
+        // Update basic fields
         if (spDTO.getTitle() != null) {
             sp.setTitle(spDTO.getTitle());
         }
@@ -225,7 +248,40 @@ public class SPServiceImpl implements SPService {
             sp.setUri(spDTO.getUri());
         }
 
-        return toDTO(spRepository.save(sp));
-    }
+        // Update adviser if provided
+        if (spDTO.getAdviserId() != null) {
+            System.out.println("Updating adviser with ID: " + spDTO.getAdviserId());
+            Admin adviser = adminRepository.findById(spDTO.getAdviserId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            "Adviser not found with ID: " + spDTO.getAdviserId()));
+            sp.setAdviser(adviser);
+        }
 
+        // Update tags
+        Set<Integer> tagIds = spDTO.getTagIds();
+        if (tagIds != null) {
+            System.out.println("Updating tags: " + tagIds);
+            Set<Tag> tags = new HashSet<>();
+
+            for (Integer tagId : tagIds) {
+                Tag tag = tagRepository.findById(tagId)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                "Tag with ID " + tagId + " not found"));
+                tags.add(tag);
+            }
+
+            // Clear existing tags and set new ones
+            sp.setTags(tags);
+        } else {
+            System.out.println("No tags provided in update");
+        }
+
+        SP savedSP = spRepository.save(sp);
+        System.out.println("SP updated successfully");
+
+        SPDTO resultDTO = toDTO(savedSP);
+        System.out.println("Returning DTO: " + resultDTO);
+
+        return resultDTO;
+    }
 }

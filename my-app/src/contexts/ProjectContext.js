@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 import axios from 'axios';
+
 const ProjectContext = createContext();
 
 export function useProjectContext() {
@@ -10,6 +11,7 @@ export function ProjectProvider({ children }) {
   const [selectedProject, setSelectedProject] = useState(null);
   const [showDetailPanel, setShowDetailPanel] = useState(false);
   const [showEditPanel, setShowEditPanel] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // Trigger for refreshing data
   
   const handleProjectSelect = (project) => {
     console.log("Project selected in context:", project);
@@ -41,38 +43,47 @@ export function ProjectProvider({ children }) {
     setShowEditPanel(false);
   };
   
-// Update the updateProject function in your ProjectProvider
-const updateProject = async (updatedProject) => {
-  try {
-    console.log("Updating project in context:", updatedProject);
-    
-    // Make API call to update the project in the backend
-    const response = await axios.put(
-      `http://localhost:8080/api/sp/${updatedProject.spId}/update`,
-      updatedProject
-    );
-    
-    console.log("Project updated successfully:", response.data);
-    setSelectedProject(response.data);
-    
-    // Close the edit panel and show the detail panel with updated data
-    setShowEditPanel(false);
-    setShowDetailPanel(true);
-  } catch (error) {
-    console.error("Error updating project:", error);
-    alert("Failed to update project. Please try again.");
-  }
-};
+  // Function to trigger a refresh of the SPFilterPanel data
+  const triggerDataRefresh = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
+  
+  const updateProject = async (updatedProject) => {
+    try {
+      console.log("Updating project in context:", updatedProject);
+      
+      // Make API call to update the project in the backend
+      const response = await axios.put(
+        `http://localhost:8080/api/sp/${updatedProject.spId}/update`,
+        updatedProject
+      );
+      
+      console.log("Project updated successfully:", response.data);
+      setSelectedProject(response.data);
+      
+      // Close the edit panel and show the detail panel with updated data
+      setShowEditPanel(false);
+      setShowDetailPanel(true);
+      
+      // Trigger a refresh of the filter panel data
+      triggerDataRefresh();
+    } catch (error) {
+      console.error("Error updating project:", error);
+      alert("Failed to update project. Please try again.");
+    }
+  };
   
   const value = {
     selectedProject,
     showDetailPanel,
     showEditPanel,
+    refreshTrigger,
     handleProjectSelect,
     closeDetailPanel,
     openEditPanel,
     closeEditPanel,
-    updateProject
+    updateProject,
+    triggerDataRefresh
   };
   
   return (
