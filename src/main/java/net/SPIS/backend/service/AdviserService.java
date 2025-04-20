@@ -14,7 +14,10 @@ public interface AdviserService {
 
     AdviserDTO getAdviserFromSP(Integer spId);
 
-    // New methods for updating image and description
+    // New comprehensive update method similar to SPService
+    AdviserDTO updateAdviser(Integer adviserId, AdviserDTO adviserDTO);
+
+    // Individual field update methods
     AdviserDTO updateAdviserDescription(Integer adviserId, String description);
 
     AdviserDTO updateAdviserImage(Integer adviserId, String imagePath);

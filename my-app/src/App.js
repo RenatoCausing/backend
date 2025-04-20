@@ -12,6 +12,7 @@ import { useUser } from './contexts/UserContext';
 import './App.css';
 import SPDetails from './pages/SPDetails';
 import SPProjectView from './pages/SPProjectView';
+import UserManagementView from './pages/UserManagementView';
 
 // This component checks if user is authenticated
 const RequireAuth = ({ children }) => {
@@ -96,8 +97,28 @@ function App() {
             </RequireAuth>
           } 
         />
-                <Route 
+        <Route 
           path="/dashboard" 
+          element={
+            <ProjectProvider>
+            <RequireAuth>
+              <SPProjectView/>
+            </RequireAuth>
+            </ProjectProvider>
+          } 
+        />
+        <Route 
+          path="/dashboard/user" 
+          element={
+            <ProjectProvider>
+            <RequireAuth>
+              <UserManagementView/>
+            </RequireAuth>
+            </ProjectProvider>
+          } 
+        />
+        <Route 
+          path="/dashboard/sp" 
           element={
             <ProjectProvider>
             <RequireAuth>

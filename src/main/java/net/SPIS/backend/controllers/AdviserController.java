@@ -44,13 +44,10 @@ public class AdviserController {
     }
 
     @GetMapping("/sp/{spId}")
-
     @CrossOrigin(origins = "http://localhost:3000")
     public AdviserDTO getAdviserFromSP(@PathVariable Integer spId) {
         return adviserService.getAdviserFromSP(spId);
     }
-
-    // In AdviserController.java
 
     @CrossOrigin(origins = "http://localhost:3000")
     @PutMapping("/{adviserId}/description")
@@ -65,6 +62,92 @@ public class AdviserController {
     public AdviserDTO updateAdviserImage(@PathVariable Integer adviserId, @RequestBody Map<String, String> payload) {
         String imagePath = payload.get("imagePath");
         return adviserService.updateAdviserImage(adviserId, imagePath);
+    }
+
+    // Add comprehensive update endpoint for Admin users
+    @CrossOrigin(origins = "http://localhost:3000")
+    @PutMapping("/admin/{adminId}/update")
+    public ResponseEntity<AdviserDTO> updateAdminUser(@PathVariable Integer adminId, @RequestBody Admin adminData) {
+        try {
+            // First check if admin exists
+            Admin existingAdmin = adminRepository.findById(adminId).orElse(null);
+            if (existingAdmin == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // Update the fields from the request
+            if (adminData.getFirstName() != null) existingAdmin.setFirstName(adminData.getFirstName());
+            if (adminData.getMiddleName() != null) existingAdmin.setMiddleName(adminData.getMiddleName());
+            if (adminData.getLastName() != null) existingAdmin.setLastName(adminData.getLastName());
+            if (adminData.getEmail() != null) existingAdmin.setEmail(adminData.getEmail());
+            
+            // Handle special cases for nullable fields
+            existingAdmin.setRole(adminData.getRole()); // Can be null
+            existingAdmin.setFacultyId(adminData.getFacultyId()); // Can be null
+            
+            if (adminData.getImagePath() != null) existingAdmin.setImagePath(adminData.getImagePath());
+            if (adminData.getDescription() != null) existingAdmin.setDescription(adminData.getDescription());
+
+            // Save the updated admin
+            Admin updatedAdmin = adminRepository.save(existingAdmin);
+            
+            // Convert to DTO and return
+            AdviserDTO dto = adviserService.toDTO(updatedAdmin);
+            return ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            System.err.println("Error updating admin: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // Add endpoint to create new Admin users
+    @CrossOrigin(origins = "http://localhost:3000")
+    @PostMapping("/admin/create")
+    public ResponseEntity<AdviserDTO> createAdminUser(@RequestBody Admin adminData) {
+        try {
+            // Create new admin
+            Admin newAdmin = new Admin();
+            newAdmin.setFirstName(adminData.getFirstName());
+            newAdmin.setMiddleName(adminData.getMiddleName());
+            newAdmin.setLastName(adminData.getLastName());
+            newAdmin.setEmail(adminData.getEmail());
+            newAdmin.setRole(adminData.getRole());
+            newAdmin.setFacultyId(adminData.getFacultyId());
+            newAdmin.setImagePath(adminData.getImagePath());
+            newAdmin.setDescription(adminData.getDescription());
+
+            // Save the new admin
+            Admin savedAdmin = adminRepository.save(newAdmin);
+            
+            // Convert to DTO and return
+            AdviserDTO dto = adviserService.toDTO(savedAdmin);
+            return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+        } catch (Exception e) {
+            System.err.println("Error creating admin: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // Add endpoint to delete Admin users
+    @CrossOrigin(origins = "http://localhost:3000")
+    @DeleteMapping("/admin/{adminId}")
+    public ResponseEntity<Void> deleteAdminUser(@PathVariable Integer adminId) {
+        try {
+            // Check if admin exists
+            if (!adminRepository.existsById(adminId)) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            // Delete the admin
+            adminRepository.deleteById(adminId);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            System.err.println("Error deleting admin: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @GetMapping("/process-oauth")
@@ -147,7 +230,6 @@ public class AdviserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
 
     @GetMapping("/check-guest")
     @CrossOrigin(origins = "http://localhost:3000")

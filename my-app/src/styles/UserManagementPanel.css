@@ -1,0 +1,58 @@
+.user-management-panel-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+}
+
+.user-divider {
+  height: 1px;
+  width: 100%;
+  margin: 1rem 0;
+  background-color: rgba(229, 231, 235, 0.7);
+}
+
+.top-divider {
+  margin-top: 0;
+}
+
+/* Style for the selects in the user list */
+.user-management-panel-container select {
+  appearance: auto;
+  background-color: white;
+  transition: border-color 0.15s ease-in-out;
+}
+
+.user-management-panel-container select:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.2);
+}
+
+/* Make the role and faculty selectors match the rest of the UI */
+.user-management-panel-container .flex-1 {
+  flex: 1 1 0%;
+}
+
+/* Matching the button styles from SPFilterPanel */
+.user-management-panel-container button {
+  transition: background-color 0.2s ease;
+}
+
+.user-management-panel-container button:hover {
+  opacity: 0.9;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .user-management-panel-container .flex {
+    flex-direction: column;
+  }
+  
+  .user-management-panel-container .w-34,
+  .user-management-panel-container .w-14 {
+    width: 100%;
+  }
+}

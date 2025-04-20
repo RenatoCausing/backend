@@ -1,29 +1,43 @@
-import React, { useState } from 'react';
+import React from 'react';
 import '../styles/Dashboard.css';
 import { useUser } from '../contexts/UserContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Dashboard = () => {
-  const [activePanel, setActivePanel] = useState('SP');
   const { currentUser, logout } = useUser();
   const navigate = useNavigate();
+  const location = useLocation();
   
-  const renderContent = () => {
-    switch (activePanel) {
+  // Determine active panel based on current path
+  const getActivePanel = () => {
+    const path = location.pathname;
+    if (path.includes('/dashboard/user')) return 'User';
+    if (path.includes('/dashboard/sp')) return 'SP';
+    return 'Home';
+  };
+  
+  const activePanel = getActivePanel();
+  
+  // Navigation handlers
+  const navigateToPanel = (panel) => {
+    switch (panel) {
       case 'Home':
-        return <div className="home-panel">Home Content</div>;
+        navigate('/dashboard/home');
+        break;
       case 'User':
-        return <div className="user-panel">User Content</div>;
+        navigate('/dashboard/user');
+        break;
       case 'SP':
-        return <div className="sp-panel">SP panel is rendered in the main content area</div>;
+        navigate('/dashboard/sp');
+        break;
       default:
-        return <div className="home-panel">Home Content</div>;
+        navigate('/dashboard/home');
     }
   };
 
   const handleLogout = async () => {
     try {
-      // Call backend to invalidate the session (if needed)
+      // Call backend to invalidate the session
       await fetch('http://localhost:8080/api/logout', {
         method: 'POST',
         credentials: 'include'
@@ -64,21 +78,21 @@ const Dashboard = () => {
         <div className="nav-links">
           <button 
             className={`nav-button ${activePanel === 'Home' ? 'active' : ''}`} 
-            onClick={() => setActivePanel('Home')}
+            onClick={() => navigateToPanel('Home')}
           >
             <i className="fas fa-home"></i> Home
           </button>
           
           <button 
             className={`nav-button ${activePanel === 'User' ? 'active' : ''}`} 
-            onClick={() => setActivePanel('User')}
+            onClick={() => navigateToPanel('User')}
           >
             <i className="fas fa-user"></i> User
           </button>
           
           <button 
             className={`nav-button ${activePanel === 'SP' ? 'active' : ''}`} 
-            onClick={() => setActivePanel('SP')}
+            onClick={() => navigateToPanel('SP')}
           >
             <i className="fas fa-file-alt"></i> SP
           </button>
@@ -100,6 +114,7 @@ const Dashboard = () => {
         </div>
       </div>
       
+      {/* No content area - content will be rendered by route components */}
     </div>
   );
 };
