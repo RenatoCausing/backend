@@ -4,10 +4,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import net.SPIS.backend.DTO.AdviserDTO;
 import net.SPIS.backend.entities.Admin;
+import net.SPIS.backend.entities.Faculty;
 import net.SPIS.backend.repositories.AdminRepository;
+import net.SPIS.backend.repositories.FacultyRepository;
 import net.SPIS.backend.service.AdviserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -21,10 +22,14 @@ import java.util.Map;
 public class AdviserController {
     @Autowired
     private AdminRepository adminRepository;
+    
+    @Autowired
+    private FacultyRepository facultyRepository;
 
     @Autowired
     private AdviserService adviserService;
 
+    // Keep existing endpoints
     @GetMapping("/faculty/{facultyId}")
     @CrossOrigin(origins = "http://localhost:3000")
     public List<AdviserDTO> getAllAdvisersFromFaculty(@PathVariable Integer facultyId) {
@@ -64,36 +69,74 @@ public class AdviserController {
         return adviserService.updateAdviserImage(adviserId, imagePath);
     }
 
-    // Add comprehensive update endpoint for Admin users
+    // Add new endpoints for UserManagementPanel
+
+    @CrossOrigin(origins = "http://localhost:3000")
+    @GetMapping("/users/all")
+    public ResponseEntity<List<AdviserDTO>> getAllUsers() {
+        try {
+            List<AdviserDTO> users = adviserService.getAllUsers();
+            return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            System.err.println("Error getting all users: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @CrossOrigin(origins = "http://localhost:3000")
+    @GetMapping("/users/filter")
+    public ResponseEntity<List<AdviserDTO>> getFilteredUsers(
+            @RequestParam(required = false) Integer facultyId,
+            @RequestParam(required = false) String role) {
+        try {
+            List<AdviserDTO> users;
+            
+            if (facultyId != null && role != null) {
+                users = adviserService.getUsersByFacultyAndRole(facultyId, role);
+            } else if (facultyId != null) {
+                users = adviserService.getUsersByFaculty(facultyId);
+            } else if (role != null) {
+                users = adviserService.getUsersByRole(role);
+            } else {
+                users = adviserService.getAllUsers();
+            }
+            
+            return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            System.err.println("Error filtering users: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @CrossOrigin(origins = "http://localhost:3000")
+    @GetMapping("/users/search")
+    public ResponseEntity<List<AdviserDTO>> searchUsers(@RequestParam String term) {
+        try {
+            List<AdviserDTO> users = adviserService.searchUsers(term);
+            return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            System.err.println("Error searching users: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // Modified endpoint for updating admin users
     @CrossOrigin(origins = "http://localhost:3000")
     @PutMapping("/admin/{adminId}/update")
     public ResponseEntity<AdviserDTO> updateAdminUser(@PathVariable Integer adminId, @RequestBody Admin adminData) {
         try {
-            // First check if admin exists
-            Admin existingAdmin = adminRepository.findById(adminId).orElse(null);
-            if (existingAdmin == null) {
-                return ResponseEntity.notFound().build();
+            // Handle the Faculty object correctly
+            if (adminData.getFaculty() != null && adminData.getFaculty().getFacultyId() != null) {
+                Faculty faculty = facultyRepository.findById(adminData.getFaculty().getFacultyId())
+                    .orElseThrow(() -> new RuntimeException("Faculty not found"));
+                adminData.setFaculty(faculty);
             }
-
-            // Update the fields from the request
-            if (adminData.getFirstName() != null) existingAdmin.setFirstName(adminData.getFirstName());
-            if (adminData.getMiddleName() != null) existingAdmin.setMiddleName(adminData.getMiddleName());
-            if (adminData.getLastName() != null) existingAdmin.setLastName(adminData.getLastName());
-            if (adminData.getEmail() != null) existingAdmin.setEmail(adminData.getEmail());
             
-            // Handle special cases for nullable fields
-            existingAdmin.setRole(adminData.getRole()); // Can be null
-            existingAdmin.setFacultyId(adminData.getFacultyId()); // Can be null
-            
-            if (adminData.getImagePath() != null) existingAdmin.setImagePath(adminData.getImagePath());
-            if (adminData.getDescription() != null) existingAdmin.setDescription(adminData.getDescription());
-
-            // Save the updated admin
-            Admin updatedAdmin = adminRepository.save(existingAdmin);
-            
-            // Convert to DTO and return
-            AdviserDTO dto = adviserService.toDTO(updatedAdmin);
-            return ResponseEntity.ok(dto);
+            AdviserDTO updatedUser = adviserService.updateUser(adminId, adminData);
+            return ResponseEntity.ok(updatedUser);
         } catch (Exception e) {
             System.err.println("Error updating admin: " + e.getMessage());
             e.printStackTrace();
@@ -101,28 +144,20 @@ public class AdviserController {
         }
     }
 
-    // Add endpoint to create new Admin users
+    // Modified endpoint for creating new admin users
     @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/admin/create")
     public ResponseEntity<AdviserDTO> createAdminUser(@RequestBody Admin adminData) {
         try {
-            // Create new admin
-            Admin newAdmin = new Admin();
-            newAdmin.setFirstName(adminData.getFirstName());
-            newAdmin.setMiddleName(adminData.getMiddleName());
-            newAdmin.setLastName(adminData.getLastName());
-            newAdmin.setEmail(adminData.getEmail());
-            newAdmin.setRole(adminData.getRole());
-            newAdmin.setFacultyId(adminData.getFacultyId());
-            newAdmin.setImagePath(adminData.getImagePath());
-            newAdmin.setDescription(adminData.getDescription());
-
-            // Save the new admin
-            Admin savedAdmin = adminRepository.save(newAdmin);
+            // Handle the Faculty object correctly
+            if (adminData.getFaculty() != null && adminData.getFaculty().getFacultyId() != null) {
+                Faculty faculty = facultyRepository.findById(adminData.getFaculty().getFacultyId())
+                    .orElseThrow(() -> new RuntimeException("Faculty not found"));
+                adminData.setFaculty(faculty);
+            }
             
-            // Convert to DTO and return
-            AdviserDTO dto = adviserService.toDTO(savedAdmin);
-            return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+            AdviserDTO newUser = adviserService.createUser(adminData);
+            return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
         } catch (Exception e) {
             System.err.println("Error creating admin: " + e.getMessage());
             e.printStackTrace();
@@ -130,18 +165,12 @@ public class AdviserController {
         }
     }
 
-    // Add endpoint to delete Admin users
+    // Keep the existing endpoint for deleting admin users
     @CrossOrigin(origins = "http://localhost:3000")
     @DeleteMapping("/admin/{adminId}")
     public ResponseEntity<Void> deleteAdminUser(@PathVariable Integer adminId) {
         try {
-            // Check if admin exists
-            if (!adminRepository.existsById(adminId)) {
-                return ResponseEntity.notFound().build();
-            }
-            
-            // Delete the admin
-            adminRepository.deleteById(adminId);
+            adviserService.deleteUser(adminId);
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
             System.err.println("Error deleting admin: " + e.getMessage());
@@ -150,6 +179,7 @@ public class AdviserController {
         }
     }
 
+    // Updated OAuth related endpoint to work with the Faculty entity
     @GetMapping("/process-oauth")
     @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<AdviserDTO> getCurrentUser(@AuthenticationPrincipal OAuth2User principal) {
@@ -208,6 +238,7 @@ public class AdviserController {
                     admin.setLastName(lastName);
                     admin.setImagePath(principal.getAttribute("picture"));
                     admin.setRole(null);
+                    admin.setFaculty(null);
 
                     try {
                         admin = adminRepository.save(admin);
@@ -259,6 +290,7 @@ public class AdviserController {
             newAdmin.setFirstName("Dev");
             newAdmin.setLastName("User");
             newAdmin.setRole(null);
+            newAdmin.setFaculty(null);
             return adminRepository.save(newAdmin);
         });
 

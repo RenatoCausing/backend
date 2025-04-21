@@ -1,18 +1,24 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import axios from 'axios';
 
+// Create context
 const UserContext = createContext();
 
-export function useUserContext() {
-  return useContext(UserContext);
-}
+// Custom hook to use the context
+export const useUserContext = () => {
+  const context = useContext(UserContext);
+  if (context === undefined) {
+    throw new Error('useUserContext must be used within a UserManagementProvider');
+  }
+  return context;
+};
 
-export function UserManagementProvider({ children }) {
+export const UserManagementProvider = ({ children }) => {
   // State management for users and filtering
   const [faculties, setFaculties] = useState([
     { id: 1, name: 'BSCS' },
     { id: 2, name: 'BSAP' },
-    { id: 3, name: 'BSIT' }
+    { id: 3, name: 'BSBC' }
   ]);
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
@@ -51,8 +57,9 @@ export function UserManagementProvider({ children }) {
   
   // Refresh trigger for data updates
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  
-  const fetchUsers = async () => {
+
+  // Use useCallback to prevent unnecessary re-renders
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get('http://localhost:8080/api/advisers');
@@ -65,7 +72,61 @@ export function UserManagementProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+  
+  // Apply filters whenever filter states change
+  useEffect(() => {
+    if (users.length > 0) {
+      let results = [...users];
+      
+      // Apply faculty filter
+      if (selectedFaculty) {
+        results = results.filter(user => 
+          user.facultyId === parseInt(selectedFaculty)
+        );
+      }
+      
+      // Apply role filter
+      if (selectedRole) {
+        if (selectedRole === 'student') {
+          // If role is student, check for null or empty role
+          results = results.filter(user => !user.role || user.role === '');
+        } else {
+          results = results.filter(user => user.role === selectedRole);
+        }
+      }
+      
+      // Apply search term filter
+      if (debouncedSearchTerm) {
+        const term = debouncedSearchTerm.toLowerCase();
+        results = results.filter(user => 
+          (user.firstName && user.firstName.toLowerCase().includes(term)) ||
+          (user.lastName && user.lastName.toLowerCase().includes(term)) ||
+          (user.email && user.email.toLowerCase().includes(term))
+        );
+        
+        setSearchResults({
+          term: debouncedSearchTerm,
+          count: results.length
+        });
+      } else {
+        setSearchResults(null);
+      }
+      
+      setFilteredUsers(results);
+    }
+  }, [selectedFaculty, selectedRole, debouncedSearchTerm, users]);
+
+  // Implement debouncing for search term
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+    
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [searchTerm]);
   
   const handleFacultyChange = (e) => {
     setSelectedFaculty(e.target.value);
@@ -327,7 +388,7 @@ export function UserManagementProvider({ children }) {
     return faculty ? faculty.name : `Faculty ${facultyId}`;
   };
 
-  const value = {
+  const contextValue = {
     faculties,
     users,
     filteredUsers,
@@ -362,12 +423,13 @@ export function UserManagementProvider({ children }) {
     handleImageError,
     formatFullName,
     getRoleDisplayName,
-    getFacultyName
+    getFacultyName,
+    setSearchTerm
   };
   
   return (
-    <UserContext.Provider value={value}>
+    <UserContext.Provider value={contextValue}>
       {children}
     </UserContext.Provider>
   );
-}
+};

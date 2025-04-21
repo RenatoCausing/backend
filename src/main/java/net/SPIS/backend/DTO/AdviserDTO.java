@@ -16,4 +16,5 @@ public class AdviserDTO {
     private String email;
     private String imagePath;
     private String description;
+    private String role; // Added role field to support UserManagementPanel
 }

@@ -13,6 +13,7 @@ import './App.css';
 import SPDetails from './pages/SPDetails';
 import SPProjectView from './pages/SPProjectView';
 import UserManagementView from './pages/UserManagementView';
+import { UserManagementProvider } from './contexts/UserManagementContext';
 
 // This component checks if user is authenticated
 const RequireAuth = ({ children }) => {
@@ -110,11 +111,11 @@ function App() {
         <Route 
           path="/dashboard/user" 
           element={
-            <ProjectProvider>
+            <UserManagementProvider>
             <RequireAuth>
               <UserManagementView/>
             </RequireAuth>
-            </ProjectProvider>
+            </UserManagementProvider>
           } 
         />
         <Route 

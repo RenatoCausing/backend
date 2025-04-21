@@ -1,29 +1,44 @@
 import React, { useEffect } from 'react';
+import { UserManagementProvider, useUserContext } from '../contexts/UserManagementContext';
 import UserManagementPanel from '../components/UserManagementPanel';
-import { useUserContext } from '../contexts/UserManagementContext';
+import Dashboard from '../components/Dashboard';
+import AdviserNavbar from '../components/AdviserNavbar';
 
-const UserManagementView = () => {
-  const { 
-    fetchUsers, 
-    showEditPanel, 
-    handleClosePanel, 
-    editingUser,
-    loading,
-    error
-  } = useUserContext();
-
+// This component will be wrapped by the provider
+const UserManagementContent = () => {
+  const { fetchUsers } = useUserContext();
+  
   // Fetch users on component mount
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
 
+  return <UserManagementPanel />;
+};
+
+// Main component that provides the context
+const UserManagementView = () => {
+  // Get navbar height - using the same value as SPProjectView
+  const navbarHeight = 64; // height in pixels
+
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Main Content Area */}
-      <div className="flex-1 overflow-auto">
-        <UserManagementPanel />
+    <UserManagementProvider>
+      <div className="flex flex-col min-h-screen">
+        <AdviserNavbar />
+        
+        <div className="flex flex-1 overflow-hidden" style={{ marginTop: `${navbarHeight}px`, height: `calc(100vh - ${navbarHeight}px)` }}>
+          {/* Dashboard - Left Sidebar */}
+          <div className="w-80 flex-shrink-0">
+            <Dashboard />
+          </div>
+          
+          {/* Main Content Area */}
+          <div className="flex-1 overflow-y-auto">
+            <UserManagementContent />
+          </div>
+        </div>
       </div>
-    </div>
+    </UserManagementProvider>
   );
 };
 
