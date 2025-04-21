@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useUserContext } from '../contexts/UserManagementContext'; // Adjust this path as needed
 import '../styles/UserManagementPanel.css';
+import '../styles/SPEditPanel.css'; // Import the SPEditPanel styles
 
 const UserManagementPanel = () => {
   const {
@@ -48,12 +49,12 @@ const UserManagementPanel = () => {
 
   return (
     <div className="user-management-container">
-    <div className="flex w-full max-w-6xl mx-auto" style={{backgroundColor: 'white'}}>
-      {/* Central User Results Container */}
-      <div className="w-34 p-4" style={{backgroundColor: 'white'}}>
-        {/* Search and Filter Row */}
-        <div className="mb-4">
-          <form onSubmit={handleSearch} className="flex gap-2 mb-9">
+      <div className="flex w-full max-w-6xl mx-auto" style={{backgroundColor: 'white'}}>
+        {/* Central User Results Container */}
+        <div className="w-34 p-4" style={{backgroundColor: 'white'}}>
+          {/* Search and Filter Row */}
+          <div className="mb-4">
+            <form onSubmit={handleSearch} className="flex gap-2 mb-9">
               {/* Add User Button */}
               <button
                 type="button"
@@ -190,190 +191,194 @@ const UserManagementPanel = () => {
           </div>
         </div>
 
-        {/* Edit Panel (Slide in from right) */}
+        {/* Edit Panel (Slide in from right) - Updated to match SPEditPanel style */}
         {showEditPanel && (
-          <div className="fixed inset-y-0 right-0 w-96 bg-white shadow-lg z-50 transform transition-transform" 
+          <div className="panel-container fixed inset-y-0 right-0 max-w-md w-full" 
                style={{ 
-                 transform: showEditPanel ? 'translateX(0)' : 'translateX(100%)'
+                 transform: showEditPanel ? 'translateX(0)' : 'translateX(100%)',
+                 transition: 'transform 0.3s ease-in-out'
                }}>
-            <div className="edit-panel-container h-full flex flex-col">
-              {/* Panel header */}
-              <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-                <h2 className="text-lg font-semibold">
-                  {editingUser?.isNew ? 'Add New User' : 'Edit User'}
-                </h2>
-                <button
-                  onClick={handleClosePanel}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <i className="fa fa-times"></i>
-                </button>
-              </div>
+            {/* Panel header - using plain-header style from SPEditPanel */}
+            <div className="panel-header plain-header">
+              <h2 className="panel-title">
+                {editingUser?.isNew ? 'Add New User' : 'Edit User'}
+              </h2>
               
-              {/* Panel content */}
-              <div className="flex-1 p-4 overflow-y-auto">
-                {formData.imagePath && (
-                  <div className="mb-4 flex justify-center">
-                    {!imagePreviewFailed ? (
-                      <img 
-                        src={getImagePreviewUrl(formData.imagePath)}
-                        alt="Profile"
-                        className="w-32 h-32 rounded-full object-cover border-2 border-gray-200"
-                        onError={handleImageError}
-                      />
-                    ) : (
-                      <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs text-center p-2">
-                        No preview available
-                      </div>
-                    )}
-                  </div>
-                )}
+              {/* Close button - using the arrow style from SPEditPanel */}
+              <button
+                onClick={handleClosePanel}
+                className="close-button"
+                aria-label="Close panel"
+              >
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+            
+            {/* Panel content */}
+            <div className="panel-content">
+              {formData.imagePath && (
+                <div className="document-thumbnail-container">
+                  {!imagePreviewFailed ? (
+                    <img 
+                      src={getImagePreviewUrl(formData.imagePath)}
+                      alt="Profile"
+                      className="document-thumbnail"
+                      onError={handleImageError}
+                    />
+                  ) : (
+                    <div className="document-thumbnail-placeholder">
+                      <p>No preview available. Check image URL.</p>
+                    </div>
+                  )}
+                </div>
+              )}
 
-                <form onSubmit={handleSubmit}>
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="firstName">
-                        First Name *
-                      </label>
-                      <input 
-                        id="firstName"
-                        name="firstName"
-                        type="text" 
-                        className="w-full border border-gray-300 rounded p-2"
-                        value={formData.firstName}
-                        onChange={handleFormChange}
-                        required
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="middleName">
-                        Middle Name
-                      </label>
-                      <input 
-                        id="middleName"
-                        name="middleName"
-                        type="text" 
-                        className="w-full border border-gray-300 rounded p-2"
-                        value={formData.middleName}
-                        onChange={handleFormChange}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="lastName">
-                      Last Name *
+              <form onSubmit={handleSubmit}>
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label className="form-label required-field" htmlFor="firstName">
+                      First Name
                     </label>
                     <input 
-                      id="lastName"
-                      name="lastName"
+                      id="firstName"
+                      name="firstName"
                       type="text" 
-                      className="w-full border border-gray-300 rounded p-2"
-                      value={formData.lastName}
+                      className="form-control"
+                      value={formData.firstName}
                       onChange={handleFormChange}
                       required
                     />
                   </div>
                   
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="email">
-                      Email *
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="middleName">
+                      Middle Name
                     </label>
                     <input 
-                      id="email"
-                      name="email"
-                      type="email" 
-                      className="w-full border border-gray-300 rounded p-2"
-                      value={formData.email}
-                      onChange={handleFormChange}
-                      required
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="role">
-                        Role
-                      </label>
-                      <select
-                        id="role"
-                        name="role"
-                        className="w-full border border-gray-300 rounded p-2"
-                        value={formData.role || ""}
-                        onChange={handleFormChange}
-                      >
-                        <option value="">Student</option>
-                        <option value="faculty">Faculty</option>
-                        <option value="staff">Staff</option>
-                      </select>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="facultyId">
-                        Faculty
-                      </label>
-                      <select
-                        id="facultyId"
-                        name="facultyId"
-                        className="w-full border border-gray-300 rounded p-2"
-                        value={formData.facultyId || ""}
-                        onChange={handleFormChange}
-                      >
-                        <option value="">Select Faculty</option>
-                        {faculties.map(faculty => (
-                          <option key={faculty.id} value={faculty.id}>{faculty.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="imagePath">
-                      Profile Image Link
-                    </label>
-                    <input 
-                      id="imagePath"
-                      name="imagePath"
+                      id="middleName"
+                      name="middleName"
                       type="text" 
-                      className="w-full border border-gray-300 rounded p-2"
-                      value={formData.imagePath}
+                      className="form-control"
+                      value={formData.middleName}
                       onChange={handleFormChange}
                     />
+                  </div>
+                </div>
+                
+                <div className="form-group">
+                  <label className="form-label required-field" htmlFor="lastName">
+                    Last Name
+                  </label>
+                  <input 
+                    id="lastName"
+                    name="lastName"
+                    type="text" 
+                    className="form-control"
+                    value={formData.lastName}
+                    onChange={handleFormChange}
+                    required
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label className="form-label required-field" htmlFor="email">
+                    Email
+                  </label>
+                  <input 
+                    id="email"
+                    name="email"
+                    type="email" 
+                    className="form-control"
+                    value={formData.email}
+                    onChange={handleFormChange}
+                    required
+                  />
+                </div>
+                
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="role">
+                      Role
+                    </label>
+                    <select
+                      id="role"
+                      name="role"
+                      className="form-control"
+                      value={formData.role || ""}
+                      onChange={handleFormChange}
+                    >
+                      <option value="">Student</option>
+                      <option value="faculty">Faculty</option>
+                      <option value="staff">Staff</option>
+                    </select>
                   </div>
                   
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="description">
-                      Description
+                  <div className="form-group">
+                    <label className="form-label" htmlFor="facultyId">
+                      Faculty
                     </label>
-                    <textarea 
-                      id="description"
-                      name="description"
-                      className="w-full border border-gray-300 rounded p-2 h-24"
-                      value={formData.description}
+                    <select
+                      id="facultyId"
+                      name="facultyId"
+                      className="form-control"
+                      value={formData.facultyId || ""}
                       onChange={handleFormChange}
-                    />
+                    >
+                      <option value="">Select Faculty</option>
+                      {faculties.map(faculty => (
+                        <option key={faculty.id} value={faculty.id}>{faculty.name}</option>
+                      ))}
+                    </select>
                   </div>
-                </form>
-              </div>
-              
-              {/* Panel footer with action buttons */}
-              <div className="p-4 border-t border-gray-200 flex justify-end gap-2">
-                <button 
-                  type="button"
-                  className="bg-gray-200 text-gray-800 px-4 py-2 rounded"
-                  onClick={handleClosePanel}
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="button"
-                  onClick={handleSubmit}
-                  className="bg-red-800 text-white px-4 py-2 rounded"
-                >
-                  {editingUser?.isNew ? 'Create User' : 'Save Changes'}
-                </button>
-              </div>
+                </div>
+                
+                <div className="form-group">
+                  <label className="form-label" htmlFor="imagePath">
+                    Profile Image Link
+                  </label>
+                  <input 
+                    id="imagePath"
+                    name="imagePath"
+                    type="text" 
+                    className="form-control"
+                    value={formData.imagePath}
+                    onChange={handleFormChange}
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label className="form-label" htmlFor="description">
+                    Description
+                  </label>
+                  <textarea 
+                    id="description"
+                    name="description"
+                    className="form-control textarea"
+                    value={formData.description}
+                    onChange={handleFormChange}
+                  />
+                </div>
+              </form>
+            </div>
+            
+            {/* Panel footer with action buttons - using SPEditPanel style */}
+            <div className="panel-footer">
+              <button 
+                type="button"
+                className="btn btn-secondary"
+                onClick={handleClosePanel}
+              >
+                Cancel
+              </button>
+              <button 
+                type="button"
+                onClick={handleSubmit}
+                className="btn btn-primary"
+              >
+                {editingUser?.isNew ? 'Create User' : 'Save Changes'}
+              </button>
             </div>
           </div>
         )}
@@ -387,7 +392,7 @@ const UserManagementPanel = () => {
               
               <div className="flex justify-end gap-2">
                 <button
-                  className="bg-gray-200 text-gray-800 px-4 py-2 rounded"
+                  className="btn btn-secondary"
                   onClick={() => {
                     handleClosePanel();
                   }}
@@ -395,7 +400,7 @@ const UserManagementPanel = () => {
                   Cancel
                 </button>
                 <button
-                  className="bg-red-600 text-white px-4 py-2 rounded"
+                  className="btn btn-primary"
                   onClick={handleDeleteUser}
                 >
                   Delete

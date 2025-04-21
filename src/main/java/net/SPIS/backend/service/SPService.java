@@ -3,10 +3,10 @@ package net.SPIS.backend.service;
 import net.SPIS.backend.DTO.AdviserDTO;
 import net.SPIS.backend.DTO.SPDTO;
 import net.SPIS.backend.DTO.StudentDTO;
-import net.SPIS.backend.DTO.TagDTO;
 
 import java.util.List;
-import java.util.Set;
+
+import javax.management.relation.RelationNotFoundException;
 
 public interface SPService {
     SPDTO getSP(Integer spId);
@@ -22,20 +22,16 @@ public interface SPService {
     SPDTO createSP(SPDTO spDTO);
 
     List<SPDTO> getSPsWithTags(List<Integer> tagIds);
-    
+
+    // ✅ NEW: Increment View Count
     void incrementViewCount(Integer spId);
+
+    // ✅ NEW: Get Most Viewed SPs
+    List<SPDTO> getMostViewedSPs(Integer limit);
 
     Integer getSPViewCount(Integer spId);
 
-    List<SPDTO> getMostViewedSPs(Integer limit);
-
     List<AdviserDTO> getTopAdvisersByViews();
-    
+
     SPDTO updateSP(Integer spId, SPDTO spDTO);
-    
-    List<String> getStudentNamesByGroupId(Integer groupId);
-    
-    String getAdviserNameById(Integer adviserId);
-    
-    List<String> getTagNamesBySpId(Integer spId);
 }
