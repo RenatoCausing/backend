@@ -18,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
@@ -27,15 +29,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-// Add a logger
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 @Service
 public class SPServiceImpl implements SPService {
-
-    // Add a logger instance
-    private static final Logger logger = LoggerFactory.getLogger(SPServiceImpl.class);
 
     @Autowired
     private StudentRepository studentRepository;
@@ -64,42 +59,32 @@ public class SPServiceImpl implements SPService {
 
     @Override
     public List<SPDTO> getAllSP() {
-        logger.info("Fetching all SPs");
-        List<SP> sps = spRepository.findAll();
-        logger.info("Found {} SPs", sps.size());
-        return sps.stream().map(this::toDTO).collect(Collectors.toList());
+        return spRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     @Override
     public List<SPDTO> getSPFromAdviser(Integer adviserId) {
-        logger.info("Fetching SPs for adviserId: {}", adviserId);
-        List<SP> sps = spRepository.findByAdviserAdminId(adviserId);
-        logger.info("Found {} SPs for adviserId: {}", sps.size(), adviserId);
-        return sps.stream().map(this::toDTO).collect(Collectors.toList());
+        return spRepository.findByAdviserAdminId(adviserId).stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     @Override
     public List<SPDTO> getSPFromStudent(Integer studentId) {
-        logger.info("Fetching SPs for studentId: {}", studentId);
-        List<SP> sps = spRepository.findByStudentsStudentId(studentId);
-        logger.info("Found {} SPs for studentId: {}", sps.size(), studentId);
-        return sps.stream().map(this::toDTO)
+        return spRepository.findByStudentsStudentId(studentId).stream().map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
     @Override
+    // ✅ REIMPLEMENTED: getSPFromFaculty using the new Many-to-Many relationship
     public List<SPDTO> getSPFromFaculty(Integer facultyId) {
-        logger.info("Fetching SPs for facultyId: {}", facultyId);
-        List<SP> sps = spRepository.findByStudentsFacultyFacultyId(facultyId);
-        logger.info("Found {} SPs for facultyId: {}", sps.size(), facultyId);
-        return sps.stream()
+        // Use the new repository method to find SPs linked to students of the given
+        // faculty
+        return spRepository.findByAdviserFacultyId(facultyId).stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
     @Override
     public SPDTO createSP(SPDTO spDTO) {
-        logger.info("Creating new SP");
         SP sp = new SP();
         sp.setTitle(spDTO.getTitle());
         sp.setYear(spDTO.getYear());
@@ -130,10 +115,8 @@ public class SPServiceImpl implements SPService {
                     .map(id -> tagRepository.findById(id)
                             .orElseThrow(() -> new RuntimeException("Tag not found: " + id)))
                     .collect(Collectors.toSet()));
-            logger.debug("Tags set: {}", sp.getTags().size());
         } else {
             sp.setTags(new HashSet<>()); // Ensure tags is not null if no tags are provided
-            logger.debug("No tags provided");
         }
 
         // Set students from studentIds in the DTO
@@ -143,48 +126,35 @@ public class SPServiceImpl implements SPService {
                             .orElseThrow(() -> new RuntimeException("Student not found: " + id)))
                     .collect(Collectors.toSet());
             sp.setStudents(students);
-            logger.debug("Students set: {}", sp.getStudents().size());
         } else {
             sp.setStudents(new HashSet<>()); // Ensure students is not null if no students are provided
-            logger.debug("No students provided");
         }
 
-        SP savedSP = spRepository.save(sp);
-        logger.info("SP created with ID: {}", savedSP.getSpId());
-        return toDTO(savedSP);
+        return toDTO(spRepository.save(sp));
     }
 
     @Override
     public List<SPDTO> getSPsWithTags(List<Integer> tagIds) {
-        logger.info("Fetching SPs with tagIds: {}", tagIds);
         if (tagIds == null || tagIds.isEmpty()) {
-            logger.info("No tagIds provided, returning all SPs");
             return getAllSP();
         }
-        List<SP> sps = spRepository.findByTagsTagIdIn(tagIds);
-        logger.info("Found {} SPs with tags: {}", sps.size(), tagIds);
-        return sps.stream().map(this::toDTO).collect(Collectors.toList());
+        return spRepository.findByTagsTagIdIn(tagIds).stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     @Override
     @Transactional
     public void incrementViewCount(Integer spId) {
-        logger.debug("Incrementing view count for SP ID: {}", spId);
         spRepository.incrementViewCountById(spId);
     }
 
     @Override
     public List<SPDTO> getMostViewedSPs(Integer limit) {
-        logger.info("Fetching top {} most viewed SPs", limit);
         PageRequest pageable = PageRequest.of(0, 5);
-        List<SP> sps = spRepository.findTopSPs(pageable);
-        logger.info("Found {} top SPs", sps.size());
-        return sps.stream()
+        return spRepository.findTopSPs(pageable).stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
-    // ✅ UPDATED: toDTO method with logging
     private SPDTO toDTO(SP sp) {
         SPDTO dto = new SPDTO();
         dto.setSpId(sp.getSpId());
@@ -204,11 +174,7 @@ public class SPServiceImpl implements SPService {
         // Extract student information from the Many-to-Many relationship
         List<Integer> studentIds = new ArrayList<>();
         List<String> authors = new ArrayList<>();
-        logger.debug("Processing students for SP ID: {}", sp.getSpId());
-
-        // Check if the students collection is loaded and not empty
         if (sp.getStudents() != null && !sp.getStudents().isEmpty()) {
-            logger.debug("Students collection is not null and not empty. Size: {}", sp.getStudents().size());
             for (Student student : sp.getStudents()) {
                 if (student != null) {
                     studentIds.add(student.getStudentId());
@@ -220,18 +186,11 @@ public class SPServiceImpl implements SPService {
                         authorName += ", " + firstName;
                     }
                     authors.add(authorName);
-                    logger.debug("Added student: {} ({}) to authors", student.getStudentId(), authorName);
-                } else {
-                    logger.warn("Found a null student in the collection for SP ID: {}", sp.getSpId());
                 }
             }
-        } else {
-            logger.debug("Students collection is null or empty for SP ID: {}", sp.getSpId());
         }
-
         dto.setStudentIds(studentIds);
         dto.setAuthors(authors);
-        logger.debug("Generated studentIds: {} and authors: {} for SP ID: {}", studentIds, authors, sp.getSpId());
 
         if (sp.getAdviser() != null) {
             dto.setAdviserId(sp.getAdviser().getAdminId());
@@ -258,7 +217,6 @@ public class SPServiceImpl implements SPService {
 
     @Override
     public List<AdviserDTO> getTopAdvisersByViews() {
-        logger.info("Fetching top advisers by views");
         Pageable pageable = PageRequest.of(0, 5);
         List<Object[]> results = spRepository.findTopAdvisersByViews(pageable);
 
@@ -288,17 +246,15 @@ public class SPServiceImpl implements SPService {
         dto.setLastName(student.getLastName());
         dto.setMiddleName(student.getMiddleName());
         // Assuming Student has a Faculty relationship
-        if (student.getFaculty() != null) {
-            dto.setFacultyId(student.getFaculty().getFacultyId());
-        }
+        dto.setFacultyId(student.getFaculty().getFacultyId());
         return dto;
     }
 
     @Override
-    @Transactional // Keep Transactional for update operations
+    @Transactional
     public SPDTO updateSP(Integer spId, SPDTO spDTO) {
-        logger.info("Updating SP with ID: {}", spId);
-        logger.debug("Received DTO for update: {}", spDTO);
+        System.out.println("Updating SP with ID: " + spId);
+        System.out.println("Received DTO: " + spDTO);
 
         SP sp = spRepository.findById(spId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "SP not found"));
@@ -320,7 +276,7 @@ public class SPServiceImpl implements SPService {
         }
 
         if (spDTO.getAdviserId() != null) {
-            logger.debug("Updating adviser with ID: {}", spDTO.getAdviserId());
+            System.out.println("Updating adviser with ID: " + spDTO.getAdviserId());
             Admin adviser = adminRepository.findById(spDTO.getAdviserId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                             "Adviser not found with ID: " + spDTO.getAdviserId()));
@@ -330,7 +286,7 @@ public class SPServiceImpl implements SPService {
         // Update tags (existing logic)
         Set<Integer> tagIds = spDTO.getTagIds();
         if (tagIds != null) {
-            logger.debug("Updating tags with IDs: {}", tagIds);
+            System.out.println("Updating tags: " + tagIds);
             Set<Tag> tags = new HashSet<>();
             for (Integer tagId : tagIds) {
                 Tag tag = tagRepository.findById(tagId)
@@ -339,16 +295,15 @@ public class SPServiceImpl implements SPService {
                 tags.add(tag);
             }
             sp.setTags(tags);
-            logger.debug("Tags set on SP: {}", sp.getTags().size());
         } else {
             sp.setTags(new HashSet<>()); // Clear tags if none provided
-            logger.debug("No tags provided in update, clearing existing tags");
+            System.out.println("No tags provided in update, clearing existing tags");
         }
 
         // Update students using the Many-to-Many relationship
         List<Integer> studentIds = spDTO.getStudentIds();
         if (studentIds != null) {
-            logger.debug("Updating student authors with IDs: {}", studentIds);
+            System.out.println("Updating student authors: " + studentIds);
             Set<Student> students = new HashSet<>();
             for (Integer studentId : studentIds) {
                 Student student = studentRepository.findById(studentId)
@@ -359,32 +314,17 @@ public class SPServiceImpl implements SPService {
             // JPA automatically manages the join table when you set the collection on the
             // owning side (SP)
             sp.setStudents(students);
-            logger.debug("Students set on SP before saving: {}", sp.getStudents().size());
-
         } else {
             sp.setStudents(new HashSet<>()); // Clear students if none provided
-            logger.debug("No student authors provided in update, clearing existing students");
+            System.out.println("No student authors provided in update, clearing existing students");
         }
 
-        SP savedSP = spRepository.save(sp); // Saving the owning side
-        logger.info("SP updated successfully with ID: {}", savedSP.getSpId());
-        // At this point, the Many-to-Many relationship should be updated in the
-        // database.
-        // Let's fetch it again or ensure it's eagerly loaded if needed for toDTO
-        // OR rely on the @Transactional context to keep the students collection
-        // attached and updated.
-
-        // If lazy loading is an issue, you might need to initialize the collection
-        // here,
-        // but usually setting and saving the owning side is enough within a
-        // transaction.
-        // savedSP.getStudents().size(); // Example of initializing if needed
-
+        SP savedSP = spRepository.save(sp);
+        System.out.println("SP updated successfully");
         SPDTO resultDTO = toDTO(savedSP);
-        logger.debug("Returning DTO after update: {}", resultDTO);
-        logger.debug("Returning DTO studentIds: {}", resultDTO.getStudentIds());
-        logger.debug("Returning DTO authors: {}", resultDTO.getAuthors());
+        System.out.println("Returning DTO: " + resultDTO);
 
         return resultDTO;
     }
+
 }

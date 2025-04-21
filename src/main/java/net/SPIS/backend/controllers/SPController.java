@@ -4,6 +4,8 @@ import net.SPIS.backend.DTO.AdviserDTO;
 import net.SPIS.backend.DTO.SPDTO;
 import net.SPIS.backend.DTO.StudentDTO;
 import net.SPIS.backend.DTO.TagDTO;
+import net.SPIS.backend.entities.SP;
+import net.SPIS.backend.repositories.SPRepository;
 import net.SPIS.backend.service.SPService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,8 @@ public class SPController {
 
     @Autowired
     private SPService spService;
+    @Autowired
+    private SPRepository spRepository;
 
     @GetMapping("/{spId}")
     public SPDTO getSP(@PathVariable Integer spId) {
@@ -29,6 +33,32 @@ public class SPController {
     @GetMapping
     public List<SPDTO> getAllSP() {
         return spService.getAllSP();
+    }
+
+    @GetMapping("/filter")
+    public List<SP> filterSPs(
+            @RequestParam(required = false) List<Integer> adviserIds,
+            @RequestParam(required = false) List<Integer> tagIds,
+            @RequestParam(required = false) Integer facultyId, // Receive facultyId parameter
+            @RequestParam(required = false) String searchTerm) {
+
+        // Filter by Faculty (Adviser's Faculty) if facultyId is provided
+        if (facultyId != null) {
+            // Call the corrected repository method to filter by adviser's facultyId
+            return spRepository.findByAdviserFacultyId(facultyId);
+        }
+
+        // Add other filter conditions here for when facultyId is NOT provided,
+        // or if you need to combine filters (e.g., filter by adviserIds within a
+        // faculty).
+        // Example:
+        // if (adviserIds != null && !adviserIds.isEmpty()) {
+        // return spRepository.findByAdviserIdIn(adviserIds);
+        // }
+        // ... other filters
+
+        // If no filters are applied, return all SPs
+        return spRepository.findAll();
     }
 
     @GetMapping("/adviser/{adviserId}")

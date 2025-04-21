@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -39,7 +40,7 @@ public interface SPRepository extends JpaRepository<SP, Integer> {
     // Find SPs by Student ID using the Many-to-Many relationship
     List<SP> findByStudentsStudentId(Integer studentId);
 
-    // Find SPs by the Faculty ID of their associated students
-    @Query("SELECT DISTINCT sp FROM SP sp JOIN sp.students student WHERE student.faculty.facultyId = :facultyId")
-    List<SP> findByStudentsFacultyFacultyId(Integer facultyId);
+    @Query("SELECT sp FROM SP sp JOIN sp.adviser adviser JOIN adviser.faculty faculty WHERE faculty.facultyId = :facultyId")
+    List<SP> findByAdviserFacultyId(@Param("facultyId") Integer facultyId);
+
 }

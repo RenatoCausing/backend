@@ -36,163 +36,169 @@ const SPFilterSystem = () => {
   const tagDropdownRef = useRef(null);
   const searchTimeoutRef = useRef(null);
 
-  // API service methods
-  const SPApiService = {
-    fetchAdviserById: async (adviserId) => {
-      try {
-        const response = await fetch(`http://localhost:8080/api/advisers/${adviserId}`);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch adviser with ID ${adviserId}`);
-        }
-        return await response.json();
-      } catch (error) {
-        console.error(`Error fetching adviser ${adviserId}:`, error);
-        return null;
-      }
-    },
-
-    fetchStudentsByGroupId: async (groupId) => {
-      try {
-        const response = await fetch(`http://localhost:8080/api/students/group/${groupId}`);
-        if (!response.ok) {
-          if (response.status === 404) {
-            console.warn(`Group with ID ${groupId} not found.`);
-            return [];
-          }
-          throw new Error(`Failed to fetch students for group ID ${groupId}`);
-        }
-        return await response.json();
-      } catch (error) {
-        console.error(`Error fetching students for group ${groupId}:`, error);
-        return [];
-      }
-    },
-
-    fetchAllAdvisers: async () => {
-      try {
-        const response = await fetch('http://localhost:8080/api/advisers');
-        if (!response.ok) {
-          throw new Error('Failed to fetch advisers');
-        }
-        return await response.json();
-      } catch (error) {
-        console.error('Error fetching advisers:', error);
-        return [];
-      }
-    },
-
-    fetchAllTags: async () => {
-      try {
-        const response = await fetch('http://localhost:8080/api/tags');
-        if (!response.ok) {
-          throw new Error('Failed to fetch tags');
-        }
-        return await response.json();
-      } catch (error) {
-        console.error('Error fetching tags:', error);
-        return [];
-      }
-    },
-
-    fetchAllSPs: async () => {
-      try {
-        console.log('Fetching all SPs...');
-        const response = await fetch('http://localhost:8080/api/sp');
-        if (!response.ok) {
-          console.error('Failed to fetch SPs, status:', response.status);
-          throw new Error('Failed to fetch SPs');
-        }
-        const data = await response.json();
-        console.log('SPs fetched successfully:', data);
-        return data;
-      } catch (error) {
-        console.error('Error fetching SPs:', error);
-        return [];
-      }
-    },
-
-    applyFilters: async (filters) => {
-      const { adviserIds, tagIds, departmentId, searchTerm } = filters;
-      // Check if we need to apply any filters
-      const hasFilters = (adviserIds && adviserIds.length > 0) ||
-                         (tagIds && tagIds.length > 0) ||
-                         departmentId ||
-                         searchTerm;
-
-      if (!hasFilters) {
-        // No filters, return all SPs
-        return await SPApiService.fetchAllSPs();
-      }
-
-      try {
-        // Try to use server-side filtering first
-        const params = new URLSearchParams();
-        if (adviserIds && adviserIds.length) {
-          adviserIds.forEach(id => params.append('adviserIds', id));
-        }
-
-        if (tagIds && tagIds.length) {
-          tagIds.forEach(id => params.append('tagIds', id));
-        }
-
-        if (departmentId) {
-          params.append('facultyId', departmentId);
-        }
-
-        if (searchTerm) {
-          params.append('searchTerm', searchTerm);
-        }
-
-        const response = await fetch(`http://localhost:8080/api/sp/filter?${params.toString()}`);
-        if (response.ok) {
-          return await response.json();
-        } else {
-          // Fallback to client-side if server-side filtering fails for any reason
-          throw new Error('Server-side filtering not supported or failed');
-        }
-      } catch (error) {
-        console.warn('Falling back to client-side filtering:', error);
-        // Fall back to client-side filtering
-        let result = await SPApiService.fetchAllSPs();
-
-        // Apply filters client-side
-        if (adviserIds && adviserIds.length) {
-          result = result.filter(sp => sp.adviserId && adviserIds.includes(sp.adviserId));
-        }
-
-        if (tagIds && tagIds.length) {
-          result = result.filter(sp => {
-            if (!sp.tagIds) return false;
-            return tagIds.some(tagId => sp.tagIds.includes(tagId));
-          });
-        }
-
-        if (departmentId) {
-          // Client-side filtering by faculty/department
-          const derivedDeptId = parseInt(departmentId, 10);
-          result = result.filter(sp => {
-            if (sp.authors && Array.isArray(sp.authors) && sp.authors.length > 0) {
-              const firstAuthor = sp.authors[0];
-              if (firstAuthor && firstAuthor.facultyId === derivedDeptId) {
-                return true;
-              }
-            }
-            return false;
-          });
-        }
-
-        if (searchTerm) {
-          const term = searchTerm.toLowerCase();
-          result = result.filter(sp =>
-            (sp.title && sp.title.toLowerCase().includes(term)) ||
-            (sp.abstractText && sp.abstractText.toLowerCase().includes(term))
-          );
-        }
-
-        return result;
-      }
-    }
-  };
+// API service methods (simplified, you might want a dedicated service file)
+  const SPApiService = {
+      // Fetches a single adviser by ID
+      fetchAdviserById: async (adviserId) => {
+        try {
+          const response = await fetch(`http://localhost:8080/api/advisers/${adviserId}`);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch adviser with ID ${adviserId}`);
+          }
+          return await response.json();
+        } catch (error) {
+          console.error(`Error fetching adviser ${adviserId}:`, error);
+          return null; // Return null or handle appropriately
+        }
+      },
+  
+      // Fetches students by Group ID (Less relevant for SP authors now, but kept from original code)
+      fetchStudentsByGroupId: async (groupId) => {
+        try {
+          const response = await fetch(`http://localhost:8080/api/students/group/${groupId}`);
+          if (!response.ok) {
+            // Handle 404 or other errors gracefully
+            if (response.status === 404) {
+              console.warn(`Group with ID ${groupId} not found.`);
+              return []; // Return empty array if group not found
+            }
+            throw new Error(`Failed to fetch students for group ID ${groupId}, status: ${response.status}`);
+          }
+          return await response.json();
+        } catch (error) {
+          console.error(`Error fetching students for group ${groupId}:`, error);
+          return []; // Return empty array on error
+        }
+      },
+  
+      // Fetches all advisers
+      fetchAllAdvisers: async () => {
+        try {
+          const response = await fetch('http://localhost:8080/api/advisers');
+          if (!response.ok) {
+            throw new Error(`Failed to fetch advisers, status: ${response.status}`);
+          }
+          return await response.json();
+        } catch (error) {
+          console.error('Error fetching advisers:', error);
+          return []; // Return empty array on error
+        }
+      },
+  
+      // Fetches all tags
+      fetchAllTags: async () => {
+        try {
+          const response = await fetch('http://localhost:8080/api/tags');
+          if (!response.ok) {
+            throw new Error(`Failed to fetch tags, status: ${response.status}`);
+          }
+          return await response.json();
+        } catch (error) {
+          console.error('Error fetching tags:', error);
+          return []; // Return empty array on error
+        }
+      },
+  
+      // Fetches all SPs
+      fetchAllSPs: async () => {
+        try {
+          const response = await fetch('http://localhost:8080/api/sp');
+          if (!response.ok) {
+            throw new Error(`Failed to fetch SPs, status: ${response.status}`);
+          }
+          return await response.json();
+        } catch (error) {
+          console.error('Error fetching SPs:', error);
+          return []; // Return empty array on error
+        }
+      },
+  
+      // Applies filters, attempting server-side first, then client-side fallback
+      applyFilters: async (filters) => {
+        const { adviserIds, tagIds, departmentId, searchTerm } = filters; // Include departmentId
+        // Check if we need to apply any filters
+        const hasFilters = (adviserIds && adviserIds.length > 0) ||
+                           (tagIds && tagIds.length > 0) ||
+                           departmentId || // Check if departmentId is selected
+                           searchTerm;
+  
+        if (!hasFilters) {
+          // No filters selected, return all SPs
+          return await SPApiService.fetchAllSPs();
+        }
+  
+        try {
+          // Attempt server-side filtering
+          const params = new URLSearchParams();
+  
+          if (adviserIds && adviserIds.length) {
+            adviserIds.forEach(id => params.append('adviserIds', id));
+          }
+  
+          if (tagIds && tagIds.length) {
+            tagIds.forEach(id => params.append('tagIds', id));
+          }
+  
+          // ✅ Send the selected departmentId to the backend as facultyId
+          if (departmentId) {
+            params.append('facultyId', departmentId);
+          }
+  
+          if (searchTerm) {
+            params.append('searchTerm', searchTerm);
+          }
+  
+          const response = await fetch(`http://localhost:8080/api/sp/filter?${params.toString()}`);
+  
+          // Check for a successful response from the server-side filter endpoint
+          if (response.ok) {
+            return await response.json();
+          } else {
+            // If server-side filter endpoint returns an error (e.g., 404 if not implemented)
+            // This fallback is less likely needed now that the backend is updated to handle facultyId
+            // but can be kept as a safeguard.
+            throw new Error(`Server-side filtering failed with status: ${response.status}`);
+          }
+        } catch (error) {
+          console.log('Falling back to client-side filtering (should be less frequent now):', error);
+          // Fall back to client-side filtering if server-side fails
+          // Note: This fetches all SPs first, which might be inefficient for large datasets
+          let result = await SPApiService.fetchAllSPs();
+  
+          // Apply filters client-side
+          if (adviserIds && adviserIds.length) {
+            result = result.filter(sp => adviserIds.includes(sp.adviserId));
+          }
+  
+          if (tagIds && tagIds.length) {
+            result = result.filter(sp => {
+              // Check if sp.tagIds exists and is an array before using some()
+              if (!sp.tagIds || !Array.isArray(sp.tagIds)) return false;
+              return tagIds.some(tagId => sp.tagIds.includes(tagId));
+            });
+          }
+  
+          // ❌ REMOVE OR COMMENT OUT the client-side department filtering logic here
+          // if (departmentId) {
+          //   const selectedDeptId = parseInt(departmentId, 10);
+          //   result = result.filter(sp => {
+          //     return sp.facultyId != null && sp.facultyId === selectedDeptId;
+          //   });
+          // }
+  
+  
+          if (searchTerm) {
+            const term = searchTerm.toLowerCase();
+            result = result.filter(sp =>
+              (sp.title && sp.title.toLowerCase().includes(term)) ||
+              (sp.abstractText && sp.abstractText.toLowerCase().includes(term))
+            );
+          }
+  
+          return result;
+        }
+      }
+    };
 
   // Implement debouncing for search term
   useEffect(() => {
