@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.Set;
+import java.util.List;
 
 @Data
 @AllArgsConstructor // ✅ Auto-generates constructor with all fields
@@ -24,4 +25,5 @@ public class SPDTO {
     private Integer adviserId;
     private Set<Integer> tagIds; // References tags via SP_Tags
     private Integer viewCount; // ✅ Add view count
+    private List<Integer> studentIds; // Add this field
 }

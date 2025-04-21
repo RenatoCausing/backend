@@ -195,8 +195,10 @@ const UserManagementPanel = () => {
         {showEditPanel && (
           <div className="panel-container fixed inset-y-0 right-0 max-w-md w-full" 
                style={{ 
-                 transform: showEditPanel ? 'translateX(0)' : 'translateX(100%)',
-                 transition: 'transform 0.3s ease-in-out'
+                 transform: showEditPanel ? 'translateX(100)' : 'translateX(100%)',
+                 transition: 'transform 0.3s ease-in-out',
+                 width: '400px',
+                 height: '640px'
                }}>
             {/* Panel header - using plain-header style from SPEditPanel */}
             <div className="panel-header plain-header">
@@ -236,7 +238,6 @@ const UserManagementPanel = () => {
               )}
 
               <form onSubmit={handleSubmit}>
-                <div className="form-grid">
                   <div className="form-group">
                     <label className="form-label required-field" htmlFor="firstName">
                       First Name
@@ -265,7 +266,6 @@ const UserManagementPanel = () => {
                       onChange={handleFormChange}
                     />
                   </div>
-                </div>
                 
                 <div className="form-group">
                   <label className="form-label required-field" htmlFor="lastName">
@@ -297,7 +297,6 @@ const UserManagementPanel = () => {
                   />
                 </div>
                 
-                <div className="form-grid">
                   <div className="form-group">
                     <label className="form-label" htmlFor="role">
                       Role
@@ -332,7 +331,6 @@ const UserManagementPanel = () => {
                       ))}
                     </select>
                   </div>
-                </div>
                 
                 <div className="form-group">
                   <label className="form-label" htmlFor="imagePath">

@@ -170,7 +170,7 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
     try {
       // Make the API call to update the project
       const response = await axios.put(
-        `http://localhost:8080/api/sp/${project.spId}/update`, 
+        'http://localhost:8080/api/sp/${project.spId}/update', 
         updatedProjectData
       );
       

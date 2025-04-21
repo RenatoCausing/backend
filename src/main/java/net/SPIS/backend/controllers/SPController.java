@@ -1,17 +1,25 @@
 package net.SPIS.backend.controllers;
 
 import net.SPIS.backend.DTO.AdviserDTO;
+import net.SPIS.backend.DTO.GroupDTO;
 import net.SPIS.backend.DTO.SPDTO;
 import net.SPIS.backend.DTO.StudentDTO;
 import net.SPIS.backend.DTO.TagDTO;
+import net.SPIS.backend.entities.Groups;
 import net.SPIS.backend.service.SPService;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import net.SPIS.backend.repositories.GroupsRepository;
 
 @RestController
 @RequestMapping("/api/sp")
@@ -99,20 +107,33 @@ public class SPController {
         SPDTO updatedSP = spService.updateSP(spId, spDTO);
         return ResponseEntity.ok(updatedSP);
     }
+
+
+    @Autowired
+    private GroupsRepository groupsRepository;
+    @GetMapping("/group/{groupId}")
+    public ResponseEntity<GroupDTO> getGroup(@PathVariable Integer groupId) {
+        Groups group = groupsRepository.findById(groupId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Group not found"));
+                
+        GroupDTO groupDTO = new GroupDTO();
+        groupDTO.setGroupId(group.getGroupId());
+        groupDTO.setName(group.getName());
+        
+        if (group.getStudents() != null) {
+            List<StudentDTO> studentDTOs = group.getStudents().stream()
+                .map(student -> {
+                    StudentDTO dto = new StudentDTO();
+                    dto.setStudentId(student.getStudentId());
+                    dto.setFirstName(student.getFirstName());
+                    dto.setLastName(student.getLastName());
+                    dto.setMiddleName(student.getMiddleName());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+            groupDTO.setStudents(studentDTOs);
+        }
     
-    @GetMapping("/{spId}/details")
-    public ResponseEntity<Map<String, Object>> getSPDetails(@PathVariable Integer spId) {
-        SPDTO sp = spService.getSP(spId);
-        List<String> authorNames = spService.getStudentNamesByGroupId(sp.getGroupId());
-        String adviserName = spService.getAdviserNameById(sp.getAdviserId());
-        List<String> tagNames = spService.getTagNamesBySpId(spId);
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("sp", sp);
-        response.put("authors", authorNames);
-        response.put("adviserName", adviserName);
-        response.put("tags", tagNames);
-        
-        return ResponseEntity.ok(response);
-    }
+    return ResponseEntity.ok(groupDTO);
+}
 }
