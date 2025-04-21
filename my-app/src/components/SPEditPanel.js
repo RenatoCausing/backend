@@ -17,7 +17,9 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
     author: '',
     adviserName: '',
     tags: [],
-    tagIds: []
+    tagIds: [],
+    authors: [],
+    studentIds: []
   });
 
   // Panel container ref for scroll management
@@ -26,12 +28,15 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
   // State for dropdown selections
   const [showTagSelector, setShowTagSelector] = useState(false);
   const [showAdviserSelector, setShowAdviserSelector] = useState(false);
+  const [showAuthorSelector, setShowAuthorSelector] = useState(false);
   
   // State for available options
   const [availableTags, setAvailableTags] = useState([]);
   const [availableAdvisers, setAvailableAdvisers] = useState([]);
+  const [availableStudents, setAvailableStudents] = useState([]);
   const [tagInput, setTagInput] = useState('');
   const [adviserInput, setAdviserInput] = useState('');
+  const [authorInput, setAuthorInput] = useState('');
   
   // State for thumbnail handling
   const [thumbnailFailed, setThumbnailFailed] = useState(false);
@@ -39,6 +44,7 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
   // Refs for closing dropdowns when clicking outside
   const tagSelectorRef = useRef(null);
   const adviserSelectorRef = useRef(null);
+  const authorSelectorRef = useRef(null);
   
   // Extract Google Drive file ID from various URL formats
   const extractGoogleDriveFileId = (url) => {
@@ -62,13 +68,13 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
   };
 
   // Get Google Drive thumbnail URL
-const getGoogleDrivePreviewUrl = (driveUrl) => {
-  const fileId = extractGoogleDriveFileId(driveUrl);
-  if (!fileId) return null;
-  
-  // This returns a preview URL that can be used in an iframe
-  return `https://drive.google.com/file/d/${fileId}/preview`;
-};
+  const getGoogleDrivePreviewUrl = (driveUrl) => {
+    const fileId = extractGoogleDriveFileId(driveUrl);
+    if (!fileId) return null;
+    
+    // This returns a preview URL that can be used in an iframe
+    return `https://drive.google.com/file/d/${fileId}/preview`;
+  };
   
   // Update form data whenever the project prop changes
   useEffect(() => {
@@ -86,13 +92,15 @@ const getGoogleDrivePreviewUrl = (driveUrl) => {
         author: project.author || '',
         adviserName: project.adviserName || '',
         tags: project.tags || [],
-        tagIds: project.tagIds || []
+        tagIds: project.tagIds || [],
+        authors: project.authors || [],
+        studentIds: project.studentIds || []
       });
       setThumbnailFailed(false);
     }
   }, [project]);
   
-  // Fetch advisers and tags on component mount
+  // Fetch advisers, tags, and students on component mount
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -103,6 +111,10 @@ const getGoogleDrivePreviewUrl = (driveUrl) => {
         // Fetch all tags
         const tagResponse = await axios.get('http://localhost:8080/api/tags');
         setAvailableTags(tagResponse.data || []);
+        
+        // Fetch all students
+        const studentResponse = await axios.get('http://localhost:8080/api/students');
+        setAvailableStudents(studentResponse.data || []);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -119,6 +131,9 @@ const getGoogleDrivePreviewUrl = (driveUrl) => {
       }
       if (adviserSelectorRef.current && !adviserSelectorRef.current.contains(e.target)) {
         setShowAdviserSelector(false);
+      }
+      if (authorSelectorRef.current && !authorSelectorRef.current.contains(e.target)) {
+        setShowAuthorSelector(false);
       }
     };
     
@@ -148,7 +163,8 @@ const getGoogleDrivePreviewUrl = (driveUrl) => {
       uri: formData.uri,
       documentPath: formData.documentPath,
       adviserId: formData.adviserId ? parseInt(formData.adviserId) : null,
-      tagIds: formData.tagIds && formData.tagIds.length > 0 ? formData.tagIds : []
+      tagIds: formData.tagIds && formData.tagIds.length > 0 ? formData.tagIds : [],
+      studentIds: formData.studentIds && formData.studentIds.length > 0 ? formData.studentIds : []
     };
     
     try {
@@ -184,6 +200,23 @@ const getGoogleDrivePreviewUrl = (driveUrl) => {
     }
   };
   
+  const removeAuthor = (authorToRemove) => {
+    const indexToRemove = formData.authors.indexOf(authorToRemove);
+    if (indexToRemove !== -1) {
+      const newAuthors = [...formData.authors];
+      const newStudentIds = [...formData.studentIds];
+      
+      newAuthors.splice(indexToRemove, 1);
+      newStudentIds.splice(indexToRemove, 1);
+      
+      setFormData(prevState => ({
+        ...prevState,
+        authors: newAuthors,
+        studentIds: newStudentIds
+      }));
+    }
+  };
+  
   const addTag = (tag) => {
     if (!formData.tags.includes(tag.tagName)) {
       const newTags = [...formData.tags, tag.tagName];
@@ -197,6 +230,22 @@ const getGoogleDrivePreviewUrl = (driveUrl) => {
     }
     setTagInput('');
     setShowTagSelector(false);
+  };
+  
+  const addAuthor = (student) => {
+    const authorName = `${student.lastName}${student.firstName ? ', ' + student.firstName : ''}`;
+    if (!formData.authors.includes(authorName)) {
+      const newAuthors = [...formData.authors, authorName];
+      const newStudentIds = [...formData.studentIds, student.studentId];
+      
+      setFormData(prevState => ({
+        ...prevState,
+        authors: newAuthors,
+        studentIds: newStudentIds
+      }));
+    }
+    setAuthorInput('');
+    setShowAuthorSelector(false);
   };
   
   const selectAdviser = (adviser) => {
@@ -222,6 +271,13 @@ const getGoogleDrivePreviewUrl = (driveUrl) => {
     tag && tag.tagName && 
     tag.tagName.toLowerCase().includes(tagInput.toLowerCase())
   );
+  
+  // Filter students based on input
+  const filteredStudents = availableStudents.filter(student => 
+    student && student.lastName && 
+    (student.lastName.toLowerCase().includes(authorInput.toLowerCase()) ||
+     (student.firstName && student.firstName.toLowerCase().includes(authorInput.toLowerCase())))
+  );
 
   // Generate thumbnail URL for document
   const thumbnailUrl = getGoogleDrivePreviewUrl(formData.documentPath);
@@ -232,36 +288,36 @@ const getGoogleDrivePreviewUrl = (driveUrl) => {
       <div className="panel-header plain-header">
         <h2 className="panel-title">Edit Project</h2>
         
-{/* Close button */}
-<button
-  onClick={onClose}
-  className="close-button"
-  aria-label="Close panel"
->
-  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-  </svg>
-</button>
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="close-button"
+          aria-label="Close panel"
+        >
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
       </div>
       
       {/* Panel content */}
       <div className="panel-content" ref={panelContainerRef}>
-      {formData.documentPath && (
-  <div className="document-thumbnail-container">
-    {extractGoogleDriveFileId(formData.documentPath) ? (
-      <iframe 
-        src={getGoogleDrivePreviewUrl(formData.documentPath)}
-        width="100%" 
-        height="300" 
-        title="Document Preview"
-      ></iframe>
-    ) : (
-      <div className="document-thumbnail-placeholder">
-        <p>No preview available. Check document link.</p>
-      </div>
-    )}
-  </div>
-)}
+        {formData.documentPath && (
+          <div className="document-thumbnail-container">
+            {extractGoogleDriveFileId(formData.documentPath) ? (
+              <iframe 
+                src={getGoogleDrivePreviewUrl(formData.documentPath)}
+                width="100%" 
+                height="300" 
+                title="Document Preview"
+              ></iframe>
+            ) : (
+              <div className="document-thumbnail-placeholder">
+                <p>No preview available. Check document link.</p>
+              </div>
+            )}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           {/* Edit fields */}
@@ -310,6 +366,74 @@ const getGoogleDrivePreviewUrl = (driveUrl) => {
                 <option value="2nd">2nd Semester</option>
                 <option value="Summer">Summer</option>
               </select>
+            </div>
+          </div>
+          
+          {/* Authors Selection */}
+          <div className="form-group">
+            <label className="form-label" htmlFor="authors">
+              Authors
+            </label>
+            <div className="dropdown-container" ref={authorSelectorRef}>
+              <div className="dropdown-input-group">
+                <input 
+                  type="text" 
+                  className="dropdown-input"
+                  placeholder="Search for authors"
+                  value={authorInput}
+                  onChange={(e) => setAuthorInput(e.target.value)}
+                  onClick={() => setShowAuthorSelector(true)}
+                />
+                <button 
+                  type="button"
+                  className="dropdown-button"
+                  onClick={() => {
+                    setFormData(prevState => ({
+                      ...prevState,
+                      authors: [],
+                      studentIds: []
+                    }));
+                    setAuthorInput('');
+                  }}
+                >
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              {showAuthorSelector && (
+                <div className="dropdown-menu shadow-md">
+                  {filteredStudents.length > 0 ? (
+                    filteredStudents.map(student => (
+                      <div 
+                        key={student.studentId} 
+                        className="dropdown-item"
+                        onClick={() => addAuthor(student)}
+                      >
+                        {student.lastName}{student.firstName && `, ${student.firstName}`}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="dropdown-item">No matching students</div>
+                  )}
+                </div>
+              )}
+            </div>
+            
+            <div className="chips-container">
+              {formData.authors.map((author, index) => (
+                <div key={index} className="chip">
+                  {author}
+                  <button 
+                    type="button"
+                    className="chip-remove"
+                    onClick={() => removeAuthor(author)}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
           
@@ -383,7 +507,6 @@ const getGoogleDrivePreviewUrl = (driveUrl) => {
             )}
           </div>
           
-
           {/* Abstract */}
           <div className="form-group">
             <label className="form-label" htmlFor="abstractText">
@@ -398,7 +521,6 @@ const getGoogleDrivePreviewUrl = (driveUrl) => {
             />
           </div>
           
-
           {/* Tags Selection */}
           <div className="form-group">
             <label className="form-label" htmlFor="tags">
@@ -467,23 +589,6 @@ const getGoogleDrivePreviewUrl = (driveUrl) => {
             </div>
           </div>
           
-          {/* URI field */}
-{/*
-
-          <div className="form-group">
-            <label className="form-label" htmlFor="uri">
-              URI
-            </label>
-            <input 
-              id="uri"
-              name="uri"
-              type="text" 
-              className="form-control"
-              value={formData.uri}
-              onChange={handleChange}
-            />
-          </div>
-*/}
           {/* Document Path field */}
           <div className="form-group">
             <label className="form-label" htmlFor="documentPath">

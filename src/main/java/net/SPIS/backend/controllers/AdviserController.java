@@ -126,16 +126,29 @@ public class AdviserController {
     // Modified endpoint for updating admin users
     @CrossOrigin(origins = "http://localhost:3000")
     @PutMapping("/admin/{adminId}/update")
-    public ResponseEntity<AdviserDTO> updateAdminUser(@PathVariable Integer adminId, @RequestBody Admin adminData) {
+    public ResponseEntity<AdviserDTO> updateAdminUser(
+            @PathVariable Integer adminId, 
+            @RequestBody Map<String, Object> adminData) {
         try {
-            // Handle the Faculty object correctly
-            if (adminData.getFaculty() != null && adminData.getFaculty().getFacultyId() != null) {
-                Faculty faculty = facultyRepository.findById(adminData.getFaculty().getFacultyId())
+            Admin admin = new Admin();
+            // Set basic properties
+            if (adminData.get("firstName") != null) admin.setFirstName((String) adminData.get("firstName"));
+            if (adminData.get("lastName") != null) admin.setLastName((String) adminData.get("lastName"));
+            if (adminData.get("middleName") != null) admin.setMiddleName((String) adminData.get("middleName"));
+            if (adminData.get("email") != null) admin.setEmail((String) adminData.get("email"));
+            if (adminData.get("role") != null) admin.setRole((String) adminData.get("role"));
+            if (adminData.get("imagePath") != null) admin.setImagePath((String) adminData.get("imagePath"));
+            if (adminData.get("description") != null) admin.setDescription((String) adminData.get("description"));
+            
+            // Handle faculty using facultyId
+            if (adminData.get("facultyId") != null) {
+                Integer facultyId = Integer.valueOf(adminData.get("facultyId").toString());
+                Faculty faculty = facultyRepository.findById(facultyId)
                     .orElseThrow(() -> new RuntimeException("Faculty not found"));
-                adminData.setFaculty(faculty);
+                admin.setFaculty(faculty);
             }
             
-            AdviserDTO updatedUser = adviserService.updateUser(adminId, adminData);
+            AdviserDTO updatedUser = adviserService.updateUser(adminId, admin);
             return ResponseEntity.ok(updatedUser);
         } catch (Exception e) {
             System.err.println("Error updating admin: " + e.getMessage());

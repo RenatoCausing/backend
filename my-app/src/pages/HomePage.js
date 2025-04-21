@@ -391,7 +391,7 @@ function HomePage() {
                       year={sp.year || 'N/A'}
                       semester={sp.semester || 'N/A'}
                       viewCount={sp.viewCount || 0}
-                      tags={sp.tags && Array.isArray(sp.tags) ? sp.tags : []}
+                      tags={sp.tagIds && Array.isArray(sp.tagIds) ? getTagsForSp(sp) : (sp.tags && Array.isArray(sp.tags) ? sp.tags : [])}
                     />
                   ))
                 ) : (

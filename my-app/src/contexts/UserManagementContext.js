@@ -274,7 +274,7 @@ export const UserManagementProvider = ({ children }) => {
       
     } catch (error) {
       console.error("Error deleting user:", error);
-      setError("Failed to delete user. Please try again.");
+      setError("Failed to delete user. The user is associated with a published SP.");
       setShowDeleteConfirm(false);
     }
   };
