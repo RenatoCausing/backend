@@ -1,8 +1,14 @@
 package net.SPIS.backend.serviceImpl;
 
-import net.SPIS.backend.DTO.*;
-import net.SPIS.backend.entities.*;
-import net.SPIS.backend.repositories.*;
+import net.SPIS.backend.DTO.StudentDTO;
+import net.SPIS.backend.entities.Faculty;
+// REMOVE Groups import
+// import net.SPIS.backend.entities.Groups;
+import net.SPIS.backend.entities.Student;
+import net.SPIS.backend.repositories.FacultyRepository;
+// REMOVE GroupsRepository import
+// import net.SPIS.backend.repositories.GroupsRepository;
+import net.SPIS.backend.repositories.StudentRepository;
 import net.SPIS.backend.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,8 +27,9 @@ public class StudentServiceImpl implements StudentService {
     @Autowired
     private FacultyRepository facultyRepository;
 
-    @Autowired
-    private GroupsRepository groupsRepository;
+    // REMOVE GroupsRepository
+    // @Autowired
+    // private GroupsRepository groupsRepository;
 
     @Override
     public List<StudentDTO> getAllStudentsFromFaculty(Integer facultyId) {
@@ -41,10 +48,13 @@ public class StudentServiceImpl implements StudentService {
         student.setFirstName(studentDTO.getFirstName());
         student.setLastName(studentDTO.getLastName());
         student.setMiddleName(studentDTO.getMiddleName());
-        student.setFaculty(facultyRepository.findById(studentDTO.getFacultyId()).orElseThrow());
-        if (studentDTO.getGroupId() != null) {
-            student.setGroup(groupsRepository.findById(studentDTO.getGroupId()).orElseThrow());
-        }
+
+        student.setFaculty(facultyRepository.findById(studentDTO.getFacultyId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Faculty not found with id " + studentDTO.getFacultyId())));
+
+        // No longer setting group for student
+
         return toDTO(studentRepository.save(student));
     }
 
@@ -55,29 +65,28 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public StudentDTO getStudent(Integer studentId) {
-        return toDTO(studentRepository.findById(studentId).orElseThrow());
+        return toDTO(studentRepository.findById(studentId).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Student not found with id " + studentId)));
     }
 
+    // REMOVED: getStudentsByGroupId method
+
+    // Updated toDTO method (from previous turns)
     private StudentDTO toDTO(Student student) {
         StudentDTO dto = new StudentDTO();
         dto.setStudentId(student.getStudentId());
         dto.setFirstName(student.getFirstName());
         dto.setLastName(student.getLastName());
         dto.setMiddleName(student.getMiddleName());
-        dto.setFacultyId(student.getFaculty().getFacultyId());
-        dto.setGroupId(student.getGroup() != null ? student.getGroup().getGroupId() : null);
+
+        if (student.getFaculty() != null) {
+            dto.setFacultyId(student.getFaculty().getFacultyId());
+        }
+
+        // GroupId is no longer part of StudentDTO in this model
+        // dto.setGroupId(student.getGroup() != null ? student.getGroup().getGroupId() :
+        // null);
+
         return dto;
-    }
-
-    @Override
-    public List<StudentDTO> getStudentsByGroupId(Integer groupId) {
-        Groups group = groupsRepository.findById(groupId)
-                .orElseThrow(
-                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Group not found with id " + groupId));
-
-        List<Student> students = studentRepository.findByGroup(group);
-        return students.stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
     }
 }

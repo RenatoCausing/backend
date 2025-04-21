@@ -95,24 +95,9 @@ public class SPController {
     public ResponseEntity<SPDTO> updateSP(@PathVariable Integer spId, @RequestBody SPDTO spDTO) {
         System.out.println("Received update request for SP: " + spId);
         System.out.println("Request body: " + spDTO);
-        
+
         SPDTO updatedSP = spService.updateSP(spId, spDTO);
         return ResponseEntity.ok(updatedSP);
     }
-    
-    @GetMapping("/{spId}/details")
-    public ResponseEntity<Map<String, Object>> getSPDetails(@PathVariable Integer spId) {
-        SPDTO sp = spService.getSP(spId);
-        List<String> authorNames = spService.getStudentNamesByGroupId(sp.getGroupId());
-        String adviserName = spService.getAdviserNameById(sp.getAdviserId());
-        List<String> tagNames = spService.getTagNamesBySpId(spId);
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("sp", sp);
-        response.put("authors", authorNames);
-        response.put("adviserName", adviserName);
-        response.put("tags", tagNames);
-        
-        return ResponseEntity.ok(response);
-    }
+
 }

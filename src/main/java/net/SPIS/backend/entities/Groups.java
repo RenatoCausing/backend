@@ -16,6 +16,7 @@ public class Groups {
     @Column(name = "group_name", nullable = false, unique = true)
     private String groupName;
 
-    @OneToMany(mappedBy = "group")
-    private Set<Student> students; // Must exist and link to Student
+    // REMOVE the OneToMany relationship to Student
+    // @OneToMany(mappedBy = "group")
+    // private Set<Student> students;
 }

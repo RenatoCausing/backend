@@ -5,11 +5,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 
 @Data
-@AllArgsConstructor // ✅ Auto-generates constructor with all fields
-@NoArgsConstructor // ✅ Auto-generates no-arg constructor
+@AllArgsConstructor
+@NoArgsConstructor
 public class SPDTO {
     private Integer spId;
     private String title;
@@ -20,8 +21,14 @@ public class SPDTO {
     private String documentPath;
     private LocalDate dateIssued;
     private Integer uploadedById;
-    private Integer groupId;
+    // REMOVE groupId since SP is no longer directly linked to a single Group for
+    // students
+    // private Integer groupId;
     private Integer adviserId;
-    private Set<Integer> tagIds; // References tags via SP_Tags
-    private Integer viewCount; // ✅ Add view count
+    private Set<Integer> tagIds;
+    private Integer viewCount;
+
+    // Keep these as they represent the students in the Many-to-Many relationship
+    private List<Integer> studentIds;
+    private List<String> authors;
 }

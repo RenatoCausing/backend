@@ -1,27 +1,23 @@
 package net.SPIS.backend.repositories;
 
 import net.SPIS.backend.entities.SP;
-import org.springframework.data.domain.Pageable;
-
+import net.SPIS.backend.entities.Student; // Import Student
+import net.SPIS.backend.entities.Groups; // Import Groups (if needed for other methods, otherwise remove)
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set; // Import Set
 
 public interface SPRepository extends JpaRepository<SP, Integer> {
     List<SP> findByAdviserAdminId(Integer adviserId);
 
-    List<SP> findByGroupStudentsStudentId(Integer studentId);
-
-    List<SP> findByGroupStudentsFacultyFacultyId(Integer facultyId); // Corrected path
-
     List<SP> findByTagsTagIdIn(List<Integer> tagIds);
 
-    // ✅ NEW: Increment view count
     @Transactional
     @Modifying
     @Query("UPDATE SP sp SET sp.viewCount = sp.viewCount + 1 WHERE sp.spId = :spId")
@@ -40,4 +36,10 @@ public interface SPRepository extends JpaRepository<SP, Integer> {
             "ORDER BY COALESCE(SUM(sp.viewCount), 0) DESC")
     List<Object[]> findTopAdvisersByViews(Pageable pageable);
 
+    // Find SPs by Student ID using the Many-to-Many relationship
+    List<SP> findByStudentsStudentId(Integer studentId);
+
+    // Find SPs by the Faculty ID of their associated students
+    @Query("SELECT DISTINCT sp FROM SP sp JOIN sp.students student WHERE student.faculty.facultyId = :facultyId")
+    List<SP> findByStudentsFacultyFacultyId(Integer facultyId);
 }
