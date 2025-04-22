@@ -16,9 +16,9 @@ export const useUserContext = () => {
 export const UserManagementProvider = ({ children }) => {
   // State management for users and filtering
   const [faculties, setFaculties] = useState([
-    { id: 1, name: 'BSCS' },
-    { id: 2, name: 'BSAP' },
-    { id: 3, name: 'BSBC' }
+    { id: 1, name: 'BSBC' },
+    { id: 2, name: 'BSCS' },
+    { id: 3, name: 'BSAP' }
   ]);
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
