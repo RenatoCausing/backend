@@ -13,7 +13,9 @@ const SPFilterSystem = () => {
   const [error, setError] = useState(null);
   const [adviserData, setAdviserData] = useState({});
   const [studentGroups, setStudentGroups] = useState({});
-
+// Add these state variables with your other state declarations
+const [sortBy, setSortBy] = useState('dateIssued'); // Default sort option
+const [sortDirection, setSortDirection] = useState('desc'); // Default direction (descending)
   // Filter states
   const [selectedAdvisers, setSelectedAdvisers] = useState([]);
   const [selectedTags, setSelectedTags] = useState([]);
@@ -35,7 +37,73 @@ const SPFilterSystem = () => {
   const adviserDropdownRef = useRef(null);
   const tagDropdownRef = useRef(null);
   const searchTimeoutRef = useRef(null);
-
+// Add this function with your other helper functions
+// Updated sorting function
+const sortSPs = (sps) => {
+  if (!sps || !Array.isArray(sps)) return [];
+  
+  return [...sps].sort((a, b) => {
+    let valueA, valueB;
+    
+    // Extract the appropriate values based on sort field
+    switch(sortBy) {
+      case 'yearSemester':
+        // Use the academic year/semester fields
+        valueA = a.year || '';
+        valueB = b.year || '';
+        // If you have a separate semester field, you could add secondary sorting:
+        // if (valueA === valueB) {
+        //   return (a.semester || '') < (b.semester || '') ? -1 : 1;
+        // }
+        break;
+      case 'dateIssued':
+        // Use the upload date
+        valueA = a.dateIssued || '';
+        valueB = b.dateIssued || '';
+        break;
+      case 'alphabetical':
+        valueA = a.title || '';
+        valueB = b.title || '';
+        break;
+      default:
+        valueA = a.dateIssued || '';
+        valueB = b.dateIssued || '';
+    }
+    
+    // Parse dates if sorting by date
+    if (sortBy === 'dateIssued') {
+      valueA = new Date(valueA);
+      valueB = new Date(valueB);
+      
+      // Handle invalid dates
+      if (isNaN(valueA)) valueA = new Date(0);
+      if (isNaN(valueB)) valueB = new Date(0);
+    }
+    
+    // Handle year and semester specially
+    if (sortBy === 'yearSemester') {
+      // First compare by year
+      const yearA = parseInt(valueA, 10) || 0;
+      const yearB = parseInt(valueB, 10) || 0;
+      
+      if (yearA !== yearB) {
+        return sortDirection === 'asc' ? yearA - yearB : yearB - yearA;
+      }
+      
+      // If years are equal, compare by semester (if you have that field)
+      const semA = parseInt(a.semester || '0', 10);
+      const semB = parseInt(b.semester || '0', 10);
+      return sortDirection === 'asc' ? semA - semB : semB - semA;
+    }
+    
+    // Compare based on direction for other fields
+    if (sortDirection === 'asc') {
+      return valueA < valueB ? -1 : valueA > valueB ? 1 : 0;
+    } else {
+      return valueA > valueB ? -1 : valueA < valueB ? 1 : 0;
+    }
+  });
+};
 // API service methods (simplified, you might want a dedicated service file)
   const SPApiService = {
       // Fetches a single adviser by ID
@@ -353,39 +421,40 @@ const SPFilterSystem = () => {
   }, []);
 
   // Apply filters whenever filter states change - use debouncedSearchTerm instead of searchTerm
-  useEffect(() => {
-    const applyFilters = async () => {
-      // Don't show loading indicator during search filtering
-      // setLoading(true); - REMOVED to avoid twitchy UI
-      try {
-        const filters = {
-          adviserIds: selectedAdvisers.map(adviser => adviser.adminId),
-          tagIds: selectedTags.map(tag => tag.tagId),
-          departmentId: selectedDepartment,
-          searchTerm: debouncedSearchTerm
-        };
+// Modify your existing filter effect
+useEffect(() => {
+  const applyFiltersAndSort = async () => {
+    try {
+      const filters = {
+        adviserIds: selectedAdvisers.map(adviser => adviser.adminId),
+        tagIds: selectedTags.map(tag => tag.tagId),
+        departmentId: selectedDepartment,
+        searchTerm: debouncedSearchTerm
+      };
 
-        const filteredResults = await SPApiService.applyFilters(filters);
-        setFilteredSps(filteredResults || []);
+      const filteredResults = await SPApiService.applyFilters(filters);
+      
+      // Apply sorting to filtered results
+      const sortedResults = sortSPs(filteredResults || []);
+      setFilteredSps(sortedResults);
 
-        if (debouncedSearchTerm) {
-          setSearchResults({
-            term: debouncedSearchTerm,
-            count: filteredResults.length
-          });
-        } else {
-          setSearchResults(null);
-        }
-      } catch (err) {
-        console.error('Error applying filters:', err);
-        setError('Failed to apply filters. Please try again.');
+      if (debouncedSearchTerm) {
+        setSearchResults({
+          term: debouncedSearchTerm,
+          count: filteredResults.length
+        });
+      } else {
+        setSearchResults(null);
       }
-    };
-    if (sps.length > 0) {
-      applyFilters();
+    } catch (err) {
+      console.error('Error applying filters:', err);
+      setError('Failed to apply filters. Please try again.');
     }
-  }, [selectedAdvisers, selectedTags, selectedDepartment, debouncedSearchTerm, sps]);
-
+  };
+  if (sps.length > 0) {
+    applyFiltersAndSort();
+  }
+}, [selectedAdvisers, selectedTags, selectedDepartment, debouncedSearchTerm, sortBy, sortDirection, sps]);
   // Helper functions
   const getAdviserName = (adviserId) => {
     const adviser = adviserData[adviserId];
@@ -716,7 +785,31 @@ const SPFilterSystem = () => {
                 >
                   <i className="fa fa-search"></i>
                 </button>
+
+                {/* Add this right after your search form */}
+
+                
               </div>
+              <div>
+              <select
+  className="border border-gray-300 p-2 mr-2"
+  value={sortBy}
+  onChange={(e) => setSortBy(e.target.value)}
+>
+  <option value="" disabled>Sort By</option>
+  <option value="yearSemester">Year/Semester</option>
+  <option value="dateIssued">Date issued</option>
+  <option value="alphabetical">Alphabetical</option>
+</select>
+  
+<button
+  className="bg-red-800 hover:bg-red-900 px-4 rounded justify-center text-white" style = {{ height: '100%'}}
+  onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
+  title={sortDirection === 'asc' ? 'Ascending' : 'Descending'}
+>
+  {sortDirection === 'asc' ? ' ↑ ' : ' ↓ '}
+</button>
+  </div>
             </form>
 
             {searchResults && (
@@ -724,6 +817,7 @@ const SPFilterSystem = () => {
                 Your search for <strong>{searchResults.term}</strong> returned {searchResults.count} records.
               </div>
             )}
+            
           </div>
 
           {/* Loading and Error States - Only show loading during initial load */}

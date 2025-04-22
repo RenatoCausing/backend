@@ -21,7 +21,7 @@ const SPProjectView = () => {
   const navbarHeight = 64; // height in pixels
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen" style={{marginTop: "20px"}}>
       <AdviserNavbar />
       
       <div className="flex flex-1 overflow-hidden">

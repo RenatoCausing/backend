@@ -19,14 +19,13 @@ const UserManagementContent = () => {
 // Main component that provides the context
 const UserManagementView = () => {
   // Get navbar height - using the same value as SPProjectView
-  const navbarHeight = 64; // height in pixels
 
   return (
     <UserManagementProvider>
       <div className="flex flex-col min-h-screen">
         <AdviserNavbar />
         
-        <div className="flex flex-1 overflow-hidden" style={{ marginTop: `${navbarHeight}px`, height: `calc(100vh - ${navbarHeight}px)` }}>
+        <div className="flex flex-1 overflow-hidden">
           {/* Dashboard - Left Sidebar */}
           <div className="w-80 flex-shrink-0">
             <Dashboard />
