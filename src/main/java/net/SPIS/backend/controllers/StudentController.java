@@ -46,9 +46,10 @@ public class StudentController {
         return studentService.getStudent(studentId);
     }
 
-    @GetMapping("/group/{groupId}")
-    @CrossOrigin(origins = "http://localhost:3000")
-    public List<StudentDTO> getStudentsByGroupId(@PathVariable Integer groupId) {
-        return studentService.getStudentsByGroupId(groupId);
-    }
+    // REMOVED: Endpoint for getStudentsByGroupId
+    // @GetMapping("/group/{groupId}")
+    // @CrossOrigin(origins = "http://localhost:3000")
+    // public List<StudentDTO> getStudentsByGroupId(@PathVariable Integer groupId) {
+    // return studentService.getStudentsByGroupId(groupId);
+    // }
 }

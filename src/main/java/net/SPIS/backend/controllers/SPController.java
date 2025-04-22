@@ -1,25 +1,19 @@
 package net.SPIS.backend.controllers;
 
 import net.SPIS.backend.DTO.AdviserDTO;
-import net.SPIS.backend.DTO.GroupDTO;
 import net.SPIS.backend.DTO.SPDTO;
 import net.SPIS.backend.DTO.StudentDTO;
 import net.SPIS.backend.DTO.TagDTO;
-import net.SPIS.backend.entities.Groups;
+import net.SPIS.backend.entities.SP;
+import net.SPIS.backend.repositories.SPRepository;
 import net.SPIS.backend.service.SPService;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-
-import net.SPIS.backend.repositories.GroupsRepository;
 
 @RestController
 @RequestMapping("/api/sp")
@@ -28,6 +22,8 @@ public class SPController {
 
     @Autowired
     private SPService spService;
+    @Autowired
+    private SPRepository spRepository;
 
     @GetMapping("/{spId}")
     public SPDTO getSP(@PathVariable Integer spId) {
@@ -37,6 +33,32 @@ public class SPController {
     @GetMapping
     public List<SPDTO> getAllSP() {
         return spService.getAllSP();
+    }
+
+    @GetMapping("/filter")
+    public List<SP> filterSPs(
+            @RequestParam(required = false) List<Integer> adviserIds,
+            @RequestParam(required = false) List<Integer> tagIds,
+            @RequestParam(required = false) Integer facultyId, // Receive facultyId parameter
+            @RequestParam(required = false) String searchTerm) {
+
+        // Filter by Faculty (Adviser's Faculty) if facultyId is provided
+        if (facultyId != null) {
+            // Call the corrected repository method to filter by adviser's facultyId
+            return spRepository.findByAdviserFacultyId(facultyId);
+        }
+
+        // Add other filter conditions here for when facultyId is NOT provided,
+        // or if you need to combine filters (e.g., filter by adviserIds within a
+        // faculty).
+        // Example:
+        // if (adviserIds != null && !adviserIds.isEmpty()) {
+        // return spRepository.findByAdviserIdIn(adviserIds);
+        // }
+        // ... other filters
+
+        // If no filters are applied, return all SPs
+        return spRepository.findAll();
     }
 
     @GetMapping("/adviser/{adviserId}")
@@ -103,37 +125,9 @@ public class SPController {
     public ResponseEntity<SPDTO> updateSP(@PathVariable Integer spId, @RequestBody SPDTO spDTO) {
         System.out.println("Received update request for SP: " + spId);
         System.out.println("Request body: " + spDTO);
-        
+
         SPDTO updatedSP = spService.updateSP(spId, spDTO);
         return ResponseEntity.ok(updatedSP);
     }
 
-
-    @Autowired
-    private GroupsRepository groupsRepository;
-    @GetMapping("/group/{groupId}")
-    public ResponseEntity<GroupDTO> getGroup(@PathVariable Integer groupId) {
-        Groups group = groupsRepository.findById(groupId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Group not found"));
-                
-        GroupDTO groupDTO = new GroupDTO();
-        groupDTO.setGroupId(group.getGroupId());
-        groupDTO.setName(group.getName());
-        
-        if (group.getStudents() != null) {
-            List<StudentDTO> studentDTOs = group.getStudents().stream()
-                .map(student -> {
-                    StudentDTO dto = new StudentDTO();
-                    dto.setStudentId(student.getStudentId());
-                    dto.setFirstName(student.getFirstName());
-                    dto.setLastName(student.getLastName());
-                    dto.setMiddleName(student.getMiddleName());
-                    return dto;
-                })
-                .collect(Collectors.toList());
-            groupDTO.setStudents(studentDTOs);
-        }
-    
-    return ResponseEntity.ok(groupDTO);
-}
 }

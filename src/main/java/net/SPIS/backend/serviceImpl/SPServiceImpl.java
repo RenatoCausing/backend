@@ -1,38 +1,49 @@
 package net.SPIS.backend.serviceImpl;
 
-import net.SPIS.backend.DTO.*;
-import net.SPIS.backend.entities.*;
-import net.SPIS.backend.repositories.*;
+import net.SPIS.backend.DTO.AdviserDTO;
+import net.SPIS.backend.DTO.SPDTO;
+import net.SPIS.backend.DTO.StudentDTO;
+import net.SPIS.backend.entities.Admin;
+import net.SPIS.backend.entities.SP;
+import net.SPIS.backend.entities.Student;
+import net.SPIS.backend.entities.Tag;
+import net.SPIS.backend.repositories.AdminRepository;
+import net.SPIS.backend.repositories.SPRepository;
+import net.SPIS.backend.repositories.StudentRepository;
+import net.SPIS.backend.repositories.TagRepository;
 import net.SPIS.backend.service.SPService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
-import jakarta.transaction.Transactional;
-import org.springframework.data.domain.Pageable;
-
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import javax.management.relation.RelationNotFoundException;
 
 @Service
 public class SPServiceImpl implements SPService {
 
     @Autowired
     private StudentRepository studentRepository;
+
     @Autowired
     private SPRepository spRepository;
 
     @Autowired
     private AdminRepository adminRepository;
 
-    @Autowired
-    private GroupsRepository groupsRepository;
+    // REMOVE GroupsRepository
+    // @Autowired
+    // private GroupsRepository groupsRepository;
 
     @Autowired
     private TagRepository tagRepository;
@@ -41,8 +52,7 @@ public class SPServiceImpl implements SPService {
     public SPDTO getSP(Integer spId) {
         SP sp = spRepository.findById(spId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "SP not found"));
-
-        incrementViewCount(spId); // ✅ Increment view count when SP is retrieved
+        incrementViewCount(spId);
 
         return toDTO(sp);
     }
@@ -59,15 +69,16 @@ public class SPServiceImpl implements SPService {
 
     @Override
     public List<SPDTO> getSPFromStudent(Integer studentId) {
-        return spRepository.findByGroupStudentsStudentId(studentId).stream().map(this::toDTO)
+        return spRepository.findByStudentsStudentId(studentId).stream().map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
     @Override
+    // ✅ REIMPLEMENTED: getSPFromFaculty using the new Many-to-Many relationship
     public List<SPDTO> getSPFromFaculty(Integer facultyId) {
-        List<Groups> groups = groupsRepository.findByStudentsFacultyFacultyId(facultyId);
-        // Example logic: Fetch SPs linked to these groups
-        return spRepository.findByGroupStudentsFacultyFacultyId(facultyId).stream()
+        // Use the new repository method to find SPs linked to students of the given
+        // faculty
+        return spRepository.findByAdviserFacultyId(facultyId).stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
@@ -83,7 +94,7 @@ public class SPServiceImpl implements SPService {
         sp.setDocumentPath(spDTO.getDocumentPath());
         sp.setDateIssued(spDTO.getDateIssued());
         sp.setViewCount(0);
-        // Validate and set uploadedBy (must be staff)
+
         Admin uploadedBy = adminRepository.findById(spDTO.getUploadedById())
                 .orElseThrow(() -> new RuntimeException("Uploader not found"));
         if (!"staff".equals(uploadedBy.getRole())) {
@@ -91,11 +102,6 @@ public class SPServiceImpl implements SPService {
         }
         sp.setUploadedBy(uploadedBy);
 
-        // Set group
-        sp.setGroup(groupsRepository.findById(spDTO.getGroupId())
-                .orElseThrow(() -> new RuntimeException("Group not found")));
-
-        // Validate and set adviser (must be faculty)
         Admin adviser = adminRepository.findById(spDTO.getAdviserId())
                 .orElseThrow(() -> new RuntimeException("Adviser not found"));
         if (!"faculty".equals(adviser.getRole())) {
@@ -103,12 +109,25 @@ public class SPServiceImpl implements SPService {
         }
         sp.setAdviser(adviser);
 
-        // Set tags from SP_Tags (if provided)
+        // Set tags
         if (spDTO.getTagIds() != null && !spDTO.getTagIds().isEmpty()) {
             sp.setTags(spDTO.getTagIds().stream()
                     .map(id -> tagRepository.findById(id)
                             .orElseThrow(() -> new RuntimeException("Tag not found: " + id)))
                     .collect(Collectors.toSet()));
+        } else {
+            sp.setTags(new HashSet<>()); // Ensure tags is not null if no tags are provided
+        }
+
+        // Set students from studentIds in the DTO
+        if (spDTO.getStudentIds() != null && !spDTO.getStudentIds().isEmpty()) {
+            Set<Student> students = spDTO.getStudentIds().stream()
+                    .map(id -> studentRepository.findById(id)
+                            .orElseThrow(() -> new RuntimeException("Student not found: " + id)))
+                    .collect(Collectors.toSet());
+            sp.setStudents(students);
+        } else {
+            sp.setStudents(new HashSet<>()); // Ensure students is not null if no students are provided
         }
 
         return toDTO(spRepository.save(sp));
@@ -122,21 +141,15 @@ public class SPServiceImpl implements SPService {
         return spRepository.findByTagsTagIdIn(tagIds).stream().map(this::toDTO).collect(Collectors.toList());
     }
 
-    /**
-     * ✅ Increment SP view count when accessed.
-     */
     @Override
     @Transactional
     public void incrementViewCount(Integer spId) {
         spRepository.incrementViewCountById(spId);
     }
 
-    /**
-     * ✅ Get the top most viewed SPs
-     */
     @Override
     public List<SPDTO> getMostViewedSPs(Integer limit) {
-        PageRequest pageable = PageRequest.of(0, 5); // Get 'limit' results from page 0
+        PageRequest pageable = PageRequest.of(0, 5);
         return spRepository.findTopSPs(pageable).stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
@@ -152,37 +165,46 @@ public class SPServiceImpl implements SPService {
         dto.setUri(sp.getUri());
         dto.setDocumentPath(sp.getDocumentPath());
         dto.setDateIssued(sp.getDateIssued());
-    
+        dto.setViewCount(sp.getViewCount() != null ? sp.getViewCount() : 0);
+
         if (sp.getUploadedBy() != null) {
             dto.setUploadedById(sp.getUploadedBy().getAdminId());
         }
-    
-        if (sp.getGroup() != null) {
-            dto.setGroupId(sp.getGroup().getGroupId());
-            
-            // Add student IDs to the DTO
-            if (sp.getGroup().getStudents() != null) {
-                List<Integer> studentIds = sp.getGroup().getStudents().stream()
-                    .map(Student::getStudentId)
-                    .collect(Collectors.toList());
-                dto.setStudentIds(studentIds);
+
+        // Extract student information from the Many-to-Many relationship
+        List<Integer> studentIds = new ArrayList<>();
+        List<String> authors = new ArrayList<>();
+        if (sp.getStudents() != null && !sp.getStudents().isEmpty()) {
+            for (Student student : sp.getStudents()) {
+                if (student != null) {
+                    studentIds.add(student.getStudentId());
+
+                    String lastName = student.getLastName() != null ? student.getLastName() : "";
+                    String firstName = student.getFirstName() != null ? student.getFirstName() : "";
+                    String authorName = lastName;
+                    if (!firstName.isEmpty()) {
+                        authorName += ", " + firstName;
+                    }
+                    authors.add(authorName);
+                }
             }
         }
-    
+        dto.setStudentIds(studentIds);
+        dto.setAuthors(authors);
+
         if (sp.getAdviser() != null) {
             dto.setAdviserId(sp.getAdviser().getAdminId());
         }
-    
+
+        Set<Integer> tagIds = new HashSet<>();
         if (sp.getTags() != null) {
-            Set<Integer> tagIds = sp.getTags().stream()
+            tagIds = sp.getTags().stream()
+                    .filter(Objects::nonNull)
                     .map(Tag::getTagId)
                     .collect(Collectors.toSet());
-            dto.setTagIds(tagIds);
-        } else {
-            dto.setTagIds(new HashSet<>());
         }
-    
-        dto.setViewCount(sp.getViewCount());
+        dto.setTagIds(tagIds);
+
         return dto;
     }
 
@@ -207,7 +229,8 @@ public class SPServiceImpl implements SPService {
                     dto.setFirstName(adviser.getFirstName());
                     dto.setLastName(adviser.getLastName());
                     dto.setMiddleName(adviser.getMiddleName());
-                    dto.setFacultyId(adviser.getFaculty().getFacultyId());
+                    // Assuming Admin has a Faculty relationship
+                    // dto.setFacultyId(adviser.getFaculty().getFacultyId());
                     dto.setImagePath(adviser.getImagePath());
                     dto.setDescription(adviser.getDescription());
                     return dto;
@@ -215,117 +238,93 @@ public class SPServiceImpl implements SPService {
                 .collect(Collectors.toList());
     }
 
+    // Keep StudentDTO conversion if needed elsewhere
     private StudentDTO toDTO(Student student) {
         StudentDTO dto = new StudentDTO();
         dto.setStudentId(student.getStudentId());
         dto.setFirstName(student.getFirstName());
         dto.setLastName(student.getLastName());
         dto.setMiddleName(student.getMiddleName());
+        // Assuming Student has a Faculty relationship
         dto.setFacultyId(student.getFaculty().getFacultyId());
-        dto.setGroupId(student.getGroup() != null ? student.getGroup().getGroupId() : null);
         return dto;
     }
 
     @Override
-@Transactional
-public SPDTO updateSP(Integer spId, SPDTO spDTO) {
-    System.out.println("Updating SP with ID: " + spId);
-    System.out.println("Received DTO: " + spDTO);
+    @Transactional
+    public SPDTO updateSP(Integer spId, SPDTO spDTO) {
+        System.out.println("Updating SP with ID: " + spId);
+        System.out.println("Received DTO: " + spDTO);
 
-    SP sp = spRepository.findById(spId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "SP not found"));
+        SP sp = spRepository.findById(spId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "SP not found"));
 
-    // Update basic fields
-    if (spDTO.getTitle() != null) {
-        sp.setTitle(spDTO.getTitle());
-    }
+        if (spDTO.getTitle() != null) {
+            sp.setTitle(spDTO.getTitle());
+        }
+        if (spDTO.getYear() != null) {
+            sp.setYear(spDTO.getYear());
+        }
+        if (spDTO.getSemester() != null) {
+            sp.setSemester(spDTO.getSemester());
+        }
+        if (spDTO.getAbstractText() != null) {
+            sp.setAbstractText(spDTO.getAbstractText());
+        }
+        if (spDTO.getDocumentPath() != null) {
+            sp.setDocumentPath(spDTO.getDocumentPath());
+        }
 
-    if (spDTO.getYear() != null) {
-        sp.setYear(spDTO.getYear());
-    }
-
-    if (spDTO.getSemester() != null) {
-        sp.setSemester(spDTO.getSemester());
-    }
-
-    if (spDTO.getAbstractText() != null) {
-        sp.setAbstractText(spDTO.getAbstractText());
-    }
-
-    if (spDTO.getDocumentPath() != null) {
-        sp.setDocumentPath(spDTO.getDocumentPath());
-    }
-
-    // Update adviser if provided
-    if (spDTO.getAdviserId() != null) {
-        System.out.println("Updating adviser with ID: " + spDTO.getAdviserId());
-        Admin adviser = adminRepository.findById(spDTO.getAdviserId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Adviser not found with ID: " + spDTO.getAdviserId()));
-        sp.setAdviser(adviser);
-    }
-
-    // Update tags
-    Set<Integer> tagIds = spDTO.getTagIds();
-    if (tagIds != null) {
-        System.out.println("Updating tags: " + tagIds);
-        Set<Tag> tags = new HashSet<>();
-
-        for (Integer tagId : tagIds) {
-            Tag tag = tagRepository.findById(tagId)
+        if (spDTO.getAdviserId() != null) {
+            System.out.println("Updating adviser with ID: " + spDTO.getAdviserId());
+            Admin adviser = adminRepository.findById(spDTO.getAdviserId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                            "Tag with ID " + tagId + " not found"));
-            tags.add(tag);
+                            "Adviser not found with ID: " + spDTO.getAdviserId()));
+            sp.setAdviser(adviser);
         }
 
-        // Clear existing tags and set new ones
-        sp.setTags(tags);
-    }
-
-    // Update student authors
-    List<Integer> studentIds = spDTO.getStudentIds();
-    if (studentIds != null && !studentIds.isEmpty()) {
-        System.out.println("Updating student authors: " + studentIds);
-        
-        // Get the current group or create a new one if needed
-        Groups group = sp.getGroup();
-        if (group == null) {
-            group = new Groups();
-            group.setName(sp.getTitle() + " Group");
-            group = groupsRepository.save(group);
-            sp.setGroup(group);
-        }
-        
-        // Clear existing students from group
-        Set<Student> students = group.getStudents();
-        if (students != null) {
-            students.clear();
+        // Update tags (existing logic)
+        Set<Integer> tagIds = spDTO.getTagIds();
+        if (tagIds != null) {
+            System.out.println("Updating tags: " + tagIds);
+            Set<Tag> tags = new HashSet<>();
+            for (Integer tagId : tagIds) {
+                Tag tag = tagRepository.findById(tagId)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                "Tag with ID " + tagId + " not found"));
+                tags.add(tag);
+            }
+            sp.setTags(tags);
         } else {
-            students = new HashSet<>();
-            group.setStudents(students);
+            sp.setTags(new HashSet<>()); // Clear tags if none provided
+            System.out.println("No tags provided in update, clearing existing tags");
         }
-        
-        // Add new students to the group
-        for (Integer studentId : studentIds) {
-            Student student = studentRepository.findById(studentId)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, 
-                            "Student with ID " + studentId + " not found"));
-            students.add(student);
-            
-            // Update student's group reference
-            student.setGroup(group);
-            studentRepository.save(student);
+
+        // Update students using the Many-to-Many relationship
+        List<Integer> studentIds = spDTO.getStudentIds();
+        if (studentIds != null) {
+            System.out.println("Updating student authors: " + studentIds);
+            Set<Student> students = new HashSet<>();
+            for (Integer studentId : studentIds) {
+                Student student = studentRepository.findById(studentId)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                "Student with ID " + studentId + " not found"));
+                students.add(student);
+            }
+            // JPA automatically manages the join table when you set the collection on the
+            // owning side (SP)
+            sp.setStudents(students);
+        } else {
+            sp.setStudents(new HashSet<>()); // Clear students if none provided
+            System.out.println("No student authors provided in update, clearing existing students");
         }
-        
-        // Save the updated group
-        groupsRepository.save(group);
+
+        SP savedSP = spRepository.save(sp);
+        System.out.println("SP updated successfully");
+        SPDTO resultDTO = toDTO(savedSP);
+        System.out.println("Returning DTO: " + resultDTO);
+
+        return resultDTO;
     }
 
-    SP savedSP = spRepository.save(sp);
-    System.out.println("SP updated successfully");
-
-    SPDTO resultDTO = toDTO(savedSP);
-    System.out.println("Returning DTO: " + resultDTO);
-
-    return resultDTO;
 }
