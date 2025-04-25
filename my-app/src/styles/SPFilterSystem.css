@@ -659,4 +659,74 @@
     .bg-gray-50, body, .w-full, .container {
       background-color: #FFFFFF !important;
     }
+    .pagination {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      padding: 20px 0;
+      margin: 0 auto;
+    }
+    
+    /* Back/Next buttons */
+    .pagination-nav {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: white;
+      border: 1px solid #e4e4e4;
+      border-radius: 4px;
+      color: #9ca3af;
+      font-size: 16px;
+      font-weight: 400;
+      cursor: pointer;
+      padding: 0 20px;
+      white-space: nowrap;
+    }
+    
+    /* Number buttons */
+    .pagination-item {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: white;
+      border: 1px solid #e4e4e4;
+      border-radius: 4px;
+      color: #333;
+      font-size: 18px;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 0;
+      margin: 0;
+      user-select: none;
+    }
+    
+    /* Active state */
+    .pagination-item.active {
+      background-color: #000;
+      color: white;
+      border-color: #000;
+      font-weight: 600;
+    }
+    
+    /* Ellipsis */
+    .pagination-item.ellipsis {
+      font-weight: bold;
+      color: #666;
+    }
+    
+    /* Hover state */
+    .pagination-nav:hover, 
+    .pagination-item:hover:not(.active):not(.ellipsis) {
+      background-color: #f9f9f9;
+    }
+    
+    /* Disabled state */
+    .pagination-nav.disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
   }

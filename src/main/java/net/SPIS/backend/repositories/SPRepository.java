@@ -43,4 +43,20 @@ public interface SPRepository extends JpaRepository<SP, Integer> {
         @Query("SELECT sp FROM SP sp JOIN sp.adviser adviser JOIN adviser.faculty faculty WHERE faculty.facultyId = :facultyId")
         List<SP> findByAdviserFacultyId(@Param("facultyId") Integer facultyId);
 
+        // New query for combined filtering
+        @Query("SELECT DISTINCT sp FROM SP sp " +
+                        "LEFT JOIN sp.adviser adviser " +
+                        "LEFT JOIN sp.tags tag " +
+                        "LEFT JOIN sp.students student " + // Join with students for faculty filtering
+                        "LEFT JOIN student.faculty studentFaculty " + // Join students with faculty
+                        "WHERE (:adviserIds IS NULL OR adviser.adminId IN :adviserIds) " +
+                        "AND (:tagIds IS NULL OR tag.tagId IN :tagIds) " +
+                        "AND (:facultyId IS NULL OR studentFaculty.facultyId = :facultyId) " + // Filter by student's
+                                                                                               // faculty
+                        "AND (:searchTerm IS NULL OR LOWER(sp.title) LIKE %:searchTerm% OR LOWER(sp.abstractText) LIKE %:searchTerm%)")
+        List<SP> findSPsByFilters(
+                        @Param("adviserIds") List<Integer> adviserIds,
+                        @Param("tagIds") List<Integer> tagIds,
+                        @Param("facultyId") Integer facultyId,
+                        @Param("searchTerm") String searchTerm);
 }

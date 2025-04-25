@@ -29,19 +29,16 @@ import java.util.stream.Collectors;
 @Service
 public class SPServiceImpl implements SPService {
     private static final Logger logger = LoggerFactory.getLogger(SPServiceImpl.class);
-
     @Autowired
     private StudentRepository studentRepository;
 
     @Autowired
     private SPRepository spRepository;
-
     @Autowired
     private AdminRepository adminRepository;
 
     @Autowired
     private TagRepository tagRepository;
-
     @Autowired
     private FacultyRepository facultyRepository;
 
@@ -92,7 +89,6 @@ public class SPServiceImpl implements SPService {
         sp.setDocumentPath(spDTO.getDocumentPath());
         sp.setDateIssued(spDTO.getDateIssued());
         sp.setViewCount(0);
-
         Admin uploadedBy = adminRepository.findById(spDTO.getUploadedById())
                 .orElseThrow(() -> {
                     logger.error("Uploader Admin not found with ID: {}", spDTO.getUploadedById());
@@ -106,6 +102,7 @@ public class SPServiceImpl implements SPService {
             Admin adviser = adminRepository.findById(spDTO.getAdviserId())
                     .orElseThrow(() -> {
                         logger.error("Adviser Admin not found with ID: {}", spDTO.getAdviserId());
+
                         return new ResponseStatusException(HttpStatus.NOT_FOUND,
                                 "Adviser Admin not found with ID: " + spDTO.getAdviserId());
                     });
@@ -122,6 +119,7 @@ public class SPServiceImpl implements SPService {
                     .map(id -> tagRepository.findById(id)
                             .orElseThrow(() -> {
                                 logger.error("Tag not found with ID: {}", id);
+
                                 return new ResponseStatusException(HttpStatus.NOT_FOUND, "Tag not found: " + id);
                             }))
                     .collect(Collectors.toSet()));
@@ -136,6 +134,7 @@ public class SPServiceImpl implements SPService {
                     .map(id -> studentRepository.findById(id)
                             .orElseThrow(() -> {
                                 logger.error("Student not found with ID: {}", id);
+
                                 return new ResponseStatusException(HttpStatus.NOT_FOUND, "Student not found: " + id);
                             }))
                     .collect(Collectors.toSet());
@@ -150,12 +149,11 @@ public class SPServiceImpl implements SPService {
         return toDTO(savedSP);
     }
 
+    // Modified to use the new combined filter method
     @Override
     public List<SPDTO> getSPsWithTags(List<Integer> tagIds) {
-        if (tagIds == null || tagIds.isEmpty()) {
-            return getAllSP();
-        }
-        return spRepository.findByTagsTagIdIn(tagIds).stream().map(this::toDTO).collect(Collectors.toList());
+        // Call the new combined filter method, only providing tagIds
+        return filterSPs(null, tagIds, null, null);
     }
 
     @Override
@@ -191,6 +189,7 @@ public class SPServiceImpl implements SPService {
                 .map(result -> {
                     Admin adviser = (Admin) result[0];
                     AdviserDTO dto = new AdviserDTO();
+
                     dto.setAdminId(adviser.getAdminId());
                     dto.setFirstName(adviser.getFirstName());
                     dto.setLastName(adviser.getLastName());
@@ -200,6 +199,7 @@ public class SPServiceImpl implements SPService {
                     } else {
                         dto.setFacultyId(null);
                     }
+
                     dto.setEmail(adviser.getEmail());
                     dto.setImagePath(adviser.getImagePath());
                     dto.setDescription(adviser.getDescription());
@@ -216,7 +216,6 @@ public class SPServiceImpl implements SPService {
         logger.debug("Received DTO for update: {}", spDTO);
         SP sp = spRepository.findById(spId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "SP not found with ID: " + spId));
-
         if (spDTO.getTitle() != null) {
             sp.setTitle(spDTO.getTitle());
         }
@@ -258,6 +257,7 @@ public class SPServiceImpl implements SPService {
                 tags = tagIds.stream()
                         .map(tagId -> tagRepository.findById(tagId)
                                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+
                                         "Tag with ID " + tagId + " not found")))
                         .collect(Collectors.toSet());
             }
@@ -275,6 +275,7 @@ public class SPServiceImpl implements SPService {
                 students = studentIds.stream()
                         .map(studentId -> studentRepository.findById(studentId)
                                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+
                                         "Student with ID " + studentId + " not found")))
                         .collect(Collectors.toSet());
             }
@@ -302,7 +303,6 @@ public class SPServiceImpl implements SPService {
         dto.setDocumentPath(sp.getDocumentPath());
         dto.setDateIssued(sp.getDateIssued());
         dto.setViewCount(sp.getViewCount() != null ? sp.getViewCount() : 0);
-
         if (sp.getUploadedBy() != null) {
             dto.setUploadedById(sp.getUploadedBy().getAdminId());
         } else {
@@ -353,13 +353,12 @@ public class SPServiceImpl implements SPService {
         List<String> errors = new ArrayList<>();
         int successCount = 0;
         int processedRows = 0;
-
         Admin uploader = adminRepository.findById(uploadedById)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Uploading Admin not found with ID: " + uploadedById));
-
         try (CSVReader reader = new CSVReader(new InputStreamReader(file.getInputStream()))) {
-            String[] headers = reader.readNext(); // Read header row
+            String[] headers = reader.readNext();
+            // Read header row
             if (headers == null) {
                 throw new IOException("CSV file is empty or header row is missing.");
             }
@@ -370,7 +369,8 @@ public class SPServiceImpl implements SPService {
                 processedRows++;
                 logger.debug("Processing row {}: {}", processedRows, Arrays.toString(line));
 
-                final int EXPECTED_COLUMNS = 10; // Based on your previous CSV structure
+                final int EXPECTED_COLUMNS = 10;
+                // Based on your previous CSV structure
                 if (line.length < EXPECTED_COLUMNS) {
                     errors.add("Row " + processedRows + ": Incorrect number of columns. Expected " + EXPECTED_COLUMNS
                             + ", found " + line.length + ". Skipping row.");
@@ -417,6 +417,7 @@ public class SPServiceImpl implements SPService {
                     if (!adviserStr.isEmpty()) {
                         try {
                             // *** CORRECTED: Pass processedRows to findOrCreateAdviser ***
+
                             adviser = findOrCreateAdviser(adviserStr, processedRows);
                             if (adviser == null) {
                                 errors.add("Row " + processedRows + ": Failed to process adviser '" + adviserStr
@@ -427,6 +428,7 @@ public class SPServiceImpl implements SPService {
                             }
                         } catch (IllegalArgumentException e) {
                             errors.add("Row " + processedRows + ": Invalid adviser format '" + adviserStr + "': "
+
                                     + e.getMessage() + ". Skipping row.");
                             logger.warn("Row {} skipped: Invalid adviser format '{}'.", processedRows, adviserStr, e);
                             continue;
@@ -444,6 +446,7 @@ public class SPServiceImpl implements SPService {
                     if (!authorsStr.isEmpty()) {
                         try {
                             // processedRows is already passed to findOrCreateStudents
+
                             students = findOrCreateStudents(authorsStr, errors, processedRows);
                             if (students.isEmpty() && !authorsStr.isEmpty()) {
                                 errors.add("Row " + processedRows + ": No valid students could be processed from '"
@@ -454,6 +457,7 @@ public class SPServiceImpl implements SPService {
                             }
                         } catch (IllegalArgumentException e) {
                             errors.add("Row " + processedRows + ": Invalid author format '" + authorsStr + "': "
+
                                     + e.getMessage() + ". Skipping row.");
                             logger.warn("Row {} skipped: Invalid author format '{}'.", processedRows, authorsStr, e);
                             continue;
@@ -471,6 +475,7 @@ public class SPServiceImpl implements SPService {
                     if (!tagsStr.isEmpty()) {
                         try {
                             // processedRows is already passed to findOrCreateTags
+
                             tags = findOrCreateTags(tagsStr, errors, processedRows);
                         } catch (RuntimeException e) {
                             errors.add("Row " + processedRows + ": Error processing tags '" + tagsStr + "': "
@@ -485,10 +490,12 @@ public class SPServiceImpl implements SPService {
                     try {
                         if (!dateIssuedStr.isEmpty()) {
                             // *** MODIFIED: Parse to YearMonth and then to LocalDate ***
+
                             YearMonth yearMonth = YearMonth.parse(dateIssuedStr, YEAR_MONTH_FORMATTER);
                             dateIssued = yearMonth.atDay(1); // Assume the 1st day of the month
                         } else {
                             // Allow dateIssued to be null if the column is empty
+
                             dateIssued = null;
                             logger.debug("Row {}: Date Issued column is empty, setting dateIssued to null.",
                                     processedRows);
@@ -523,6 +530,7 @@ public class SPServiceImpl implements SPService {
                     } else if (!semester.equalsIgnoreCase("1st") && !semester.equalsIgnoreCase("2nd")
                             && !semester.equalsIgnoreCase("midyear")) {
                         errors.add("Row " + processedRows + ": Invalid semester '" + semesterStr
+
                                 + "'. Use '1st', '2nd', 'Midyear', or leave empty. Skipping row.");
                         logger.warn("Row {} skipped: Invalid semester '{}'.", processedRows, semesterStr);
                         continue;
@@ -574,7 +582,6 @@ public class SPServiceImpl implements SPService {
 
         logger.info("SP upload finished. Processed: {}, Succeeded: {}, Failed: {}", processedRows, successCount,
                 errors.size());
-
         Map<String, Object> result = new HashMap<>();
         result.put("successCount", successCount);
         result.put("errorCount", errors.size());
@@ -586,59 +593,70 @@ public class SPServiceImpl implements SPService {
     @Transactional
     private Admin findOrCreateAdviser(String adviserStr, int rowNum) { // *** CORRECTED: Added rowNum parameter ***
         if (adviserStr == null || adviserStr.trim().isEmpty()) {
-            logger.debug("Row {}: Adviser name string is empty or null, returning null.", rowNum); // Added rowNum log
+            logger.debug("Row {}: Adviser name string is empty or null, returning null.", rowNum);
+            // Added rowNum log
             return null;
         }
 
         String[] names = adviserStr.trim().split(",", 2);
         if (names.length != 2) {
             logger.warn("Row {}: Invalid adviser format: '{}'. Expected 'LastName, FirstName'. Cannot process.", rowNum,
-                    adviserStr); // Added rowNum log
+                    adviserStr);
+            // Added rowNum log
             throw new IllegalArgumentException("Invalid adviser format: Expected 'LastName, FirstName'");
         }
 
         String lastName = names[0].trim();
         String firstName = names[1].trim();
-
         if (lastName.isEmpty() || firstName.isEmpty()) {
             logger.warn("Row {}: Empty first or last name after parsing adviser: '{}'. Cannot process.", rowNum,
-                    adviserStr); // Added rowNum log
+                    adviserStr);
+            // Added rowNum log
             throw new IllegalArgumentException("Invalid adviser name: Empty first or last name.");
         }
 
         List<Admin> potentialAdvisers = adminRepository.findByFirstNameAndLastName(firstName, lastName);
-
         Optional<Admin> foundAdviser = potentialAdvisers.stream()
                 .filter(admin -> "faculty".equalsIgnoreCase(admin.getRole()))
                 .findFirst();
-
         if (foundAdviser.isPresent()) {
             logger.debug("Row {}: Found existing faculty adviser: {} {} (ID: {})", rowNum, firstName, lastName,
-                    foundAdviser.get().getAdminId()); // Added rowNum log
+                    foundAdviser.get().getAdminId());
+            // Added rowNum log
             return foundAdviser.get();
         } else {
             logger.info("Row {}: Faculty adviser not found matching name: {} {}. Creating new Admin entity.", rowNum,
-                    firstName, lastName); // Added rowNum log
+                    firstName, lastName);
+            // Added rowNum log
             Admin newAdviser = new Admin();
             newAdviser.setFirstName(firstName);
             newAdviser.setLastName(lastName);
             newAdviser.setMiddleName(null); // Assuming middle name is not in this format
-            newAdviser.setEmail(null); // Assuming email is not in this format
-            newAdviser.setRole("faculty"); // Default role for newly created adviser
-            newAdviser.setFaculty(null); // Assuming faculty is not in this format
+            newAdviser.setEmail(null);
+            // Assuming email is not in this format
+            newAdviser.setRole("faculty");
+            // Default role for newly created adviser
+            newAdviser.setFaculty(null);
+            // Assuming faculty is not in this format
             newAdviser.setImagePath(null);
             newAdviser.setDescription(null);
 
             try {
                 Admin savedAdviser = adminRepository.save(newAdviser);
-                logger.info("Row {}: Created new faculty adviser with ID: {}", rowNum, savedAdviser.getAdminId()); // Added
-                                                                                                                   // rowNum
-                                                                                                                   // log
+                logger.info("Row {}: Created new faculty adviser with ID: {}", rowNum, savedAdviser.getAdminId());
+                // Added
+
+                // rowNum
+
+                // log
                 return savedAdviser;
             } catch (Exception e) {
-                logger.error("Row {}: Failed to create new adviser '{} {}'", rowNum, firstName, lastName, e); // Added
-                                                                                                              // rowNum
-                                                                                                              // log
+                logger.error("Row {}: Failed to create new adviser '{} {}'", rowNum, firstName, lastName, e);
+                // Added
+
+                // rowNum
+
+                // log
                 throw new RuntimeException("Failed to create new adviser: " + e.getMessage(), e);
             }
         }
@@ -657,7 +675,6 @@ public class SPServiceImpl implements SPService {
             authorPair = authorPair.trim();
             if (authorPair.isEmpty())
                 continue;
-
             String[] names = authorPair.split(",", 2);
             if (names.length != 2) {
                 errors.add("Row " + rowNum + ": Invalid author format '" + authorPair
@@ -678,7 +695,6 @@ public class SPServiceImpl implements SPService {
 
             Optional<Student> existingStudent = studentRepository
                     .findByLastNameIgnoreCaseAndFirstNameIgnoreCase(lastName, firstName);
-
             if (existingStudent.isPresent()) {
                 students.add(existingStudent.get());
                 logger.debug("Row {}: Found existing student: {} {} (ID: {})", rowNum, firstName, lastName,
@@ -690,8 +706,10 @@ public class SPServiceImpl implements SPService {
                 newStudent.setFirstName(firstName);
                 newStudent.setLastName(lastName);
                 newStudent.setMiddleName(null); // Assuming middle name is not in this format
-                newStudent.setFaculty(null); // Assuming faculty is not in this format
-                newStudent.setGroup(null); // Assuming group is not in this format
+                newStudent.setFaculty(null);
+                // Assuming faculty is not in this format
+                newStudent.setGroup(null);
+                // Assuming group is not in this format
 
                 // Removed the try-catch block here to allow exceptions to propagate
                 Student savedStudent = studentRepository.save(newStudent);
@@ -715,7 +733,6 @@ public class SPServiceImpl implements SPService {
             tagName = tagName.trim();
             if (tagName.isEmpty())
                 continue;
-
             String normalizedTagName = tagName.toLowerCase();
 
             Optional<Tag> existingTag = tagRepository.findByTagNameIgnoreCase(normalizedTagName);
@@ -732,18 +749,26 @@ public class SPServiceImpl implements SPService {
                 // Add logging before saving
                 logger.debug("Row {}: Attempting to save new Tag with name '{}'. Current ID: {}", rowNum,
                         newTag.getTagName(), newTag.getTagId());
-
                 // Removed the try-catch block here to allow exceptions to propagate
                 Tag savedTag = tagRepository.save(newTag);
-
                 // Add logging after saving
                 logger.debug("Row {}: Successfully saved new Tag. Name: '{}', Assigned ID: {}", rowNum,
                         savedTag.getTagName(), savedTag.getTagId());
-
                 tags.add(savedTag);
                 logger.info("Row {}: Created new tag with ID: {}", rowNum, savedTag.getTagId());
             }
         }
         return tags;
+    }
+
+    // New method for combined filtering
+    @Override
+    public List<SPDTO> filterSPs(List<Integer> adviserIds, List<Integer> tagIds, Integer facultyId, String searchTerm) {
+        // If searchTerm is not null and not empty, pass it to the repository method
+        String finalSearchTerm = (searchTerm != null && !searchTerm.trim().isEmpty()) ? searchTerm.trim().toLowerCase()
+                : null;
+
+        List<SP> filteredSPs = spRepository.findSPsByFilters(adviserIds, tagIds, facultyId, finalSearchTerm);
+        return filteredSPs.stream().map(this::toDTO).collect(Collectors.toList());
     }
 }

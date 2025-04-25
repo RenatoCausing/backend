@@ -43,5 +43,6 @@ public interface SPService {
 
     Map<String, Object> processSPUpload(MultipartFile file, Integer uploadedById) throws IOException;
 
+    List<SPDTO> filterSPs(List<Integer> adviserIds, List<Integer> tagIds, Integer facultyId, String searchTerm);
     // Reverted to return a List of SPDTOs
 }
