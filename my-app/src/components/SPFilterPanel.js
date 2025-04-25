@@ -1,17 +1,19 @@
-
-import Stack from '@mui/material/Stack';
-import Pagination from '@mui/material/Pagination';
 import React, { useState, useEffect, useRef } from 'react';
 import { useProjectContext } from '../contexts/ProjectContext';
 import '../styles/SPFilterSystem.css';
+// Import Pagination and Select/FormControl/InputLabel from MUI
+import Pagination from '@mui/material/Pagination';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+// Removed unused Stack import
+// import { Stack } from '@mui/material';
 
 const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
   // Get the refresh trigger from context
   // This value changing is what should trigger the data fetch useEffect below
   const { refreshTrigger } = useProjectContext();
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20; // Set the desired items per page
-
 
   // State management
   const [advisers, setAdvisers] = useState([]);
@@ -25,17 +27,23 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
   const [adviserData, setAdviserData] = useState({});
   // REMOVED studentGroups as it's no longer used with the new relationship
   // const [studentGroups, setStudentGroups] = useState({});
+
+  // Pagination state (using 1-indexed page for MUI Pagination)
+  const [currentPage, setCurrentPage] = useState(1); // Standard 1-indexed for Pagination component
+  const [itemsPerPage, setItemsPerPage] = useState(20); // Default items per page
+
+  // Calculate total pages and items for the current page
+  const totalItems = filteredSps.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
-const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-const currentItems = filteredSps.slice(indexOfFirstItem, indexOfLastItem);
-const totalPages = Math.ceil(filteredSps.length / itemsPerPage);
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredSps.slice(indexOfFirstItem, indexOfLastItem);
 
 
-  const paginate = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
-const [sortBy, setSortBy] = useState('dateIssued'); // Default sort option
-const [sortDirection, setSortDirection] = useState('desc'); // Default direction (descending)
+  // Sorting state
+  const [sortBy, setSortBy] = useState('dateIssued');
+  const [sortDirection, setSortDirection] = useState('desc');
+
   // Filter states
   const [selectedAdvisers, setSelectedAdvisers] = useState([]);
   const [selectedTags, setSelectedTags] = useState([]);
@@ -48,36 +56,43 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
   // Input states
   const [adviserInput, setAdviserInput] = useState('');
   const [tagInput, setTagInput] = useState('');
+
   // Active tab states for each SP
   const [activeTabs, setActiveTabs] = useState({});
+
   // Dropdown visibility
   const [showAdviserDropdown, setShowAdviserDropdown] = useState(false);
   const [showTagDropdown, setShowTagDropdown] = useState(false);
+
   // Refs for click outside detection
   const adviserDropdownRef = useRef(null);
   const tagDropdownRef = useRef(null);
   const searchTimeoutRef = useRef(null);
 
-  // Sorting logic
+
+  // --- Pagination Handlers ---
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value); // value is the 1-indexed page number from Pagination
+  };
+
+  const handleItemsPerPageChange = (event) => {
+    setItemsPerPage(parseInt(event.target.value, 10));
+    setCurrentPage(1); // Reset to the first page when rows per page changes
+  };
+
+
+  // Sorting logic (assuming this logic is correct and doesn't need changes)
   const sortSPs = (sps) => {
     if (!sps || !Array.isArray(sps)) return [];
-
     return [...sps].sort((a, b) => {
       let valueA, valueB;
 
-      // Extract the appropriate values based on sort field
       switch(sortBy) {
         case 'yearSemester':
-          // Use the academic year/semester fields
           valueA = a.year || '';
           valueB = b.year || '';
-          // If you have a separate semester field, you could add secondary sorting:
-          // if (valueA === valueB) {
-          //   return (a.semester || '') < (b.semester || '') ? -1 : 1;
-          // }
           break;
         case 'dateIssued':
-          // Use the upload date
           valueA = a.dateIssued || '';
           valueB = b.dateIssued || '';
           break;
@@ -90,26 +105,21 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
           valueB = b.dateIssued || '';
       }
 
-      // Parse dates if sorting by date
       if (sortBy === 'dateIssued') {
-        // Handle potential null or invalid dates gracefully
-        const dateA = valueA ? new Date(valueA) : new Date(0); // Use epoch start for null/invalid
-        const dateB = valueB ? new Date(valueB) : new Date(0); // Use epoch start for null/invalid
+        const dateA = valueA ? new Date(valueA) : new Date(0);
+        const dateB = valueB ? new Date(valueB) : new Date(0);
 
-        // Check if dates are valid after parsing
         const isValidDateA = !isNaN(dateA.getTime());
         const isValidDateB = !isNaN(dateB.getTime());
 
-        if (!isValidDateA && !isValidDateB) return 0; // Both invalid, treat as equal
-        if (!isValidDateA) return sortDirection === 'asc' ? -1 : 1; // Invalid comes first in asc
-        if (!isValidDateB) return sortDirection === 'asc' ? 1 : -1; // Invalid comes last in asc
+        if (!isValidDateA && !isValidDateB) return 0;
+        if (!isValidDateA) return sortDirection === 'asc' ? -1 : 1;
+        if (!isValidDateB) return sortDirection === 'asc' ? 1 : -1;
 
         return sortDirection === 'asc' ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
       }
 
-      // Handle year and semester specially
       if (sortBy === 'yearSemester') {
-        // First compare by year
         const yearA = parseInt(valueA, 10) || 0;
         const yearB = parseInt(valueB, 10) || 0;
 
@@ -117,8 +127,6 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
           return sortDirection === 'asc' ? yearA - yearB : yearB - yearA;
         }
 
-        // If years are equal, compare by semester (if you have that field)
-        // Assuming semester is '1st', '2nd', 'Midyear' - map to numbers for sorting
         const semesterOrder = { '1st': 1, '2nd': 2, 'midyear': 3 };
         const semA = semesterOrder[a.semester?.toLowerCase()] || 0;
         const semB = semesterOrder[b.semester?.toLowerCase()] || 0;
@@ -126,8 +134,6 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
         return sortDirection === 'asc' ? semA - semB : semB - semA;
       }
 
-      // Compare based on direction for other fields (alphabetical)
-      // Ensure values are strings for comparison
       const stringA = String(valueA || '').toLowerCase();
       const stringB = String(valueB || '').toLowerCase();
 
@@ -146,7 +152,6 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
         const response = await fetch(`http://localhost:8080/api/advisers/${adviserId}`);
         if (!response.ok) {
           console.error(`Failed to fetch adviser with ID ${adviserId}`, response.status);
-          // Consider throwing an error or returning null to indicate failure
           return null;
         }
         return await response.json();
@@ -156,29 +161,16 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
       }
     },
 
-    // REMOVED fetchStudentsByGroupId as it's no longer relevant
-    // fetchStudentsByGroupId: async (groupId) => {
-    //   try {
-    //     const response = await fetch(`http://localhost:8080/api/students/group/${groupId}`);
-    //     if (!response.ok) {
-    //       throw new Error(`Failed to fetch students for group ID ${groupId}`);
-    //     }
-    //     return await response.json();
-    //   } catch (error) {
-    //     console.error(`Error fetching students for group ${groupId}:`, error);
-    //     return [];
-    //   }
-    // },
 
     fetchAllAdvisers: async () => {
       try {
         const response = await fetch('http://localhost:8080/api/advisers');
         if (!response.ok) {
            console.error('Failed to fetch advisers, status:', response.status);
-          throw new Error('Failed to fetch advisers');
+           throw new Error('Failed to fetch advisers');
         }
         const data = await response.json();
-         console.debug("Fetched Advisers:", data); // Added debug log
+        console.debug("Fetched Advisers:", data);
         return data;
       } catch (error) {
         console.error('Error fetching advisers:', error);
@@ -191,10 +183,10 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
         const response = await fetch('http://localhost:8080/api/tags');
         if (!response.ok) {
            console.error('Failed to fetch tags, status:', response.status);
-          throw new Error('Failed to fetch tags');
+           throw new Error('Failed to fetch tags');
         }
          const data = await response.json();
-         console.debug("Fetched Tags:", data); // Added debug log
+        console.debug("Fetched Tags:", data);
         return data;
       } catch (error) {
         console.error('Error fetching tags:', error);
@@ -221,19 +213,16 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
 
     applyFilters: async (filters) => {
       const { adviserIds, tagIds, departmentId, searchTerm } = filters;
-      // Check if we need to apply any filters
-      const hasFilters = (adviserIds && adviserIds.length > 0) ||
-                         (tagIds && tagIds.length > 0) ||
-                         departmentId ||
-                         searchTerm;
+      const hasFilters = (adviserIds && adviserIds.length > 0) || (tagIds && tagIds.length > 0) ||
+                         departmentId || searchTerm;
 
       if (!hasFilters) {
-        // No filters, return all SPs
+        // If no filters are applied, fetch all SPs
         return await SPApiService.fetchAllSPs();
       }
 
       try {
-        // Try to use server-side filtering first
+        // Attempt server-side filtering first
         const params = new URLSearchParams();
         if (adviserIds && adviserIds.length) {
           adviserIds.forEach(id => params.append('adviserIds', id));
@@ -244,33 +233,30 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
         }
 
         if (departmentId) {
-          // NOTE: If filtering by 'department' now means filtering by the faculty
-          // of the associated students, you'll need a new backend endpoint/logic
-          // and adjust this parameter/query accordingly. The current backend
-          // SPApiService.applyFilters does include filtering by facultyId,
-          // but the mapping to the frontend 'departmentId' dropdown needs confirmation.
-           params.append('facultyId', departmentId);
+           // Assuming departmentId maps to facultyId on the backend for filtering
+          params.append('facultyId', departmentId);
         }
 
         if (searchTerm) {
           params.append('searchTerm', searchTerm);
         }
 
-        console.log("Applying filters with params:", params.toString()); // Log applied filters
+        console.log("Applying filters with params:", params.toString());
 
         const response = await fetch(`http://localhost:8080/api/sp/filter?${params.toString()}`);
         if (response.ok) {
            const data = await response.json();
-           console.log("Filtered SPs fetched successfully:", data); // Log filtered data
+           console.log("Filtered SPs fetched successfully:", data);
           return data;
         } else {
-          // Fallback to client-side if server-side filtering fails for any reason
-           console.warn('Server-side filtering failed with status:', response.status); // Log server failure status
+          // If server-side filtering endpoint returns a non-ok status, warn and fallback
+           console.warn('Server-side filtering failed with status:', response.status);
+           // Throw an error to trigger the catch block for client-side fallback
           throw new Error('Server-side filtering not supported or failed');
         }
       } catch (error) {
+        // Fallback to client-side filtering if server-side fails or throws
         console.warn('Falling back to client-side filtering:', error);
-        // Fall back to client-side filtering
         let result = await SPApiService.fetchAllSPs();
 
         // Apply filters client-side
@@ -287,21 +273,14 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
 
          if (departmentId) {
              // Client-side filtering by student faculty requires iterating through students
+             // This is complex client-side without student faculty data in the SP object
              result = result.filter(sp => {
                  if (!sp.studentIds || sp.studentIds.length === 0) return false;
-                 // NOTE: To filter by faculty client-side accurately, you would ideally need
-                 // the faculty ID available for each student in the SP object, or fetch
-                 // student details here, which is inefficient.
-                 // The server-side filtering approach using the JPQL query findByStudentsFacultyFacultyId
-                 // added in the repository is the recommended way for this filter.
-                 // This client-side fallback might not fully support faculty filtering
-                 // without additional data or fetches.
                   console.warn("Client-side filtering by Department/Faculty might not be fully accurate without student faculty data in SP object.");
-                  // A placeholder client-side filter might check if *any* student ID
-                  // from the SP exists in a separate map of studentId to facultyId,
-                  // but this map would need to be built by fetching *all* students
-                  // with their faculty, which adds complexity.
-                  return true; // Returning true to not block results if client-side faculty filter is complex
+                  // As a placeholder, you might check if *any* student of this SP
+                  // belongs to the selected faculty, but this requires knowing student faculties.
+                  // For now, returning true to not incorrectly filter out SPs.
+                  return true;
              });
          }
 
@@ -314,7 +293,7 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
           );
         }
 
-        return result;
+        return result; // Return client-side filtered results
       }
     }
   };
@@ -340,6 +319,7 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
     };
   }, [searchTerm]);
 
+
   // Parse URL parameters when component mounts
   useEffect(() => {
     const parseUrlParams = () => {
@@ -362,8 +342,8 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
     if (tags.length > 0) {
       parseUrlParams();
     }
-  }, [tags]);
-  // Run when tags are loaded
+  }, [tags]); // Run when tags are loaded
+
 
   useEffect(() => {
     const fetchAdviserDetails = async () => {
@@ -374,10 +354,11 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
       // Remove duplicates
       const uniqueAdviserIds = [...new Set(adviserIds)];
 
+      // Fetch details for unique adviser IDs
       const adviserPromises = uniqueAdviserIds.map(id => SPApiService.fetchAdviserById(id));
       const results = await Promise.all(adviserPromises);
 
-
+      // Build a map of adviserId to adviser object
       const adviserMap = {};
       results.forEach(adviser => {
         if (adviser && adviser.adminId) {
@@ -385,30 +366,36 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
         }
       });
 
+      // Update state with adviser data map
       setAdviserData(adviserMap);
     };
 
+    // Fetch adviser details whenever the filtered SPs change
     if (filteredSps.length > 0) {
       fetchAdviserDetails();
+    } else {
+        // Clear adviser data if there are no filtered SPs
+        setAdviserData({});
     }
   }, [filteredSps]);
-  // Not fetching student groups separately anymore since we now have authors directly
-  // in the DTO through the updated toDTO method
 
-  // *** THIS useEffect FETCHES THE DATA AND DEPENDS ON refreshTrigger ***
+
+  // *** THIS useEffect FETCHES THE INITIAL DATA AND DEPENDS ON refreshTrigger ***
   useEffect(() => {
     const fetchData = async () => {
       setInitialLoading(true);
       try {
         console.log('Fetching all data...');
 
+        // Fetch advisers
         const adviserData = await SPApiService.fetchAllAdvisers();
         setAdvisers(adviserData || []);
 
+        // Fetch tags
         const tagData = await SPApiService.fetchAllTags();
         setTags(tagData || []);
 
-        // Fetch SPs and apply initial sorting
+        // Fetch all SPs and apply initial sorting
         const spData = await SPApiService.fetchAllSPs();
         console.log('SP data fetched:', spData);
         const sortedSpData = sortSPs(spData || []); // Apply initial sort
@@ -416,49 +403,59 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
         setFilteredSps(sortedSpData); // Set filtered/sorted data for display
 
 
+        // Initialize active tabs state for SP details visibility
         const initialActiveTabs = {};
         if (spData && Array.isArray(spData)) {
           spData.forEach(sp => {
             if (sp && sp.spId) {
-              initialActiveTabs[sp.spId] = 'AI';
+              initialActiveTabs[sp.spId] = 'AI'; // Default tab is 'AI' (Abstract/Intro)
             }
           });
         }
         setActiveTabs(initialActiveTabs);
 
-        setError(null);
+        setError(null); // Clear any previous errors
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Failed to load data. Please try again later.');
       } finally {
-        setInitialLoading(false);
+        setInitialLoading(false); // Set initial loading to false regardless of success or failure
       }
     };
 
     fetchData();
   }, [refreshTrigger]); // <--- ENSURE refreshTrigger IS IN THIS DEPENDENCY ARRAY
 
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Close adviser dropdown if click is outside
       if (adviserDropdownRef.current && !adviserDropdownRef.current.contains(event.target)) {
         setShowAdviserDropdown(false);
       }
+      // Close tag dropdown if click is outside
       if (tagDropdownRef.current && !tagDropdownRef.current.contains(event.target)) {
         setShowTagDropdown(false);
       }
     };
 
+    // Add event listener
     document.addEventListener('mousedown', handleClickOutside);
+
+    // Cleanup function to remove event listener
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, []); // Empty dependency array means this effect runs only once after the initial render
 
-  // Apply filters whenever filter states change - use debouncedSearchTerm instead of searchTerm
+
+ // Effect to apply filters whenever filter states change
+ // Use debouncedSearchTerm to avoid excessive API calls while typing
  useEffect(() => {
    const applyFiltersAndSort = async () => {
      try {
+       // Construct filter object from state
        const filters = {
          adviserIds: selectedAdvisers.map(adviser => adviser.adminId),
          tagIds: selectedTags.map(tag => tag.tagId),
@@ -466,46 +463,56 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
          searchTerm: debouncedSearchTerm
        };
 
-       // Use the applyFilters service which handles server-side or client-side
+       // Use the applyFilters service which handles server-side or client-side filtering
        const filteredResults = await SPApiService.applyFilters(filters);
 
-       // Apply sorting to filtered results
+       // Apply sorting to the filtered results
        const sortedResults = sortSPs(filteredResults || []);
-    setFilteredSps(sortedResults);
-    setCurrentPage(1);
-       
-       setFilteredSps(sortedResults);
 
+       // Update the filtered SPs state and reset pagination to the first page
+       setFilteredSps(sortedResults);
+       setCurrentPage(1); // Reset to the first page (1-indexed) after filtering
+
+       // Update search results count if a search term is active
        if (debouncedSearchTerm) {
          setSearchResults({
            term: debouncedSearchTerm,
-           count: filteredResults.length
+           count: filteredResults.length // Use the count from the filtered results
          });
        } else {
+         // Clear search results message if search term is empty
          setSearchResults(null);
        }
-
-       
-     } catch (err) {
+     }
+     catch (err) {
        console.error('Error applying filters:', err);
        setError('Failed to apply filters. Please try again.');
+       // Optionally clear results or set filteredSps to empty on error
+       setFilteredSps([]);
+       setSearchResults(null);
      }
    };
-   // Only apply filters if sps data has been loaded
-   if (sps.length > 0 || !initialLoading) { // Add condition to check if initial loading is done
+
+   // Only apply filters if initial data has been loaded (sps array is populated)
+   // or if initial loading has completed (to handle cases where sps might be empty initially)
+   if (sps.length > 0 || !initialLoading) {
      applyFiltersAndSort();
    }
- }, [selectedAdvisers, selectedTags, selectedDepartment, debouncedSearchTerm, sortBy, sortDirection, sps, initialLoading]); // Added sps and initialLoading as dependencies
+   // Dependencies: Re-run this effect when any of the filter states, sort options,
+   // or the original sps data changes (after initial fetch)
+ }, [selectedAdvisers, selectedTags, selectedDepartment, debouncedSearchTerm, sortBy, sortDirection, sps, initialLoading]);
+
 
   // Helper functions
+
+  // Get adviser name from fetched adviser data
   const getAdviserName = (adviserId) => {
     const adviser = adviserData[adviserId];
     if (!adviser) return 'Unknown Adviser';
-
     return `${adviser.lastName || ''}${adviser.firstName ? ', ' + adviser.firstName : ''}`;
   };
 
-  // ✅ UPDATED: to use the authors array directly from the DTO
+  // Get authors string from SP object
   const getAuthors = (sp) => {
     // If we have authors array directly from DTO, use it
     if (sp.authors && Array.isArray(sp.authors) && sp.authors.length > 0) {
@@ -516,33 +523,37 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
   };
 
 
-  // Handle adviser selection
+  // Handle adviser selection from dropdown
   const handleSelectAdviser = (adviser) => {
+    // Add adviser to selectedAdvisers if not already included
     if (!selectedAdvisers.some(a => a.adminId === adviser.adminId)) {
       setSelectedAdvisers([...selectedAdvisers, adviser]);
     }
+    // Clear the input and hide the dropdown
     setAdviserInput('');
     setShowAdviserDropdown(false);
   };
 
-  // Handle tag selection
+  // Handle tag selection from dropdown
   const handleSelectTag = (tag) => {
+    // Add tag to selectedTags if not already included
     if (!selectedTags.some(t => t.tagId === tag.tagId)) {
       setSelectedTags([...selectedTags, tag]);
     }
+    // Clear the input and hide the dropdown
     setTagInput('');
     setShowTagDropdown(false);
   };
 
-  // Remove adviser from filter
+  // Remove adviser from selected filters
   const removeAdviser = (adviserId) => {
     setSelectedAdvisers(selectedAdvisers.filter(a => a.adminId !== adviserId));
   };
 
-  // Remove tag from filter
+  // Remove tag from selected filters
   const removeTag = (tagId) => {
     setSelectedTags(selectedTags.filter(t => t.tagId !== tagId));
-    // Update URL to remove the tag if needed
+    // Optional: Update URL to remove the tag parameter if needed
     const url = new URL(window.location);
     const currentTag = selectedTags.find(t => t.tagId === tagId);
     if (currentTag) {
@@ -554,43 +565,48 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
     }
   };
 
-  // Handle tag clicks
+  // Handle tag clicks on SP cards
   const handleTagClick = (tagName) => {
-    // Find the tag object by name
+    // Find the tag object by name in the tags list
     const tag = tags.find(t => t.tagName === tagName);
+    // If tag found and not already selected, add it to selectedTags
     if (tag && !selectedTags.some(t => t.tagId === tag.tagId)) {
       setSelectedTags([...selectedTags, tag]);
-      // Optionally update URL to reflect the tag selection
+      // Optional: Update URL to reflect the tag selection
       const url = new URL(window.location);
       url.searchParams.set('tag', encodeURIComponent(tagName));
       window.history.pushState({}, '', url);
     }
   };
 
-  // Clear all advisers
+  // Clear all selected advisers
   const clearAllAdvisers = () => {
     setSelectedAdvisers([]);
-    setAdviserInput('');
+    setAdviserInput(''); // Clear input field as well
   };
 
-  // Clear all tags
+  // Clear all selected tags
   const clearAllTags = () => {
     setSelectedTags([]);
-    setTagInput('');
-    // Remove tag parameter from URL
+    setTagInput(''); // Clear input field as well
+    // Optional: Remove tag parameter from URL
     const url = new URL(window.location);
     url.searchParams.delete('tag');
     window.history.pushState({}, '', url);
   };
-  // Handle department selection
+
+
+  // Handle department filter change
   const handleDepartmentChange = (e) => {
     setSelectedDepartment(e.target.value);
   };
-  // Handle field selection
+
+  // Handle field filter change (assuming 'Field' is distinct from 'Department')
   const handleFieldChange = (e) => {
     setSelectedField(e.target.value);
   };
-  // Handle tab selection for a specific SP
+
+  // Handle tab selection for a specific SP details display
   const handleTabChange = (spId, tabName) => {
     setActiveTabs(prev => ({
       ...prev,
@@ -598,31 +614,27 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
     }));
   };
 
-  // Handle search submission
+  // Handle search form submission (actual filtering is handled by useEffect with debounce)
   const handleSearch = (e) => {
     e.preventDefault();
     // The debounce effect will handle the search when the input changes
   };
-  // Filter advisers based on input
+
+  // Filter advisers based on input for dropdown display
   const filteredAdvisers = advisers.filter(adviser =>
     adviser && adviser.lastName &&
     (adviser.lastName.toLowerCase().includes(adviserInput.toLowerCase()) ||
      (adviser.firstName && adviser.firstName.toLowerCase().includes(adviserInput.toLowerCase())))
   );
-  // Filter tags based on input
+
+  // Filter tags based on input for dropdown display
   const filteredTags = tags.filter(tag =>
     tag && tag.tagName &&
     tag.tagName.toLowerCase().includes(tagInput.toLowerCase())
   );
 
-  // REMOVED: Filtering logic for students as it's not used in this component
-  // const filteredStudents = availableStudents.filter(student =>
-  //   student && student.lastName &&
-  //   (student.lastName.toLowerCase().includes(authorInput.toLowerCase()) ||
-  //    (student.firstName && student.firstName.toLowerCase().includes(authorInput.toLowerCase())))
-  // );
 
-  // Format the name for display
+  // Format the name (LastName, FirstName) for display
   const formatName = (adviser) => {
     if (!adviser) return '';
     const parts = [];
@@ -630,345 +642,417 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
     if (adviser.firstName) parts.push(adviser.firstName);
     return parts.join(', ');
   };
-  // Updated to handle possible undefined tagIds
+
+  // Get tag names for a specific SP
   const getTagsForSp = (sp) => {
+    // Check if sp and sp.tagIds exist and are arrays
     if (!sp || !sp.tagIds || !Array.isArray(sp.tagIds)) return [];
+    // Filter the main tags list to find tags whose IDs are in sp.tagIds
     return tags
       .filter(tag => tag && sp.tagIds.includes(tag.tagId))
-      .map(tag => tag?.tagName || 'Unknown Tag');
+      .map(tag => tag?.tagName || 'Unknown Tag'); // Map to tag names, handle potential null tag
   };
 
+  // Handle clicking on an SP card to select it (e.g., for editing)
   const handleSPSelect = (project) => {
+    // Check if the onSPSelect prop is a function
     if (typeof onSPSelect === 'function') {
       console.log("Calling onSPSelect with project:", project);
+      // Prepare the project data to be sent to the parent component,
+      // including necessary details like adviser name, authors, student IDs, and tag names.
       const projectForEdit = {
         ...project,
-        editMode: true,
-        adviserName: project.adviserId ? getAdviserName(project.adviserId) : 'Unknown Adviser',
-        // Ensure authors and studentIds are correctly passed from the fetched project
-        authors: project.authors || [], // Use authors array directly
-        studentIds: project.studentIds || [], // Use studentIds array directly
-        tags: getTagsForSp(project) // Use the helper to get tag names
+        editMode: true, // Flag to indicate editing mode
+        adviserName: project.adviserId ? getAdviserName(project.adviserId) : 'Unknown Adviser', // Get adviser name
+        authors: project.authors || [], // Ensure authors array is included
+        studentIds: project.studentIds || [], // Ensure studentIds array is included
+        tags: getTagsForSp(project) // Get tag names for the project
       };
       console.log("Sending project with editMode=true:", projectForEdit);
-      onSPSelect(projectForEdit);
+      onSPSelect(projectForEdit); // Call the parent's handler
     } else {
       console.error("onSPSelect is not a function. Check your component props.");
     }
   };
 
 
-  // Handle file upload (placeholder)
+  // Handle file upload (placeholder function)
   const handleUpload = () => {
     console.log("Upload button clicked - functionality to be implemented");
+    // You would typically open a modal or navigate to an upload form here
   };
 
   return (
-
     <div className="sp-filter-panel-container">
-    <div className="flex w-full max-w-6xl mx-auto" style={{backgroundColor: 'white'}}>
-      {/* Central SP Results Container */}
-      <div className="w-34 p-4" style={{backgroundColor: 'white'}}>
-        {/* Search and Filter Row */}
-        <div className="mb-4">
-          <form onSubmit={handleSearch} className="flex gap-2 mb-9">
-            {/* Upload Button - Moved to left of Department dropdown */}
-
-            {/* Use the onUploadClick prop passed from the parent */}
-            {onUploadClick && (
-              <button
-                type="button"
-                className="bg-red-800 text-white rounded p-2 flex items-center justify-center gap-1"
-                onClick={onUploadClick}
-              >
-                <i className="fa fa-upload"></i> UPLOAD
-              </button>
-            )}
-
-
-            <select
-              className="border border-gray-300 rounded p-2 w-40"
-              onChange={handleDepartmentChange}
-              value={selectedDepartment}
-            >
-              <option value="">Department</option>
-              <option value="1">BSCS</option>
-              <option value="2">BSBC</option>
-              <option value="3">BSAP</option>
-            </select>
-
-            <select
-              className="border border-gray-300 rounded p-2 w-40"
-              onChange={handleFieldChange}
-              value={selectedField}
-            >
-              <option value="">Any Field</option>
-              <option value="1">AI</option>
-              <option value="2">Database</option>
-            </select>
-
-
-            <div className="flex flex-1">
-              <input
-                type="text"
-                placeholder="Search"
-                className="flex-1 border border-gray-300 rounded-l p-2"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <button
-                type="submit"
-                className="bg-red-800 text-white px-4 rounded-r"
-              >
-                <i className="fa fa-search"></i>
-              </button>
-            </div>
-            <div>
-              <select
-  className="border border-gray-300 p-2 mr-2"
-  value={sortBy}
-  onChange={(e) => setSortBy(e.target.value)}
->
-  <option value="" disabled>Sort By</option>
-  <option value="yearSemester">Year/Semester</option>
-  <option value="dateIssued">Date issued</option>
-  <option value="alphabetical">Alphabetical</option>
-</select>
-
-<button
-  className="bg-red-800 hover:bg-red-900 px-4 rounded justify-center text-white" style = {{ height: '100%'}}
-  onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
-  title={sortDirection === 'asc' ? 'Ascending' : 'Descending'}
->
-  {sortDirection === 'asc' ? ' ↑ ' : ' ↓ '}
-</button>
-  </div>
-          </form>
-
-          {searchResults && (
-            <div className="bg-green-100 p-3 rounded">
-              Your search for <strong>{searchResults.term}</strong> returned {searchResults.count} records.
-            </div>
-          )}
-        </div>
-        <Pagination 
-      count={totalPages} 
-      page={currentPage}
-      onChange={(event, value) => paginate(value)}
-      shape="rounded"
-      size="large"
-      sx={{ 
-        display: 'flex',
-        justifyContent: 'center',
-        margin: '20px 0'
-      }}
-    />
-        {/* Loading and Error States - Only show loading during initial load */}
-        {initialLoading && <div className="bg-blue-50 p-4 text-center text-blue-700 rounded">Loading...</div>}
-        {error && <div className="bg-red-50 p-4 text-center text-red-700 rounded">{error}</div>}
-
-        {/* SP Results */}
-        <div style={{width: '100%', backgroundColor: 'white'}}>
-          {/* Top divider */}
-          <div className="sp-divider top-divider" style={{backgroundColor: 'rgba(229, 231, 235, 0.7)'}}></div>
-
-          {!initialLoading && filteredSps.length === 0 && (
-            <div className="bg-gray-100 p-4 text-center text-gray-600 rounded">
-              No results found. Try adjusting your filters.
-            </div>
-          )}
-
-{currentItems.map((sp, index) => ( 
-            <div key={sp.spId} className="relative">
-              <div className="mb-6">
-                {/* Modified header to position buttons properly */}
-                <div className="flex mb-2">
-                  <h3 className="text-lg font-semibold flex-1">
-                    <a href={`/project/${sp.spId}`} className="text-blue-600 hover:underline">{sp.title || 'Untitled Project'}</a>
-                  </h3>
-
-                  {/* Buttons now positioned at the far right */}
-                  <div className="flex ml-auto">
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log("Edit button clicked for:", sp.title);
-                        // Call handleSPSelect to prepare and send the project data for editing
-                        handleSPSelect(sp);
-                      }}
-                      className="text-gray-500 hover:text-gray-700 p-2"
-                    >
-                      <i className="fa-solid fa-pen"></i>
-                    </button>
-                    <button
-                      className="text-red-600 hover:text-red-800 p-2"
-                    >
-                      <i className="fa fa-trash"></i>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="text-sm text-gray-600 mb-3">
-                  <span className="mr-4">
-                    <i className="fa-solid fa-pen-to-square"></i>
-                    {/* Use the getAuthors helper function */}
-                    {getAuthors(sp)}
-                  </span>
-                  <span className="mr-4">
-                    <i className="fa-regular fa-clock"></i>
-                    {sp.dateIssued ? new Date(sp.dateIssued).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : sp.year || 'No Date'}
-                  </span>
-                  <span>
-                    <i className="fa-solid fa-user"></i>
-                    {sp.adviserId ? getAdviserName(sp.adviserId) : 'Unknown Adviser'}
-                  </span>
-                </div>
-
-                <div className="text-sm mb-3">{sp.abstractText || 'No abstract available.'}</div>
-
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {getTagsForSp(sp).map((tagName, index) => (
-                    <span
-                      key={index}
-                      className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs cursor-pointer hover:bg-gray-300"
-                      onClick={() => handleTagClick(tagName)}
-                    >
-                      {tagName}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Custom divider with editable color/opacity */}
-              {index < filteredSps.length - 1 && (
-                <div
-                  className="sp-divider"
-                  style={{backgroundColor: 'rgba(229, 231, 235, 0.7)'}}
-                ></div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Right Sidebar - Filter Section */}
-      <div className="w-14 p-4 border-l border-gray-200" style={{backgroundColor: 'white'}}>
-        {/* Logo */}
-        <div className="mb-8">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/4/45/White_box_55x90.png" alt="University Logo" className="w-48 mx-auto" />
-        </div>
-
-        {/* Adviser Filter */}
-        <div className="mb-8">
-          <h3 className="text-lg font-bold mb-2">Advisers</h3>
-          <div className="relative mb-2" ref={adviserDropdownRef}>
-            <div className="flex">
-              <input
-                type="text"
-                className="w-full border border-gray-300 rounded-l p-2 text-dm"
-                placeholder="Search adviser"
-                value={adviserInput}
-                onChange={(e) => setAdviserInput(e.target.value)}
-                onClick={() => setShowAdviserDropdown(true)}
-              />
-              <button
-                className="bg-red-700 text-white px-2 rounded-r"
-                onClick={clearAllAdvisers}
-              >
-                ×
-              </button>
-            </div>
-
-            {showAdviserDropdown && filteredAdvisers.length > 0 && (
-              <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-b mt-1 max-h-40 overflow-y-auto">
-                {filteredAdvisers.map(adviser => (
-                  <div
-                    key={adviser.adminId}
-                    className="p-2 hover:bg-gray-100 cursor-pointer text-dm"
-                    onClick={() => handleSelectAdviser(adviser)}
-                  >
-                    {formatName(adviser)}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="flex flex-wrap gap-1 max-h-40 overflow-y-auto">
-            {selectedAdvisers.map(adviser => (
-              <div key={adviser.adminId} className="bg-red-800 text-white text-dm rounded px-2 py-1 flex items-center mb-1 mr-1">
-                {adviser.lastName}{adviser.firstName && `, ${adviser.firstName}`}
-                <span className="ml-1 text-xs">{adviser.count || ''}</span>
+      <div className="flex w-full max-w-6xl mx-auto" style={{backgroundColor: 'white'}}>
+        {/* Central SP Results Container */}
+        <div className="w-34 p-4" style={{backgroundColor: 'white'}}>
+          {/* Search and Filter Row */}
+          <div className="mb-4">
+            <form onSubmit={handleSearch} className="flex gap-2 mb-9">
+              {/* Upload Button */}
+              {onUploadClick && (
                 <button
-                  className="ml-2 text-white font-bold"
-                  onClick={() => removeAdviser(adviser.adminId)}
+                  type="button"
+                  className="bg-red-800 text-white rounded p-2 flex items-center justify-center gap-1"
+                  onClick={onUploadClick}
                 >
-                  ×
+                  <i className="fa fa-upload"></i> UPLOAD
+                </button>
+              )}
+
+              {/* Department Filter Dropdown */}
+              <select
+                className="border border-gray-300 rounded p-2 w-40"
+                onChange={handleDepartmentChange}
+                value={selectedDepartment}
+              >
+                <option value="">Department</option>
+                <option value="1">BSCS</option>
+                <option value="2">BSBC</option>
+                <option value="3">BSAP</option>
+              </select>
+
+              {/* Field Filter Dropdown */}
+              <select
+                className="border border-gray-300 rounded p-2 w-40"
+                onChange={handleFieldChange}
+                value={selectedField}
+              >
+                <option value="">Any Field</option>
+                <option value="1">AI</option>
+                <option value="2">Database</option>
+                {/* Add other fields as needed */}
+              </select>
+
+              {/* Search Input and Button */}
+              <div className="flex flex-1">
+                <input
+                  type="text"
+                  placeholder="Search"
+                  className="flex-1 border border-gray-300 rounded-l p-2"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <button
+                  type="submit"
+                  className="bg-red-800 text-white px-4 rounded-r"
+                >
+                  <i className="fa fa-search"></i>
                 </button>
               </div>
-            ))}
+
+              {/* Sort By Dropdown and Direction Button */}
+              <div>
+                <select
+                  className="border border-gray-300 p-2 mr-2"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                >
+                  <option value="" disabled>Sort By</option>
+                  <option value="yearSemester">Year/Semester</option>
+                  <option value="dateIssued">Date issued</option>
+                  <option value="alphabetical">Alphabetical</option>
+                </select>
+                <button
+                  className="bg-red-800 hover:bg-red-900 px-4 rounded justify-center text-white" style={{ height: '100%'}}
+                  onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
+                  title={sortDirection === 'asc' ? 'Ascending' : 'Descending'}
+                >
+                  {sortDirection === 'asc' ? ' ↑ ' : ' ↓ '}
+                </button>
+              </div>
+            </form>
+
+            {/* Search Results Message */}
+            {searchResults && (
+              <div className="bg-green-100 p-3 rounded">
+                Your search for <strong>{searchResults.term}</strong> returned {searchResults.count} records.
+              </div>
+            )}
           </div>
+
+         {/* --- Custom Pagination using MUI Pagination and Select --- */}
+        {/* Container with flexbox to align items */}
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '0 16px', width: '100%', 
+                      margin: '20px 0', }}>
+            {/* Pagination Numbers (Left) */}
+            {/* Only render pagination if there's more than one page */}
+            {totalPages > 1 && (
+                <Pagination
+                    count={totalPages} // Total number of pages
+                    page={currentPage} // Current page (1-indexed)
+                    onChange={handlePageChange} // Handler for page changes
+                    variant="outlined"
+                    shape="rounded"
+                    color="primary"
+                    // Add any custom styling for the pagination component itself here
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      
+                      '& .Mui-selected': {
+                          backgroundColor: '#800000 !important',
+                          color: '#fff',
+                        }}
+                      }
+                />
+            )}
+
+
+            {/* Rows per page control (Right) */}
+             <FormControl variant="outlined" size="small" sx={{ minWidth: 120, position: 'absolute',transform: 'translateX(370%)' }}>
+                <InputLabel id="rows-per-page-label">Items</InputLabel>
+                <Select
+                    labelId="rows-per-page-label"
+                    id="rows-per-page-select"
+                    value={itemsPerPage}
+                    onChange={handleItemsPerPageChange}
+                    label="Rows per page"
+                >
+                    <MenuItem value={5}>5</MenuItem>
+                    <MenuItem value={10}>10</MenuItem>
+                    <MenuItem value={20}>20</MenuItem>
+                    <MenuItem value={50}>50</MenuItem>
+                    <MenuItem value={100}>100</MenuItem>
+                </Select>
+            </FormControl>
         </div>
+         {/* --- End Custom Pagination --- */}
 
-        {/* Tags Filter */}
-        <div>
-          <h3 className="text-lg font-bold mb-2">Tags</h3>
-          <div className="relative mb-2" ref={tagDropdownRef}>
-            <div className="flex">
-              <input
-                type="text"
-                className="w-full border border-gray-300 rounded-l p-2 text-dm"
-                placeholder="Search tags"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onClick={() => setShowTagDropdown(true)}
-              />
-              <button
-                className="bg-red-700 text-white px-2 rounded-r"
-                onClick={clearAllTags}
-              >
-                ×
-              </button>
-            </div>
 
-            {showTagDropdown && (
-              <div
-                className="absolute z-10 w-full bg-white border border-gray-300 rounded-b mt-1 max-h-40 overflow-y-auto">
-                {filteredTags.length > 0 ? (
-                  filteredTags.map(tag => (
-                    <div
-                      key={tag.tagId}
-                      className="p-2 hover:bg-gray-100 cursor-pointer text-dm"
-                      onClick={() => handleSelectTag(tag)}
-                    >
-                      {tag.tagName}
+          {/* Loading and Error States */}
+          {initialLoading && <div className="bg-blue-50 p-4 text-center text-blue-700 rounded">Loading...</div>}
+          {error && <div className="bg-red-50 p-4 text-center text-red-700 rounded">{error}</div>}
+
+          {/* SP Results List */}
+          <div style={{width: '100%', backgroundColor: 'white'}}>
+            {/* Top divider */}
+            <div className="sp-divider top-divider" style={{backgroundColor: 'rgba(229, 231, 235, 0.7)'}}></div>
+
+            {/* No Results Found Message */}
+            {!initialLoading && filteredSps.length === 0 && (
+              <div className="bg-gray-100 p-4 text-center text-gray-600 rounded">
+                No results found. Try adjusting your filters.
+              </div>
+            )}
+
+            {/* Map through current items for the current page */}
+            {currentItems.map((sp, index) => (
+              <div key={sp.spId} className="relative">
+                <div className="mb-6">
+                  {/* SP Title and Action Buttons */}
+                  <div className="flex mb-2">
+                    <h3 className="text-lg font-semibold flex-1">
+                      {/* Link to the project detail page */}
+                      <a href={`/project/${sp.spId}`} className="text-blue-600 hover:underline">{sp.title || 'Untitled Project'}</a>
+                    </h3>
+
+                    {/* Action buttons (Edit, Delete) */}
+                    <div className="flex ml-auto">
+                      {/* Edit Button */}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault(); // Prevent default link behavior
+                          e.stopPropagation(); // Stop event propagation to avoid triggering other handlers
+                          console.log("Edit button clicked for:", sp.title);
+                          // Call handleSPSelect to prepare and send the project data for editing
+                          handleSPSelect(sp);
+                        }}
+                        className="text-gray-500 hover:text-gray-700 p-2"
+                        aria-label="Edit project"
+                      >
+                        <i className="fa-solid fa-pen"></i>
+                      </button>
+                      {/* Delete Button (Placeholder) */}
+                      <button
+                        className="text-red-600 hover:text-red-800 p-2"
+                        aria-label="Delete project"
+                        // Add onClick handler for delete functionality
+                      >
+                        <i className="fa fa-trash"></i>
+                      </button>
                     </div>
-                  ))
-                ) : (
-                  <div className="p-2 text-sm text-gray-500">No matching tags</div>
+                  </div>
+
+                  {/* SP Meta Information (Authors, Date, Adviser) */}
+                  <div className="text-sm text-gray-600 mb-3">
+                    <span className="mr-4">
+                      <i className="fa-solid fa-pen-to-square"></i>
+                      {/* Use the getAuthors helper function */}
+                      {getAuthors(sp)}
+                    </span>
+                    <span className="mr-4">
+                      <i className="fa-regular fa-clock"></i>
+                      {/* Display formatted date or year */}
+                      {sp.dateIssued ? new Date(sp.dateIssued).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : sp.year || 'No Date'}
+                    </span>
+                    <span>
+                      <i className="fa-solid fa-user"></i>
+                      {/* Use the getAdviserName helper function */}
+                      {sp.adviserId ? getAdviserName(sp.adviserId) : 'Unknown Adviser'}
+                    </span>
+                  </div>
+
+                  {/* SP Abstract */}
+                  <div className="text-sm mb-3">{sp.abstractText || 'No abstract available.'}</div>
+
+                  {/* SP Tags */}
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {getTagsForSp(sp).map((tagName, index) => (
+                      <span
+                        key={index}
+                        className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs cursor-pointer hover:bg-gray-300"
+                        onClick={() => handleTagClick(tagName)} // Handle tag click for filtering
+                      >
+                        {tagName}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Custom divider between SP items (except the last one on the current page) */}
+                {index < currentItems.length - 1 && (
+                  <div
+                    className="sp-divider"
+                    style={{backgroundColor: 'rgba(229, 231, 235, 0.7)'}}
+                  ></div>
                 )}
               </div>
-            )}
+            ))}
+          </div>
+        </div>
+
+        {/* Right Sidebar - Filter Section */}
+        <div className="w-14 p-4 border-l border-gray-200" style={{backgroundColor: 'white'}}>
+          {/* Logo */}
+          <div className="mb-8">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/4/45/White_box_55x90.png" alt="University Logo" className="w-48 mx-auto" />
           </div>
 
-          <div className="flex flex-wrap gap-1 max-h-60 overflow-y-auto">
-            {selectedTags.map(tag => (
-              <div key={tag.tagId} className="bg-red-800 text-white text-dm rounded px-2 py-1 flex items-center mb-1 mr-1">
-                {tag.tagName}
-                <span className="ml-1 text-xs">{tag.count || ''}</span>
+          {/* Adviser Filter Section */}
+          <div className="mb-8">
+            <h3 className="text-lg font-bold mb-2">Advisers</h3>
+            <div className="relative mb-2" ref={adviserDropdownRef}>
+              {/* Adviser Search Input */}
+              <div className="flex">
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-l p-2 text-dm"
+                  placeholder="Search adviser"
+                  value={adviserInput}
+                  onChange={(e) => setAdviserInput(e.target.value)}
+                  onClick={() => setShowAdviserDropdown(true)} // Show dropdown on input click
+                  onFocus={() => setShowAdviserDropdown(true)} // Show dropdown on focus
+                />
+                 {/* Clear Advisers Button */}
                 <button
-                  className="ml-2 text-white font-bold"
-                  onClick={() => removeTag(tag.tagId)}
+                  className="bg-red-700 text-white px-2 rounded-r"
+                  onClick={clearAllAdvisers}
+                  aria-label="Clear selected advisers"
                 >
                   ×
                 </button>
               </div>
-            ))}
+              {/* Adviser Dropdown */}
+              {showAdviserDropdown && filteredAdvisers.length > 0 && (
+                <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-b mt-1 max-h-40 overflow-y-auto shadow-lg">
+                  {filteredAdvisers.map(adviser => (
+                    <div
+                      key={adviser.adminId}
+                      className="p-2 hover:bg-gray-100 cursor-pointer text-dm"
+                      onClick={() => handleSelectAdviser(adviser)} // Handle adviser selection
+                    >
+                      {formatName(adviser)}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            {/* Selected Advisers Display */}
+            <div className="flex flex-wrap gap-1 max-h-40 overflow-y-auto">
+              {selectedAdvisers.map(adviser => (
+                <div key={adviser.adminId} className="bg-red-800 text-white text-dm rounded px-2 py-1 flex items-center mb-1 mr-1">
+                  {adviser.lastName}{adviser.firstName && `, ${adviser.firstName}`}
+                  {/* Optional: Display count if available in adviser object */}
+                  <span className="ml-1 text-xs">{adviser.count || ''}</span>
+                   {/* Remove Adviser Button */}
+                  <button
+                    className="ml-2 text-white font-bold leading-none"
+                    onClick={() => removeAdviser(adviser.adminId)}
+                    aria-label="Remove adviser"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}\n            </div>
+          </div>
+
+          {/* Tags Filter Section */}
+          <div>
+            <h3 className="text-lg font-bold mb-2">Tags</h3>
+            <div className="relative mb-2" ref={tagDropdownRef}>
+              {/* Tag Search Input */}
+              <div className="flex">
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-l p-2 text-dm"
+                  placeholder="Search tags"
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onClick={() => setShowTagDropdown(true)} // Show dropdown on input click
+                   onFocus={() => setShowTagDropdown(true)} // Show dropdown on focus
+                />
+                 {/* Clear Tags Button */}
+                <button
+                  className="bg-red-700 text-white px-2 rounded-r"
+                  onClick={clearAllTags}
+                   aria-label="Clear selected tags"
+                >
+                  ×
+                </button>
+              </div>
+              {/* Tag Dropdown */}
+              {showTagDropdown && (
+                <div
+                  className="absolute z-10 w-full bg-white border border-gray-300 rounded-b mt-1 max-h-40 overflow-y-auto shadow-lg">
+                  {/* Corrected conditional rendering syntax */}
+                  {filteredTags.length > 0 ? (
+                    filteredTags.map(tag => (
+                      <div
+                        key={tag.tagId}
+                        className="p-2 hover:bg-gray-100 cursor-pointer text-dm"
+                        onClick={() => handleSelectTag(tag)}
+                      >
+                        {tag.tagName}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-2 text-sm text-gray-500">No matching tags</div>
+                  )}
+                </div>
+              )}
+            </div>
+            {/* Selected Tags Display */}
+            <div className="flex flex-wrap gap-1 max-h-60 overflow-y-auto">
+              {selectedTags.map(tag => (
+                <div key={tag.tagId} className="bg-red-800 text-white text-dm rounded px-2 py-1 flex items-center mb-1 mr-1">
+                  {tag.tagName}
+                  {/* Optional: Display count if available in tag object */}
+                  <span className="ml-1 text-xs">{tag.count || ''}</span>
+                  {/* Remove Tag Button */}
+                  <button
+                    className="ml-2 text-white font-bold leading-none"
+                    onClick={() => removeTag(tag.tagId)}
+                     aria-label="Remove tag"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}\n            </div>
           </div>
         </div>
       </div>
-    </div>
     </div>
   );
 };
