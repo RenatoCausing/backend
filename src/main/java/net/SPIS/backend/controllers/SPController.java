@@ -25,12 +25,12 @@ import java.util.Objects;
 public class SPController {
 
     private static final Logger logger = LoggerFactory.getLogger(SPController.class);
-
     @Autowired
     private SPService spService;
 
     @Autowired
-    private SPRepository spRepository; // Keep if used directly (like in filterSPs)
+    private SPRepository spRepository;
+    // Keep if used directly (like in filterSPs)
 
     // --- Existing endpoints from Controller Backend.txt ---
     @GetMapping("/{spId}")
@@ -50,36 +50,13 @@ public class SPController {
             @RequestParam(required = false) Integer facultyId,
             @RequestParam(required = false) String searchTerm) {
 
-        // TODO: Implement more sophisticated filtering logic in the service layer
-        // This current implementation is basic and might not combine filters correctly.
-        // It's better to move filtering logic to SPService.
-
         logger.debug("Filtering SPs with: adviserIds={}, tagIds={}, facultyId={}, searchTerm={}",
                 adviserIds, tagIds, facultyId, searchTerm);
-        List<SPDTO> results;
 
-        // Example: Prioritize faculty filter if present
-        if (facultyId != null) {
-            logger.debug("Filtering by facultyId: {}", facultyId);
-            results = spService.getSPFromFaculty(facultyId);
-        } else if (adviserIds != null && !adviserIds.isEmpty()) {
-            logger.debug("Filtering by adviserIds: {}", adviserIds);
-            // Assuming a service method like getSPFromAdvisers exists or is added
-            // results = spService.getSPFromAdvisers(adviserIds);
-            results = spService.getAllSP(); // Placeholder - implement proper logic
-        } else if (tagIds != null && !tagIds.isEmpty()) {
-            logger.debug("Filtering by tagIds: {}", tagIds);
-            results = spService.getSPsWithTags(tagIds);
-        } else {
-            // Add searchTerm logic here if needed
-            // e.g., results = spService.searchSPs(searchTerm);
-            logger.debug("No specific filters applied, returning all SPs.");
-            results = spService.getAllSP();
-        }
+        // Call the new comprehensive filter method in the service layer
+        List<SPDTO> results = spService.filterSPs(adviserIds, tagIds, facultyId, searchTerm);
 
-        // Further filter results based on other criteria if needed (e.g., apply tags ON
-        // TOP of faculty)
-
+        logger.debug("Filtered SPs count: {}", results.size());
         return results;
     }
 
@@ -120,6 +97,7 @@ public class SPController {
 
     @GetMapping("/tags")
     public List<SPDTO> getSPsWithTags(@RequestParam(required = false) List<Integer> tagIds) {
+        // Now calls the new filterSPs method in the service
         return spService.getSPsWithTags(tagIds);
     }
 
