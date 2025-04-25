@@ -922,9 +922,9 @@ const SPFilterSystem = () => {
 
          {/* --- Custom Pagination using MUI Pagination and Select (Top) --- */}
          {/* Added responsiveness using flex properties and adjusted width */}
-         <div style={{ display: 'flex', flexDirection: 'column', md: 'row', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', width: '100%', margin: '20px 0' }}>
+         <div style={{ display: 'flex', md: 'row', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', width: '100%', margin: '20px 0' }}>
            {/* Placeholder or alignment div */}
-            <div style={{ width: '200px', flexShrink: 0, display: 'flex', md: 'block' }}></div> {/* Hide on small screens */}
+            <div style={{ width: '33%', flexShrink: 0, display: 'flex', md: 'block' }}></div> {/* Hide on small screens */}
 
           {/* Pagination Numbers (Center/Top) */}
            {totalPages > 1 && ( // Only show pagination if more than 1 page
