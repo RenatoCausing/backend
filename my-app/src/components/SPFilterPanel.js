@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useProjectContext } from '../contexts/ProjectContext';
 import '../styles/SPFilterSystem.css';
 
-const SPFilterPanel = ({ onSPSelect }) => {
+const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
   // Get the refresh trigger from context
+  // This value changing is what should trigger the data fetch useEffect below
   const { refreshTrigger } = useProjectContext();
 
   // State management
@@ -42,12 +43,14 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
   const adviserDropdownRef = useRef(null);
   const tagDropdownRef = useRef(null);
   const searchTimeoutRef = useRef(null);
+
+  // Sorting logic
   const sortSPs = (sps) => {
     if (!sps || !Array.isArray(sps)) return [];
-    
+
     return [...sps].sort((a, b) => {
       let valueA, valueB;
-      
+
       // Extract the appropriate values based on sort field
       switch(sortBy) {
         case 'yearSemester':
@@ -72,48 +75,65 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
           valueA = a.dateIssued || '';
           valueB = b.dateIssued || '';
       }
-      
+
       // Parse dates if sorting by date
       if (sortBy === 'dateIssued') {
-        valueA = new Date(valueA);
-        valueB = new Date(valueB);
-        
-        // Handle invalid dates
-        if (isNaN(valueA)) valueA = new Date(0);
-        if (isNaN(valueB)) valueB = new Date(0);
+        // Handle potential null or invalid dates gracefully
+        const dateA = valueA ? new Date(valueA) : new Date(0); // Use epoch start for null/invalid
+        const dateB = valueB ? new Date(valueB) : new Date(0); // Use epoch start for null/invalid
+
+        // Check if dates are valid after parsing
+        const isValidDateA = !isNaN(dateA.getTime());
+        const isValidDateB = !isNaN(dateB.getTime());
+
+        if (!isValidDateA && !isValidDateB) return 0; // Both invalid, treat as equal
+        if (!isValidDateA) return sortDirection === 'asc' ? -1 : 1; // Invalid comes first in asc
+        if (!isValidDateB) return sortDirection === 'asc' ? 1 : -1; // Invalid comes last in asc
+
+        return sortDirection === 'asc' ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
       }
-      
+
       // Handle year and semester specially
       if (sortBy === 'yearSemester') {
         // First compare by year
         const yearA = parseInt(valueA, 10) || 0;
         const yearB = parseInt(valueB, 10) || 0;
-        
+
         if (yearA !== yearB) {
           return sortDirection === 'asc' ? yearA - yearB : yearB - yearA;
         }
-        
+
         // If years are equal, compare by semester (if you have that field)
-        const semA = parseInt(a.semester || '0', 10);
-        const semB = parseInt(b.semester || '0', 10);
+        // Assuming semester is '1st', '2nd', 'Midyear' - map to numbers for sorting
+        const semesterOrder = { '1st': 1, '2nd': 2, 'midyear': 3 };
+        const semA = semesterOrder[a.semester?.toLowerCase()] || 0;
+        const semB = semesterOrder[b.semester?.toLowerCase()] || 0;
+
         return sortDirection === 'asc' ? semA - semB : semB - semA;
       }
-      
-      // Compare based on direction for other fields
+
+      // Compare based on direction for other fields (alphabetical)
+      // Ensure values are strings for comparison
+      const stringA = String(valueA || '').toLowerCase();
+      const stringB = String(valueB || '').toLowerCase();
+
       if (sortDirection === 'asc') {
-        return valueA < valueB ? -1 : valueA > valueB ? 1 : 0;
+        return stringA.localeCompare(stringB);
       } else {
-        return valueA > valueB ? -1 : valueA < valueB ? 1 : 0;
+        return stringB.localeCompare(stringA);
       }
     });
   };
+
   // API service methods (assuming these are still correct for your backend)
   const SPApiService = {
     fetchAdviserById: async (adviserId) => {
       try {
         const response = await fetch(`http://localhost:8080/api/advisers/${adviserId}`);
         if (!response.ok) {
-          throw new Error(`Failed to fetch adviser with ID ${adviserId}`);
+          console.error(`Failed to fetch adviser with ID ${adviserId}`, response.status);
+          // Consider throwing an error or returning null to indicate failure
+          return null;
         }
         return await response.json();
       } catch (error) {
@@ -140,9 +160,12 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
       try {
         const response = await fetch('http://localhost:8080/api/advisers');
         if (!response.ok) {
+           console.error('Failed to fetch advisers, status:', response.status);
           throw new Error('Failed to fetch advisers');
         }
-        return await response.json();
+        const data = await response.json();
+         console.debug("Fetched Advisers:", data); // Added debug log
+        return data;
       } catch (error) {
         console.error('Error fetching advisers:', error);
         return [];
@@ -153,9 +176,12 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
       try {
         const response = await fetch('http://localhost:8080/api/tags');
         if (!response.ok) {
+           console.error('Failed to fetch tags, status:', response.status);
           throw new Error('Failed to fetch tags');
         }
-        return await response.json();
+         const data = await response.json();
+         console.debug("Fetched Tags:", data); // Added debug log
+        return data;
       } catch (error) {
         console.error('Error fetching tags:', error);
         return [];
@@ -216,11 +242,16 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
           params.append('searchTerm', searchTerm);
         }
 
+        console.log("Applying filters with params:", params.toString()); // Log applied filters
+
         const response = await fetch(`http://localhost:8080/api/sp/filter?${params.toString()}`);
         if (response.ok) {
-          return await response.json();
+           const data = await response.json();
+           console.log("Filtered SPs fetched successfully:", data); // Log filtered data
+          return data;
         } else {
           // Fallback to client-side if server-side filtering fails for any reason
+           console.warn('Server-side filtering failed with status:', response.status); // Log server failure status
           throw new Error('Server-side filtering not supported or failed');
         }
       } catch (error) {
@@ -350,7 +381,7 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
   // Not fetching student groups separately anymore since we now have authors directly
   // in the DTO through the updated toDTO method
 
-  // Fetch data on component mount and when refreshTrigger changes
+  // *** THIS useEffect FETCHES THE DATA AND DEPENDS ON refreshTrigger ***
   useEffect(() => {
     const fetchData = async () => {
       setInitialLoading(true);
@@ -363,10 +394,13 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
         const tagData = await SPApiService.fetchAllTags();
         setTags(tagData || []);
 
+        // Fetch SPs and apply initial sorting
         const spData = await SPApiService.fetchAllSPs();
         console.log('SP data fetched:', spData);
-        setSps(spData || []);
-        setFilteredSps(spData || []);
+        const sortedSpData = sortSPs(spData || []); // Apply initial sort
+        setSps(spData || []); // Keep original data for filtering
+        setFilteredSps(sortedSpData); // Set filtered/sorted data for display
+
 
         const initialActiveTabs = {};
         if (spData && Array.isArray(spData)) {
@@ -388,7 +422,7 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
     };
 
     fetchData();
-  }, [refreshTrigger]); // Add refreshTrigger as dependency
+  }, [refreshTrigger]); // <--- ENSURE refreshTrigger IS IN THIS DEPENDENCY ARRAY
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -417,13 +451,14 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
          departmentId: selectedDepartment,
          searchTerm: debouncedSearchTerm
        };
- 
+
+       // Use the applyFilters service which handles server-side or client-side
        const filteredResults = await SPApiService.applyFilters(filters);
-       
+
        // Apply sorting to filtered results
        const sortedResults = sortSPs(filteredResults || []);
        setFilteredSps(sortedResults);
- 
+
        if (debouncedSearchTerm) {
          setSearchResults({
            term: debouncedSearchTerm,
@@ -437,10 +472,12 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
        setError('Failed to apply filters. Please try again.');
      }
    };
-   if (sps.length > 0) {
+   // Only apply filters if sps data has been loaded
+   if (sps.length > 0 || !initialLoading) { // Add condition to check if initial loading is done
      applyFiltersAndSort();
    }
- }, [selectedAdvisers, selectedTags, selectedDepartment, debouncedSearchTerm, sortBy, sortDirection, sps]);
+ }, [selectedAdvisers, selectedTags, selectedDepartment, debouncedSearchTerm, sortBy, sortDirection, sps, initialLoading]); // Added sps and initialLoading as dependencies
+
   // Helper functions
   const getAdviserName = (adviserId) => {
     const adviser = adviserData[adviserId];
@@ -617,13 +654,18 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
         <div className="mb-4">
           <form onSubmit={handleSearch} className="flex gap-2 mb-9">
             {/* Upload Button - Moved to left of Department dropdown */}
-            <button
-              type="button"
-              className="bg-red-800 text-white rounded p-2 flex items-center justify-center gap-1"
-              onClick={handleUpload}
-            >
-              <i className="fa fa-upload"></i> UPLOAD
-            </button>
+
+            {/* Use the onUploadClick prop passed from the parent */}
+            {onUploadClick && (
+              <button
+                type="button"
+                className="bg-red-800 text-white rounded p-2 flex items-center justify-center gap-1"
+                onClick={onUploadClick}
+              >
+                <i className="fa fa-upload"></i> UPLOAD
+              </button>
+            )}
+
 
             <select
               className="border border-gray-300 rounded p-2 w-40"
@@ -673,7 +715,7 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
   <option value="dateIssued">Date issued</option>
   <option value="alphabetical">Alphabetical</option>
 </select>
-  
+
 <button
   className="bg-red-800 hover:bg-red-900 px-4 rounded justify-center text-white" style = {{ height: '100%'}}
   onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
@@ -745,7 +787,7 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
                   </span>
                   <span className="mr-4">
                     <i className="fa-regular fa-clock"></i>
-                    {sp.dateIssued || sp.year || 'No Date'}
+                    {sp.dateIssued ? new Date(sp.dateIssued).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : sp.year || 'No Date'}
                   </span>
                   <span>
                     <i className="fa-solid fa-user"></i>
