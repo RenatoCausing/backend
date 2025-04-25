@@ -27,7 +27,7 @@ public class Student {
     private String middleName;
 
     @ManyToOne
-    @JoinColumn(name = "faculty_id", nullable = false)
+    @JoinColumn(name = "faculty_id")
     private Faculty faculty;
 
     @ManyToOne

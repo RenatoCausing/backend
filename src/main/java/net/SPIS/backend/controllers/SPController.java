@@ -2,132 +2,227 @@ package net.SPIS.backend.controllers;
 
 import net.SPIS.backend.DTO.AdviserDTO;
 import net.SPIS.backend.DTO.SPDTO;
-import net.SPIS.backend.DTO.StudentDTO;
-import net.SPIS.backend.DTO.TagDTO;
-import net.SPIS.backend.entities.SP;
-import net.SPIS.backend.repositories.SPRepository;
 import net.SPIS.backend.service.SPService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page; // Import Page
+import org.springframework.data.domain.PageRequest; // Import PageRequest
+import org.springframework.data.domain.Pageable; // Import Pageable
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.util.HashMap;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/sp")
-@CrossOrigin(origins = "http://localhost:3000")
 public class SPController {
 
-    @Autowired
-    private SPService spService;
-    @Autowired
-    private SPRepository spRepository;
+    private static final Lo
 
-    @GetMapping("/{spId}")
-    public SPDTO getSP(@PathVariable Integer spId) {
-        return spService.getSP(spId);
-    }
+        @Autowired
 
-    @GetMapping
-    public List<SPDTO> getAllSP() {
-        return spService.getAllSP();
-    }
+    
+        @GetMapping("/{spId}")
+        public
+            SPDTO spDTO = spService.getSP(spId);
 
-    @GetMapping("/filter")
-    public List<SP> filterSPs(
-            @RequestParam(required = false) List<Integer> adviserIds,
-            @RequestParam(required = false) List<Integer> tagIds,
-            @RequestParam(required = false) Integer facultyId, // Receive facultyId parameter
-            @RequestParam(required = false) String searchTerm) {
+    
+        // Modified to acc
+        @GetMapping
+            public ResponseEntity<Pag
+     
 
-        // Filter by Faculty (Adviser's Faculty) if facultyId is provided
-        if (facultyId != null) {
-            // Call the corrected repository method to filter by adviser's facultyId
-            return spRepository.findByAdviserFacultyId(facultyId);
+        ) {
+            Pageable pageable = Pag
+                Page<SPDTO> spPage =
+     
+
+    
+        // Modified to accept pagination parameters and return a Page
+                @GetMapping("/adviser/{adviserId}")
+                public ResponseEntity<Page<SPDTO>> getSPFromAdvis
+                        @PathVariable Integer adviserId,
+                        @RequestParam(defaultValue = "0") int pa
+
+            ) {
+                Pageable pageable = PageRequest.of(page, size);
+                Page<SPDTO> spPage = spService.getSPFromAdvi
+
+            }
+                
+
+            @GetMapping("/st
+
+                    @PathVariable Integer studentId,
+                    @RequestPara
+                        @RequestParam(defaultValue = "10") int siz
+                ) {
+                Pageable pageable = PageRequest.of(page, size);
+                    Page<SPDTO> spPage = spService.getSPFromStudent(
+                    return ResponseEntity.ok(spPage);
+                }
+            
+            // Modified to accept pagination parameters a
+                @GetMapping("/faculty/{facultyId}")
+                public ResponseEntity<Page<SPDTO>> getS
+                
+                        @RequestParam(defaultValue
+                        @RequestParam(defaultValue = "10") int 
+                ) {
+                    Pageable pageable = Pag
+         
+
+            }
+        // 
+
+        
+     
+
+            try {
+                SPDTO createdSP = spService.createSP(spDTO);
+                    return new ResponseEntity<>(creat
+     
+
+            } catch (Exception e) {
+                logger.error("Error creating SP", e);
+                    return ResponseEntity.status(Http
+     
+
+    
+        // Modified to accept pagination parameters and return a Page
+            @GetMapping("/tags")
+            public ResponseEntity<Page<SPDT
+     
+
+                @RequestParam(defaultVa
+        ) {
+                Pageable pageable = PageRequest.of(pa
+     
+
         }
+    
+            @PutMapping("/{spId}/view")
+        // 
+            p
+                    spService.incrementViewCount(spId);
+                    return ResponseEntity.ok().build();
+            }
+            
+                @GetMapping("/most-viewed")
+                public ResponseEntity<List<SPDTO>> getMostViewedSPs(
+                List<SPDTO> sps
+                    return ResponseEntity.ok(sps);
+                }
+        
+     
 
-        // Add other filter conditions here for when facultyId is NOT provided,
-        // or if you need to combine filters (e.g., filter by adviserIds within a
-        // faculty).
-        // Example:
-        // if (adviserIds != null && !adviserIds.isEmpty()) {
-        // return spRepository.findByAdviserIdIn(adviserIds);
-        // }
-        // ... other filters
+            Integer view
+            return ResponseEntity.ok(viewCount);
+            }
+    
 
-        // If no filters are applied, return all SPs
-        return spRepository.findAll();
-    }
+        public ResponseEntity<List<Ad
+            List<AdviserDTO> advisers = spService.getTopAdvisersByViews();
+             
+                }
+        
+                @PutMapping("/{spId}/update")
+         
+     
 
-    @GetMapping("/adviser/{adviserId}")
-    public List<SPDTO> getSPFromAdviser(@PathVariable Integer adviserId) {
-        return spService.getSPFromAdviser(adviserId);
-    }
+                return Resp
+            } catch (ResponseStatusException e) {
+                    throw e;
+                } catch (Exception e) {
+                    logger.erro
+                        return ResponseEntity.status(H
+         
+            }
+    
 
-    @GetMapping("/student/{studentId}")
-    public List<SPDTO> getSPFromStudent(@PathVariable Integer studentId) {
-        return spService.getSPFromStudent(studentId);
-    }
+        public ResponseEntity<Ma
+                @RequestParam("file") MultipartFile file,
+                    @RequestParam("uploadedById") Intege
+                logger.info("Received request to upload SP CSV by Admin I
 
-    @PostMapping("/{spId}/view")
-    public ResponseEntity<Void> incrementViewCount(@PathVariable Integer spId) {
-        spService.incrementViewCount(spId);
-        return ResponseEntity.ok().build();
-    }
+                    return ResponseE
+                    }
+                    try {
+         
 
-    @GetMapping("/faculty/{facultyId}")
-    public List<SPDTO> getSPFromFaculty(@PathVariable Integer facultyId) {
-        return spService.getSPFromFaculty(facultyId);
-    }
+                } catch (ResponseStatusException e) {
+                    logger.error("Upload faile
+     
 
-    @PostMapping
-    public SPDTO createSP(@RequestBody SPDTO spDTO) {
-        return spService.createSP(spDTO);
-    }
+                logger.error("Err
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error
+                } catch (RuntimeException e) { // Catch the Runtime
+                     logger.error("Critical error during upload process", e);
 
-    @GetMapping("/tags")
-    public List<SPDTO> getSPsWithTags(@RequestParam(required = false) List<Integer> tagIds) {
-        return spService.getSPsWithTags(tagIds);
-    }
+             
+                        logger.error("An unexpected error occu
+                        return ResponseEntity.st
+                }
+                }
+            
+            // New endpoint for
+                @GetMapping("/filter")
+                public ResponseEntity<Page<SPDTO>> filterSPs(
+         
+     
 
-    @GetMapping("/{spId}/view-count")
-    public ResponseEntity<Integer> getSPViewCount(@PathVariable Integer spId) {
-        return ResponseEntity.ok(spService.getSPViewCount(spId));
-    }
+                @RequestParam(required = f
+                @RequestParam(d
+                @RequestParam(defaultValue = "10") int size
+                ) {
+                    Pageable pageable = PageRequest.of(page, size);
+                    Page<SPDTO> spPage = spService.filterSPs(a   
+            }
 
-    @GetMapping("/top-sps")
-    public ResponseEntity<List<SPDTO>> getMostViewedSPs() {
-        List<SPDTO> topSPs = spService.getMostViewedSPs(5);
-        if (topSPs.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(topSPs);
-    }
+        
+            
+            
+        
 
-    @GetMapping("/top-advisers")
-    public ResponseEntity<List<AdviserDTO>> getTopAdvisersByViews() {
-        System.out.println("🔍 Endpoint /top-advisers was hit!");
+        
+        
+        
+            
+            
+                    
+        
+        
+        
 
-        List<AdviserDTO> topAdvisers = spService.getTopAdvisersByViews();
-
-        if (topAdvisers.isEmpty()) {
-            System.out.println("⚠️ No advisers found!");
-            return ResponseEntity.noContent().build();
-        }
-
-        System.out.println("✅ Returning top advisers: " + topAdvisers);
-        return ResponseEntity.ok(topAdvisers);
-    }
-
-    @PutMapping("/{spId}/update")
-    public ResponseEntity<SPDTO> updateSP(@PathVariable Integer spId, @RequestBody SPDTO spDTO) {
-        System.out.println("Received update request for SP: " + spId);
-        System.out.println("Request body: " + spDTO);
-
-        SPDTO updatedSP = spService.updateSP(spId, spDTO);
-        return ResponseEntity.ok(updatedSP);
-    }
-
-}
+        
+            
+            
+                    
+            
+            
+            
+            
+        
+            
+            
+            
+                    
+        
+            
+            // 
+            
+                    
+            
+        
+            
+            
+            
+                    
+        
+    
