@@ -774,10 +774,10 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
           </div>
 
          {/* --- Custom Pagination using MUI Pagination and Select --- */}
-         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', width: '100%', margin: '20px 0' }}>
+         <div style={{ isplay: 'flex', md: 'row', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', width: '100%', margin: '20px 0' }}>
     {/* Left spacer or content (can be empty - adjust width if needed) */}
     {/* This div helps push the pagination to the center when justifyContent is space-between */}
-    <div style={{ width: '120px' }}>{/* Adjust width based on the width of your right controls */}</div>
+    <div style={{ width: '33%', flexShrink: 0, display: 'flex', md: 'block' }}></div> {/* Hide on small screens */}
 
 {/* Container with flexbox to align items */}
 <div style={{ 

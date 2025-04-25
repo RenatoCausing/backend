@@ -166,6 +166,7 @@
   
   .mb-2 {
     margin-bottom: 0.5rem;
+    gap: 1rem;
   }
   
   .mb-1 {
@@ -341,6 +342,8 @@
   }
   
   .text-gray-500 {
+    height: 40px;
+    width: 40px;
     color: #6b7280;
   }
   
@@ -350,10 +353,19 @@
   
   .text-blue-600 {
     color: #2563eb;
+    
   }
   
+  .text-red-600 {
+    
+    height: 40px;
+    width: 40px;
+    color: #6b7280;
+    
+  }
   .text-red-700 {
     color: #b91c1c;
+    
   }
   
   .hover\:underline:hover {
