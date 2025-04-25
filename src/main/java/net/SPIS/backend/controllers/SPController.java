@@ -2,227 +2,209 @@ package net.SPIS.backend.controllers;
 
 import net.SPIS.backend.DTO.AdviserDTO;
 import net.SPIS.backend.DTO.SPDTO;
+import net.SPIS.backend.entities.SP;
+import net.SPIS.backend.repositories.SPRepository;
 import net.SPIS.backend.service.SPService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page; // Import Page
-import org.springframework.data.domain.PageRequest; // Import PageRequest
-import org.springframework.data.domain.Pageable; // Import Pageable
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/sp")
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class SPController {
 
-    private static final Lo
+    private static final Logger logger = LoggerFactory.getLogger(SPController.class);
 
-        @Autowired
+    @Autowired
+    private SPService spService;
 
-    
-        @GetMapping("/{spId}")
-        public
-            SPDTO spDTO = spService.getSP(spId);
+    @Autowired
+    private SPRepository spRepository; // Keep if used directly (like in filterSPs)
 
-    
-        // Modified to acc
-        @GetMapping
-            public ResponseEntity<Pag
-     
+    // --- Existing endpoints from Controller Backend.txt ---
+    @GetMapping("/{spId}")
+    public SPDTO getSP(@PathVariable Integer spId) {
+        return spService.getSP(spId);
+    }
 
-        ) {
-            Pageable pageable = Pag
-                Page<SPDTO> spPage =
-     
+    @GetMapping
+    public List<SPDTO> getAllSP() {
+        return spService.getAllSP();
+    }
 
-    
-        // Modified to accept pagination parameters and return a Page
-                @GetMapping("/adviser/{adviserId}")
-                public ResponseEntity<Page<SPDTO>> getSPFromAdvis
-                        @PathVariable Integer adviserId,
-                        @RequestParam(defaultValue = "0") int pa
+    @GetMapping("/filter")
+    public List<SPDTO> filterSPs(
+            @RequestParam(required = false) List<Integer> adviserIds,
+            @RequestParam(required = false) List<Integer> tagIds,
+            @RequestParam(required = false) Integer facultyId,
+            @RequestParam(required = false) String searchTerm) {
 
-            ) {
-                Pageable pageable = PageRequest.of(page, size);
-                Page<SPDTO> spPage = spService.getSPFromAdvi
+        // TODO: Implement more sophisticated filtering logic in the service layer
+        // This current implementation is basic and might not combine filters correctly.
+        // It's better to move filtering logic to SPService.
 
-            }
-                
+        logger.debug("Filtering SPs with: adviserIds={}, tagIds={}, facultyId={}, searchTerm={}",
+                adviserIds, tagIds, facultyId, searchTerm);
+        List<SPDTO> results;
 
-            @GetMapping("/st
-
-                    @PathVariable Integer studentId,
-                    @RequestPara
-                        @RequestParam(defaultValue = "10") int siz
-                ) {
-                Pageable pageable = PageRequest.of(page, size);
-                    Page<SPDTO> spPage = spService.getSPFromStudent(
-                    return ResponseEntity.ok(spPage);
-                }
-            
-            // Modified to accept pagination parameters a
-                @GetMapping("/faculty/{facultyId}")
-                public ResponseEntity<Page<SPDTO>> getS
-                
-                        @RequestParam(defaultValue
-                        @RequestParam(defaultValue = "10") int 
-                ) {
-                    Pageable pageable = Pag
-         
-
-            }
-        // 
-
-        
-     
-
-            try {
-                SPDTO createdSP = spService.createSP(spDTO);
-                    return new ResponseEntity<>(creat
-     
-
-            } catch (Exception e) {
-                logger.error("Error creating SP", e);
-                    return ResponseEntity.status(Http
-     
-
-    
-        // Modified to accept pagination parameters and return a Page
-            @GetMapping("/tags")
-            public ResponseEntity<Page<SPDT
-     
-
-                @RequestParam(defaultVa
-        ) {
-                Pageable pageable = PageRequest.of(pa
-     
-
+        // Example: Prioritize faculty filter if present
+        if (facultyId != null) {
+            logger.debug("Filtering by facultyId: {}", facultyId);
+            results = spService.getSPFromFaculty(facultyId);
+        } else if (adviserIds != null && !adviserIds.isEmpty()) {
+            logger.debug("Filtering by adviserIds: {}", adviserIds);
+            // Assuming a service method like getSPFromAdvisers exists or is added
+            // results = spService.getSPFromAdvisers(adviserIds);
+            results = spService.getAllSP(); // Placeholder - implement proper logic
+        } else if (tagIds != null && !tagIds.isEmpty()) {
+            logger.debug("Filtering by tagIds: {}", tagIds);
+            results = spService.getSPsWithTags(tagIds);
+        } else {
+            // Add searchTerm logic here if needed
+            // e.g., results = spService.searchSPs(searchTerm);
+            logger.debug("No specific filters applied, returning all SPs.");
+            results = spService.getAllSP();
         }
-    
-            @PutMapping("/{spId}/view")
-        // 
-            p
-                    spService.incrementViewCount(spId);
-                    return ResponseEntity.ok().build();
-            }
-            
-                @GetMapping("/most-viewed")
-                public ResponseEntity<List<SPDTO>> getMostViewedSPs(
-                List<SPDTO> sps
-                    return ResponseEntity.ok(sps);
-                }
-        
-     
 
-            Integer view
-            return ResponseEntity.ok(viewCount);
-            }
-    
+        // Further filter results based on other criteria if needed (e.g., apply tags ON
+        // TOP of faculty)
 
-        public ResponseEntity<List<Ad
-            List<AdviserDTO> advisers = spService.getTopAdvisersByViews();
-             
-                }
-        
-                @PutMapping("/{spId}/update")
-         
-     
+        return results;
+    }
 
-                return Resp
-            } catch (ResponseStatusException e) {
-                    throw e;
-                } catch (Exception e) {
-                    logger.erro
-                        return ResponseEntity.status(H
-         
-            }
-    
+    @GetMapping("/adviser/{adviserId}")
+    public List<SPDTO> getSPFromAdviser(@PathVariable Integer adviserId) {
+        return spService.getSPFromAdviser(adviserId);
+    }
 
-        public ResponseEntity<Ma
-                @RequestParam("file") MultipartFile file,
-                    @RequestParam("uploadedById") Intege
-                logger.info("Received request to upload SP CSV by Admin I
+    @GetMapping("/student/{studentId}")
+    public List<SPDTO> getSPFromStudent(@PathVariable Integer studentId) {
+        return spService.getSPFromStudent(studentId);
+    }
 
-                    return ResponseE
-                    }
-                    try {
-         
+    @PostMapping("/{spId}/view")
+    public ResponseEntity<Void> incrementViewCount(@PathVariable Integer spId) {
+        spService.incrementViewCount(spId);
+        return ResponseEntity.ok().build();
+    }
 
-                } catch (ResponseStatusException e) {
-                    logger.error("Upload faile
-     
+    @GetMapping("/faculty/{facultyId}")
+    public List<SPDTO> getSPFromFaculty(@PathVariable Integer facultyId) {
+        return spService.getSPFromFaculty(facultyId);
+    }
 
-                logger.error("Err
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error
-                } catch (RuntimeException e) { // Catch the Runtime
-                     logger.error("Critical error during upload process", e);
+    @PostMapping
+    public ResponseEntity<SPDTO> createSP(@RequestBody SPDTO spDTO) {
+        try {
+            SPDTO createdSP = spService.createSP(spDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdSP);
+        } catch (ResponseStatusException e) {
+            logger.error("Error creating SP: {} - {}", e.getStatusCode(), e.getReason());
+            return ResponseEntity.status(e.getStatusCode()).build();
+        } catch (Exception e) {
+            logger.error("Unexpected error creating SP", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 
-             
-                        logger.error("An unexpected error occu
-                        return ResponseEntity.st
-                }
-                }
-            
-            // New endpoint for
-                @GetMapping("/filter")
-                public ResponseEntity<Page<SPDTO>> filterSPs(
-         
-     
+    @GetMapping("/tags")
+    public List<SPDTO> getSPsWithTags(@RequestParam(required = false) List<Integer> tagIds) {
+        return spService.getSPsWithTags(tagIds);
+    }
 
-                @RequestParam(required = f
-                @RequestParam(d
-                @RequestParam(defaultValue = "10") int size
-                ) {
-                    Pageable pageable = PageRequest.of(page, size);
-                    Page<SPDTO> spPage = spService.filterSPs(a   
-            }
+    @GetMapping("/{spId}/view-count")
+    public ResponseEntity<Integer> getSPViewCount(@PathVariable Integer spId) {
+        try {
+            return ResponseEntity.ok(spService.getSPViewCount(spId));
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).build();
+        }
+    }
 
-        
-            
-            
-        
+    @GetMapping("/top-sps")
+    public ResponseEntity<List<SPDTO>> getMostViewedSPs() {
+        List<SPDTO> topSPs = spService.getMostViewedSPs(5);
+        if (topSPs.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(topSPs);
+    }
 
-        
-        
-        
-            
-            
-                    
-        
-        
-        
+    @GetMapping("/top-advisers")
+    public ResponseEntity<List<AdviserDTO>> getTopAdvisersByViews() {
+        logger.debug("Endpoint /top-advisers was hit!");
+        List<AdviserDTO> topAdvisers = spService.getTopAdvisersByViews();
+        if (topAdvisers.isEmpty()) {
+            logger.debug("No top advisers found or all have 0 views.");
+            return ResponseEntity.noContent().build();
+        }
 
-        
-            
-            
-                    
-            
-            
-            
-            
-        
-            
-            
-            
-                    
-        
-            
-            // 
-            
-                    
-            
-        
-            
-            
-            
-                    
-        
-    
+        logger.debug("Returning top advisers: {}", topAdvisers.size());
+        return ResponseEntity.ok(topAdvisers);
+    }
+
+    @PutMapping("/{spId}/update")
+    public ResponseEntity<SPDTO> updateSP(@PathVariable Integer spId, @RequestBody SPDTO spDTO) {
+        logger.info("Received update request for SP ID: {}", spId);
+        logger.debug("Request body: {}", spDTO);
+
+        try {
+            SPDTO updatedSP = spService.updateSP(spId, spDTO);
+            return ResponseEntity.ok(updatedSP);
+        } catch (ResponseStatusException e) {
+            logger.error("Error updating SP {}: {} - {}", spId, e.getStatusCode(), e.getReason());
+            return ResponseEntity.status(e.getStatusCode()).build();
+        } catch (Exception e) {
+            logger.error("Unexpected error updating SP {}", spId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // --- New Endpoint for CSV Upload ---
+    @PostMapping("/upload-csv")
+    public ResponseEntity<Map<String, Object>> uploadSPCSV(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("uploadedById") Integer uploadedById) {
+        logger.info("Received request to upload SP CSV by Admin ID: {}", uploadedById);
+        if (file.isEmpty()) {
+            logger.warn("Upload request failed: No file provided.");
+            return ResponseEntity.badRequest().body(Map.of("error", "Please select a CSV file to upload."));
+        }
+
+        String filename = file.getOriginalFilename();
+        if (filename == null || (!filename.toLowerCase().endsWith(".csv"))) {
+            logger.warn("Upload request failed: Invalid filename or extension '{}'. Requires .csv", filename);
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Invalid file type. Please upload a file with a .csv extension."));
+        }
+        try {
+            Map<String, Object> result = spService.processSPUpload(file, uploadedById);
+            logger.info("CSV processing completed for admin ID {}. Result: Success={}, Errors={}",
+                    uploadedById, result.get("successCount"), result.get("errorCount"));
+            return ResponseEntity.ok(result);
+        } catch (IOException e) {
+            logger.error("IOException during CSV upload processing for admin ID {}", uploadedById, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error reading CSV file: " + e.getMessage()));
+        } catch (ResponseStatusException e) {
+            logger.error("ResponseStatusException during CSV upload processing for admin ID {}: {} - {}", uploadedById,
+                    e.getStatusCode(), e.getReason(), e);
+            return ResponseEntity.status(e.getStatusCode()).body(Map.of("error", e.getReason()));
+        } catch (Exception e) {
+            logger.error("Unexpected error during CSV upload for admin ID {}", uploadedById, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "An unexpected server error occurred during upload: " + e.getMessage()));
+        }
+    }
+}

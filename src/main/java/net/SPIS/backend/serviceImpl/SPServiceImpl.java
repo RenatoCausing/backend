@@ -9,10 +9,8 @@ import net.SPIS.backend.service.SPService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page; // Import Page
-import org.springframework.data.domain.PageImpl; // Import PageImpl
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable; // Import Pageable
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.LocalDate;
-import java.time.YearMonth;
+import java.time.YearMonth; // Import YearMonth
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
@@ -47,7 +45,7 @@ public class SPServiceImpl implements SPService {
     @Autowired
     private FacultyRepository facultyRepository;
 
-    // Define the date formatter for yyyy-MM format
+    // Define the date formatter for-MM format
     private static final DateTimeFormatter YEAR_MONTH_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM");
 
     @Override
@@ -59,27 +57,26 @@ public class SPServiceImpl implements SPService {
     }
 
     @Override
-    public Page<SPDTO> getAllSP(Pageable pageable) {
-        Page<SP> spPage = spRepository.findAll(pageable);
-        return spPage.map(this::toDTO); // Use map to convert Page<SP> to Page<SPDTO>
+    public List<SPDTO> getAllSP() {
+        return spRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     @Override
-    public Page<SPDTO> getSPFromAdviser(Integer adviserId, Pageable pageable) {
-        Page<SP> spPage = spRepository.findByAdviserAdminId(adviserId, pageable);
-        return spPage.map(this::toDTO);
+    public List<SPDTO> getSPFromAdviser(Integer adviserId) {
+        return spRepository.findByAdviserAdminId(adviserId).stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     @Override
-    public Page<SPDTO> getSPFromStudent(Integer studentId, Pageable pageable) {
-        Page<SP> spPage = spRepository.findByStudentsStudentId(studentId, pageable);
-        return spPage.map(this::toDTO);
+    public List<SPDTO> getSPFromStudent(Integer studentId) {
+        return spRepository.findByStudentsStudentId(studentId).stream().map(this::toDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Page<SPDTO> getSPFromFaculty(Integer facultyId, Pageable pageable) {
-        Page<SP> spPage = spRepository.findByAdviserFacultyId(facultyId, pageable);
-        return spPage.map(this::toDTO);
+    public List<SPDTO> getSPFromFaculty(Integer facultyId) {
+        return spRepository.findByAdviserFacultyId(facultyId).stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -99,7 +96,8 @@ public class SPServiceImpl implements SPService {
         Admin uploadedBy = adminRepository.findById(spDTO.getUploadedById())
                 .orElseThrow(() -> {
                     logger.error("Uploader Admin not found with ID: {}", spDTO.getUploadedById());
-                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "Uploader Admin not found with ID: " + spDTO.getUploadedById());
+                    return new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            "Uploader Admin not found with ID: " + spDTO.getUploadedById());
                 });
         logger.debug("Found uploader: {}", uploadedBy.getAdminId());
         sp.setUploadedBy(uploadedBy);
@@ -108,7 +106,8 @@ public class SPServiceImpl implements SPService {
             Admin adviser = adminRepository.findById(spDTO.getAdviserId())
                     .orElseThrow(() -> {
                         logger.error("Adviser Admin not found with ID: {}", spDTO.getAdviserId());
-                        return new ResponseStatusException(HttpStatus.NOT_FOUND, "Adviser Admin not found with ID: " + spDTO.getAdviserId());
+                        return new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                "Adviser Admin not found with ID: " + spDTO.getAdviserId());
                     });
             logger.debug("Found adviser: {}", adviser.getAdminId());
             sp.setAdviser(adviser);
@@ -152,12 +151,11 @@ public class SPServiceImpl implements SPService {
     }
 
     @Override
-    public Page<SPDTO> getSPsWithTags(List<Integer> tagIds, Pageable pageable) {
+    public List<SPDTO> getSPsWithTags(List<Integer> tagIds) {
         if (tagIds == null || tagIds.isEmpty()) {
-            return getAllSP(pageable);
+            return getAllSP();
         }
-        Page<SP> spPage = spRepository.findByTagsTagIdIn(tagIds, pageable);
-        return spPage.map(this::toDTO);
+        return spRepository.findByTagsTagIdIn(tagIds).stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     @Override
@@ -252,7 +250,6 @@ public class SPServiceImpl implements SPService {
             sp.setAdviser(null);
         }
 
-
         Set<Integer> tagIds = spDTO.getTagIds();
         if (tagIds != null) {
             logger.debug("Updating tags with IDs: {}", tagIds);
@@ -269,7 +266,6 @@ public class SPServiceImpl implements SPService {
             logger.debug("No tag IDs provided, setting empty set.");
             sp.setTags(new HashSet<>());
         }
-
 
         List<Integer> studentIds = spDTO.getStudentIds();
         if (studentIds != null) {
@@ -288,12 +284,12 @@ public class SPServiceImpl implements SPService {
             sp.setStudents(new HashSet<>());
         }
 
-
+        SP savedSP = spRepository.save(sp);
+        logger.info("SP updated successfully, ID: {}", savedSP.getSpId());
         SPDTO resultDTO = toDTO(savedSP);
         logger.debug("Returning updated DTO: {}", resultDTO);
         return resultDTO;
     }
-
 
     private SPDTO toDTO(SP sp) {
         SPDTO dto = new SPDTO();
@@ -332,13 +328,11 @@ public class SPServiceImpl implements SPService {
         dto.setStudentIds(studentIds);
         dto.setAuthors(authors);
 
-
         if (sp.getAdviser() != null) {
             dto.setAdviserId(sp.getAdviser().getAdminId());
         } else {
             dto.setAdviserId(null);
         }
-
 
         Set<Integer> tagIds = new HashSet<>();
         if (sp.getTags() != null) {
@@ -352,7 +346,6 @@ public class SPServiceImpl implements SPService {
         return dto;
     }
 
-
     @Override
     @Transactional
     public Map<String, Object> processSPUpload(MultipartFile file, Integer uploadedById) throws IOException {
@@ -362,7 +355,8 @@ public class SPServiceImpl implements SPService {
         int processedRows = 0;
 
         Admin uploader = adminRepository.findById(uploadedById)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Uploading Admin not found with ID: " + uploadedById));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Uploading Admin not found with ID: " + uploadedById));
 
         try (CSVReader reader = new CSVReader(new InputStreamReader(file.getInputStream()))) {
             String[] headers = reader.readNext(); // Read header row
@@ -377,28 +371,30 @@ public class SPServiceImpl implements SPService {
                 logger.debug("Processing row {}: {}", processedRows, Arrays.toString(line));
 
                 final int EXPECTED_COLUMNS = 10; // Based on your previous CSV structure
-         
+                if (line.length < EXPECTED_COLUMNS) {
+                    errors.add("Row " + processedRows + ": Incorrect number of columns. Expected " + EXPECTED_COLUMNS
+                            + ", found " + line.length + ". Skipping row.");
+                    logger.warn("Row {} skipped due to incorrect column count.", processedRows);
+                    continue;
+                }
 
-                logger.w
-                continue;
-            }
+                String title = null;
+                String authorsStr = null;
+                String adviserStr = null;
+                String dateIssuedStr = null;
+                String uri = null;
+                String abstractText = null;
+                String documentPath = null;
+                String tagsStr = null;
+                String yearStr = null;
+                String semesterStr = null;
 
-            String tit
-
-            String advise
-            String dateIss
-            String uri = n
-            String abstractTex
-
-            String tagsSt
-
-          
-        Admin adviser =
-
-        LocalDate dateIssued = null;
+                Admin adviser = null;
+                Set<Student> students = new HashSet<>();
+                Set<Tag> tags = new HashSet<>();
+                LocalDate dateIssued = null;
                 Integer year = null;
                 String semester = null;
-
 
                 try {
                     title = line[0].trim();
@@ -412,7 +408,6 @@ public class SPServiceImpl implements SPService {
                     yearStr = line[8].trim();
                     semesterStr = line[9].trim();
 
-
                     if (title.isEmpty()) {
                         errors.add("Row " + processedRows + ": Title is missing. Skipping row.");
                         logger.warn("Row {} skipped: Title is missing.", processedRows);
@@ -421,77 +416,121 @@ public class SPServiceImpl implements SPService {
 
                     if (!adviserStr.isEmpty()) {
                         try {
-                            // Pass processedRows to findOrCreateAdviser
+                            // *** CORRECTED: Pass processedRows to findOrCreateAdviser ***
                             adviser = findOrCreateAdviser(adviserStr, processedRows);
-                     
-
-                errors.add("Row " + processedRows + ": Failed to process adviser '" + adviserStr + "'. Skipping row.");
-                                logger.warn("Row {} skipped: Failed to process adviser '{}'.", processedRows, adviserStr);
+                            if (adviser == null) {
+                                errors.add("Row " + processedRows + ": Failed to process adviser '" + adviserStr
+                                        + "'. Skipping row.");
+                                logger.warn("Row {} skipped: Failed to process adviser '{}'.", processedRows,
+                                        adviserStr);
                                 continue;
                             }
                         } catch (IllegalArgumentException e) {
-                 
+                            errors.add("Row " + processedRows + ": Invalid adviser format '" + adviserStr + "': "
+                                    + e.getMessage() + ". Skipping row.");
+                            logger.warn("Row {} skipped: Invalid adviser format '{}'.", processedRows, adviserStr, e);
+                            continue;
+                        } catch (RuntimeException e) {
+                            errors.add("Row " + processedRows + ": Error processing adviser '" + adviserStr + "': "
+                                    + e.getMessage() + ". Skipping row.");
+                            logger.error("Row {} skipped: Error processing adviser '{}'.", processedRows, adviserStr,
+                                    e);
+                            continue;
+                        }
+                    } else {
+                        logger.debug("Row {}: Adviser column is empty, setting adviser to null.", processedRows);
+                    }
 
-              errors.add("Row " + processedRows + ": Invalid adviser format '" + adviserStr + "': " + e.getMessage() + ". Skipping row.");
-                            logger.wan"Row {} skippd Invalid adviser format '{}'." rocessedRos ad
-
-               
-
-    logger.debug("o
-
-    !authorsS          // processedRos s alread     students = fidrCreateStudensauthorsStr, errors, processedRows);if (students.isEmpty( && !authorsStr.        errors.add("Row " + processedRows + ": No valid students could be processed       
-
-            }
+                    if (!authorsStr.isEmpty()) {
+                        try {
+                            // processedRows is already passed to findOrCreateStudents
+                            students = findOrCreateStudents(authorsStr, errors, processedRows);
+                            if (students.isEmpty() && !authorsStr.isEmpty()) {
+                                errors.add("Row " + processedRows + ": No valid students could be processed from '"
+                                        + authorsStr + "'. Skipping row.");
+                                logger.warn("Row {}: No valid students could be processed from '{}'. Skipping row.",
+                                        processedRows, authorsStr);
+                                continue;
+                            }
                         } catch (IllegalArgumentException e) {
-                            errors.add("Row " + processedRows + ": Invalid author format '" + authorsStr + "': " + e.getMessage() + ". Skipping row.");
+                            errors.add("Row " + processedRows + ": Invalid author format '" + authorsStr + "': "
+                                    + e.getMessage() + ". Skipping row.");
                             logger.warn("Row {} skipped: Invalid author format '{}'.", processedRows, authorsStr, e);
                             continue;
-                 
+                        } catch (RuntimeException e) {
+                            errors.add("Row " + processedRows + ": Error processing authors '" + authorsStr + "': "
+                                    + e.getMessage() + ". Skipping row.");
+                            logger.error("Row {} skipped: Error processing authors '{}'.", processedRows, authorsStr,
+                                    e);
+                            continue;
+                        }
+                    } else {
+                        logger.debug("Row {}: Authors column is empty, setting students to empty set.", processedRows);
+                    }
 
-          } catch (RuntimeException e) {
-                            errors.ad(Row " + procesdRows + ": Error processing auhrs '" + auhrsStr+"
+                    if (!tagsStr.isEmpty()) {
+                        try {
+                            // processedRows is already passed to findOrCreateTags
+                            tags = findOrCreateTags(tagsStr, errors, processedRows);
+                        } catch (RuntimeException e) {
+                            errors.add("Row " + processedRows + ": Error processing tags '" + tagsStr + "': "
+                                    + e.getMessage() + ". Skipping row.");
+                            logger.error("Row {} skipped: Error processing tags '{}'.", processedRows, tagsStr, e);
+                            continue;
+                        }
+                    } else {
+                        logger.debug("Row {}: Tags column is empty, setting tags to empty set.", processedRows);
+                    }
 
-            logger.debug("Row {}: Authors column is empty, set
+                    try {
+                        if (!dateIssuedStr.isEmpty()) {
+                            // *** MODIFIED: Parse to YearMonth and then to LocalDate ***
+                            YearMonth yearMonth = YearMonth.parse(dateIssuedStr, YEAR_MONTH_FORMATTER);
+                            dateIssued = yearMonth.atDay(1); // Assume the 1st day of the month
+                        } else {
+                            // Allow dateIssued to be null if the column is empty
+                            dateIssued = null;
+                            logger.debug("Row {}: Date Issued column is empty, setting dateIssued to null.",
+                                    processedRows);
+                        }
+                    } catch (DateTimeParseException e) {
+                        errors.add("Row " + processedRows + ": Invalid date format for '" + dateIssuedStr
+                                + "'. Use-MM. Skipping row.");
+                        logger.warn("Row {} skipped: Invalid date format '{}'.", processedRows, dateIssuedStr);
+                        continue;
+                    }
 
-    if (!tagsStr.ism
+                    try {
+                        if (!yearStr.isEmpty()) {
+                            year = Integer.parseInt(yearStr);
+                        } else {
+                            // Allow year to be null if the column is empty
+                            year = null;
+                            logger.debug("Row {}: Year column is empty, setting year to null.", processedRows);
+                        }
+                    } catch (NumberFormatException e) {
+                        errors.add("Row " + processedRows + ": Invalid year format for '" + yearStr
+                                + "'. Must be an integer. Skipping row.");
+                        logger.warn("Row {} skipped: Invalid year format '{}'.", processedRows, yearStr);
+                        continue;
+                    }
 
-     
-            t
+                    semester = semesterStr.trim();
+                    if (semester.isEmpty()) {
+                        // Allow semester to be empty/null
+                        semester = null;
+                        logger.debug("Row {}: Semester column is empty, setting semester to null.", processedRows);
+                    } else if (!semester.equalsIgnoreCase("1st") && !semester.equalsIgnoreCase("2nd")
+                            && !semester.equalsIgnoreCase("midyear")) {
+                        errors.add("Row " + processedRows + ": Invalid semester '" + semesterStr
+                                + "'. Use '1st', '2nd', 'Midyear', or leave empty. Skipping row.");
+                        logger.warn("Row {} skipped: Invalid semester '{}'.", processedRows, semesterStr);
+                        continue;
+                    }
 
-                logger.ero("Row {} skipe: Error processing tags '{}., procesdRows 
-
-                 logger.debug("Row {}: T
-
-         if (!dateIssuedStr.ism
-            // Parse t
-            YearMonth yearMonth = YearMonth.parse(dateIssuedStr, YEAR_MONTH_FOR
-
-          
-            // Allow dateIssued to be null if the column 
-
-            logr.deb    }
-
-              c
-
-        if (!yearStr.ism
-
-          
-            // Allow year to be null if the column 
-
-          logg    }
-
-            logger.wan"Row {         continue;    }
-
-            f(semester.isEmpty()
-
-             semester =n
-
-       } else if (!semester.equalsIgno
-           e
-
-        }
-
-            sp.setYear(year);
+                    SP sp = new SP();
+                    sp.setTitle(title);
+                    sp.setYear(year);
                     sp.setSemester(semester);
                     sp.setAbstractText(abstractText);
                     sp.setUri(uri);
@@ -508,30 +547,33 @@ public class SPServiceImpl implements SPService {
                     logger.debug("Successfully saved SP from row {}", processedRows);
 
                 } catch (ArrayIndexOutOfBoundsException e) {
-                    e
-
-            continue;
+                    errors.add("Row " + processedRows
+                            + ": Error accessing column data (likely due to insufficient columns). Skipping row.");
+                    logger.warn("Row {} skipped due to column access error.", processedRows, e);
+                    continue;
                 } catch (Exception e) {
                     errors.add("Row " + processedRows + ": Unexpected error processing row - " + e.getMessage());
                     logger.error("Unexpected error processing row {}: {}", processedRows, Arrays.toString(line), e);
-         
-
-             } 
-    (CsvValidationException e) {
-    rs.add("CSV Validation Error at 
-
-    l 
-
-        logger.error("Error reading CSV file", e);
+                    // Re-throw as RuntimeException to trigger transaction rollback if needed
+                    throw new RuntimeException("Critical error processing row " + processedRows, e);
+                }
+            }
+        } catch (CsvValidationException e) {
+            errors.add("CSV Validation Error at line " + e.getLineNumber() + ": " + e.getMessage());
+            logger.error("CSV Validation Error", e);
+            throw new RuntimeException("CSV Validation Error: " + e.getMessage(), e);
+        } catch (IOException e) {
+            errors.add("Error reading CSV file: " + e.getMessage());
+            logger.error("Error reading CSV file", e);
             throw e; // Re-throw IOException
         } catch (Exception e) {
             errors.add("An unexpected error occurred during the upload process: " + e.getMessage());
             logger.error("Unexpected error during upload", e);
-     
+            throw new RuntimeException("An unexpected error occurred during the upload process: " + e.getMessage(), e);
+        }
 
-    }
-
-        logger.info("SP upload finished. Processed: {}, Succeeded: {}, Failed: {}", processedRows, successCount, errors.size());
+        logger.info("SP upload finished. Processed: {}, Succeeded: {}, Failed: {}", processedRows, successCount,
+                errors.size());
 
         Map<String, Object> result = new HashMap<>();
         result.put("successCount", successCount);
@@ -541,44 +583,44 @@ public class SPServiceImpl implements SPService {
         return result;
     }
 
-
-
+    @Transactional
+    private Admin findOrCreateAdviser(String adviserStr, int rowNum) { // *** CORRECTED: Added rowNum parameter ***
         if (adviserStr == null || adviserStr.trim().isEmpty()) {
-            logger.debug("Row {}: Adviser name string is empty or null, returning null.", rowNum);
+            logger.debug("Row {}: Adviser name string is empty or null, returning null.", rowNum); // Added rowNum log
             return null;
         }
 
         String[] names = adviserStr.trim().split(",", 2);
         if (names.length != 2) {
-            logger.warn("Row {}: Invalid adviser format: '{}'. Expected 'LastName, FirstName'. Cannot process.", rowNum, adviserStr);
+            logger.warn("Row {}: Invalid adviser format: '{}'. Expected 'LastName, FirstName'. Cannot process.", rowNum,
+                    adviserStr); // Added rowNum log
             throw new IllegalArgumentException("Invalid adviser format: Expected 'LastName, FirstName'");
         }
-                    
 
         String lastName = names[0].trim();
         String firstName = names[1].trim();
 
         if (lastName.isEmpty() || firstName.isEmpty()) {
-             logger.warn("Row {}: Empty first or last name after parsing adviser: '{}'. Cannot process.", rowNum, adviserStr);
-             throw new IllegalArgumentException("Invalid
-            
-                    
-            
+            logger.warn("Row {}: Empty first or last name after parsing adviser: '{}'. Cannot process.", rowNum,
+                    adviserStr); // Added rowNum log
+            throw new IllegalArgumentException("Invalid adviser name: Empty first or last name.");
+        }
 
+        List<Admin> potentialAdvisers = adminRepository.findByFirstNameAndLastName(firstName, lastName);
 
         Optional<Admin> foundAdviser = potentialAdvisers.stream()
-                                                .filter(admin -> "faculty".equalsIgnoreCase(admin.getRole()))
-                                                .findFirst();
-                
-                
+                .filter(admin -> "faculty".equalsIgnoreCase(admin.getRole()))
+                .findFirst();
 
+        if (foundAdviser.isPresent()) {
+            logger.debug("Row {}: Found existing faculty adviser: {} {} (ID: {})", rowNum, firstName, lastName,
+                    foundAdviser.get().getAdminId()); // Added rowNum log
             return foundAdviser.get();
         } else {
-                    
-            logger.info("Row {}: Faculty adviser not found matching name: {} {}. Creating new Admin entity.", rowNum, firstName, lastName);
+            logger.info("Row {}: Faculty adviser not found matching name: {} {}. Creating new Admin entity.", rowNum,
+                    firstName, lastName); // Added rowNum log
             Admin newAdviser = new Admin();
             newAdviser.setFirstName(firstName);
-                    
             newAdviser.setLastName(lastName);
             newAdviser.setMiddleName(null); // Assuming middle name is not in this format
             newAdviser.setEmail(null); // Assuming email is not in this format
@@ -589,10 +631,14 @@ public class SPServiceImpl implements SPService {
 
             try {
                 Admin savedAdviser = adminRepository.save(newAdviser);
-                logger.info("Row {}: Created new faculty adviser with ID: {}", rowNum, savedAdviser.getAdminId());
+                logger.info("Row {}: Created new faculty adviser with ID: {}", rowNum, savedAdviser.getAdminId()); // Added
+                                                                                                                   // rowNum
+                                                                                                                   // log
                 return savedAdviser;
             } catch (Exception e) {
-                logger.error("Row {}: Failed to create new adviser '{} {}'", rowNum, firstName, lastName, e);
+                logger.error("Row {}: Failed to create new adviser '{} {}'", rowNum, firstName, lastName, e); // Added
+                                                                                                              // rowNum
+                                                                                                              // log
                 throw new RuntimeException("Failed to create new adviser: " + e.getMessage(), e);
             }
         }
@@ -609,39 +655,39 @@ public class SPServiceImpl implements SPService {
         String[] authorPairs = authorsStr.trim().split(";");
         for (String authorPair : authorPairs) {
             authorPair = authorPair.trim();
-            if (authorPair.isEmpty()) continue;
+            if (authorPair.isEmpty())
+                continue;
 
-            String[] names = authorPa
-                r.split(",", 2);
+            String[] names = authorPair.split(",", 2);
             if (names.length != 2) {
-                errors.add("Row " + rowNum + ": Invalid author format '" + authorPair + "'. Expected 'LastName, FirstName'. Skipping this author.");
+                errors.add("Row " + rowNum + ": Invalid author format '" + authorPair
+                        + "'. Expected 'LastName, FirstName'. Skipping this author.");
                 logger.warn("Row {}: Invalid author format '{}'.", rowNum, authorPair);
                 continue;
-                        
             }
 
             String lastName = names[0].trim();
             String firstName = names[1].trim();
 
-             if (lastName.isEmpty() || firstNam
-
-               logger.warn("Row {}: Invalid author format '{}' resulted in empty name part.", rowNum, authorPair);
+            if (lastName.isEmpty() || firstName.isEmpty()) {
+                errors.add("Row " + rowNum + ": Invalid author format '" + authorPair
+                        + "' resulted in empty name part. Skipping this author.");
+                logger.warn("Row {}: Invalid author format '{}' resulted in empty name part.", rowNum, authorPair);
                 continue;
-                        
             }
 
-
+            Optional<Student> existingStudent = studentRepository
+                    .findByLastNameIgnoreCaseAndFirstNameIgnoreCase(lastName, firstName);
 
             if (existingStudent.isPresent()) {
-                    
                 students.add(existingStudent.get());
-                logger.debug("Row {}: Found existing student: {} {} (ID: {})", rowNum, firstName, lastName, existingStudent.get().getStudentId());
+                logger.debug("Row {}: Found existing student: {} {} (ID: {})", rowNum, firstName, lastName,
+                        existingStudent.get().getStudentId());
             } else {
-                logger.info("Row {}: Student not found matching name: {} {}. Creating new Student entity.",
-                        rowNum, firstName, lastName);
+                logger.info("Row {}: Student not found matching name: {} {}. Creating new Student entity.", rowNum,
+                        firstName, lastName);
                 Student newStudent = new Student();
                 newStudent.setFirstName(firstName);
-                        
                 newStudent.setLastName(lastName);
                 newStudent.setMiddleName(null); // Assuming middle name is not in this format
                 newStudent.setFaculty(null); // Assuming faculty is not in this format
@@ -667,49 +713,37 @@ public class SPServiceImpl implements SPService {
         String[] tagNames = tagsStr.trim().split(";");
         for (String tagName : tagNames) {
             tagName = tagName.trim();
-            if (tagName.isEmpty()) continue;
+            if (tagName.isEmpty())
+                continue;
 
-            String normalizedTagNa
-                e = tagName.toLowerCase();
+            String normalizedTagName = tagName.toLowerCase();
 
             Optional<Tag> existingTag = tagRepository.findByTagNameIgnoreCase(normalizedTagName);
 
             if (existingTag.isPresent()) {
                 tags.add(existingTag.get());
-                 logger.debug("Row {}: Found existing tag: {} (ID: {})", rowNum, existingTag.get().getTagName(), existingTag.get().getTagId());
+                logger.debug("Row {}: Found existing tag: {} (ID: {})", rowNum, existingTag.get().getTagName(),
+                        existingTag.get().getTagId());
             } else {
-                ogger.info("Row {}: Tag not found matching name: '{}'. Creating new Tag entity.", rowNum, tagNa
-                        e);
+                logger.info("Row {}: Tag not found matching name: '{}'. Creating new Tag entity.", rowNum, tagName);
                 Tag newTag = new Tag();
                 newTag.setTagName(tagName);
 
                 // Add logging before saving
-                logger.debug("Row {}: Attempting to save new Tag with name '{}'. Current ID: {}", rowNum, newTag.getTagName(), newTag.getTagId());
+                logger.debug("Row {}: Attempting to save new Tag with name '{}'. Current ID: {}", rowNum,
+                        newTag.getTagName(), newTag.getTagId());
 
                 // Removed the try-catch block here to allow exceptions to propagate
-                        
                 Tag savedTag = tagRepository.save(newTag);
 
                 // Add logging after saving
-                logger.debug("Row {}: Successfully saved new Tag. Name: '{}', Assigned ID: {}", rowNum, savedTag.getTagName(), savedTag.getTagId());
+                logger.debug("Row {}: Successfully saved new Tag. Name: '{}', Assigned ID: {}", rowNum,
+                        savedTag.getTagName(), savedTag.getTagId());
 
                 tags.add(savedTag);
-                        
                 logger.info("Row {}: Created new tag with ID: {}", rowNum, savedTag.getTagId());
             }
         }
         return tags;
-    }
-
-    @Override
-    public Page<SPDTO> filterSPs(List<Integer> adviserIds, List<Integer> tagIds, Integer facultyId, String searchTerm, Pageable pageable) {
-        // Handle empty lists for adviserIds and tagIds by converting them to null
-        // so the JPQL query's IS NULL checks work correctly.
-            
-        List<Integer> finalAdviserIds = (adviserIds != null && adviserIds.isEmpty()) ? null : adviserIds;
-        List<Integer> finalTagIds = (tagIds != null && tagIds.isEmpty()) ? null : tagIds;
-
-        Page<SP> spPage = spRepository.filterSPs(finalAdviserIds, finalTagIds, facultyId, searchTerm, pageable);
-        return spPage.map(this::toDTO);
     }
 }
