@@ -1,3 +1,6 @@
+
+import Stack from '@mui/material/Stack';
+import Pagination from '@mui/material/Pagination';
 import React, { useState, useEffect, useRef } from 'react';
 import { useProjectContext } from '../contexts/ProjectContext';
 import '../styles/SPFilterSystem.css';
@@ -748,47 +751,18 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
             </div>
           )}
         </div>
-        <div className="pagination">
-  <button 
-    onClick={() => currentPage > 1 && paginate(currentPage - 1)}
-    className={`pagination-nav ${currentPage === 1 ? 'disabled' : ''}`}
-  >
-    &lt; Back
-  </button>
-  
-  {/* Page numbers */}
-  {Array.from({ length: Math.min(totalPages, 8) }, (_, i) => i + 1).map(num => (
-    <button
-      key={num}
-      onClick={() => paginate(num)}
-      className={`pagination-item ${currentPage === num ? 'active' : ''}`}
-    >
-      {num}
-    </button>
-  ))}
-  
-  {/* Ellipsis - only show if more than 9 pages */}
-  {totalPages > 8 && (
-    <button className="pagination-item ellipsis" disabled>...</button>
-  )}
-  
-  {/* Last page - only show if more than 8 pages */}
-  {totalPages > 8 && (
-    <button
-      onClick={() => paginate(totalPages)}
-      className={`pagination-item ${currentPage === totalPages ? 'active' : ''}`}
-    >
-      {totalPages}
-    </button>
-  )}
-  
-  <button 
-    onClick={() => currentPage < totalPages && paginate(currentPage + 1)}
-    className={`pagination-nav ${currentPage === totalPages ? 'disabled' : ''}`}
-  >
-    Next &gt;
-  </button>
-</div>
+        <Pagination 
+      count={totalPages} 
+      page={currentPage}
+      onChange={(event, value) => paginate(value)}
+      shape="rounded"
+      size="large"
+      sx={{ 
+        display: 'flex',
+        justifyContent: 'center',
+        margin: '20px 0'
+      }}
+    />
         {/* Loading and Error States - Only show loading during initial load */}
         {initialLoading && <div className="bg-blue-50 p-4 text-center text-blue-700 rounded">Loading...</div>}
         {error && <div className="bg-red-50 p-4 text-center text-red-700 rounded">{error}</div>}

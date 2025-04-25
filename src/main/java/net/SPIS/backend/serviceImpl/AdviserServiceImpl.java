@@ -174,31 +174,55 @@ public class AdviserServiceImpl implements AdviserService {
         Admin savedAdmin = adminRepository.save(newAdmin);
         return toDTO(savedAdmin);
     }
+    // In net.SPIS.backend.serviceImpl.AdviserServiceImpl
 
     @Override
     @Transactional
-    public AdviserDTO updateUser(Integer adminId, Admin adminData) {
+    public AdviserDTO updateUser(Integer adminId, AdviserDTO adviserDTO) { // <-- Change the parameter type to
+                                                                           // AdviserDTO
         Admin existingAdmin = adminRepository.findById(adminId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (adminData.getFirstName() != null)
-            existingAdmin.setFirstName(adminData.getFirstName());
-        if (adminData.getMiddleName() != null)
-            existingAdmin.setMiddleName(adminData.getMiddleName());
-        if (adminData.getLastName() != null)
-            existingAdmin.setLastName(adminData.getLastName());
-        if (adminData.getEmail() != null)
-            existingAdmin.setEmail(adminData.getEmail());
+        // Update properties of the existing entity using data from the DTO
+        if (adviserDTO.getFirstName() != null) {
+            existingAdmin.setFirstName(adviserDTO.getFirstName());
+        }
+        if (adviserDTO.getMiddleName() != null) {
+            existingAdmin.setMiddleName(adviserDTO.getMiddleName());
+        }
+        if (adviserDTO.getLastName() != null) {
+            existingAdmin.setLastName(adviserDTO.getLastName());
+        }
+        if (adviserDTO.getEmail() != null) {
+            existingAdmin.setEmail(adviserDTO.getEmail());
+        }
 
-        // Handle special cases for nullable fields
-        existingAdmin.setRole(adminData.getRole()); // Can be null
-        existingAdmin.setFaculty(adminData.getFaculty()); // Can be null
+        // Handle role update (can be null in DTO, maps to nullable column)
+        // Assuming the DTO's setRole method or frontend handles converting "" to null
+        // if needed
+        existingAdmin.setRole(adviserDTO.getRole());
 
-        if (adminData.getImagePath() != null)
-            existingAdmin.setImagePath(adminData.getImagePath());
-        if (adminData.getDescription() != null)
-            existingAdmin.setDescription(adminData.getDescription());
+        // Handle faculty update (can be null in DTO, maps to nullable relationship)
+        // Handle faculty (which can be null)
+        if (adviserDTO.getFacultyId() != null) { // Check if a facultyId is provided in the DTO
+            // If yes, find the Faculty entity by this ID
+            Faculty faculty = facultyRepository.findById(adviserDTO.getFacultyId())
+                    .orElseThrow(() -> new RuntimeException("Faculty not found")); // Throws error if ID doesn't exist
+            // Set the found Faculty entity on the existing Admin
+            existingAdmin.setFaculty(faculty);
+        } else {
+            // If facultyId is null in the DTO, set the Admin's faculty to null
+            existingAdmin.setFaculty(null);
+        }
 
+        if (adviserDTO.getImagePath() != null) {
+            existingAdmin.setImagePath(adviserDTO.getImagePath());
+        }
+        if (adviserDTO.getDescription() != null) {
+            existingAdmin.setDescription(adviserDTO.getDescription());
+        }
+
+        // Save the updated existing entity
         Admin updatedAdmin = adminRepository.save(existingAdmin);
         return toDTO(updatedAdmin);
     }
@@ -215,7 +239,7 @@ public class AdviserServiceImpl implements AdviserService {
     @Override
     public AdviserDTO toDTO(Admin admin) {
         AdviserDTO dto = new AdviserDTO();
-        dto.setAdminId(admin.getAdminId()); 
+        dto.setAdminId(admin.getAdminId());
         dto.setFirstName(admin.getFirstName());
         dto.setLastName(admin.getLastName());
         dto.setMiddleName(admin.getMiddleName());
