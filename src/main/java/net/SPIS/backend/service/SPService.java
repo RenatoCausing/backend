@@ -2,8 +2,6 @@ package net.SPIS.backend.service;
 
 import net.SPIS.backend.DTO.AdviserDTO;
 import net.SPIS.backend.DTO.SPDTO;
-import org.springframework.data.domain.Page; // Import Page
-import org.springframework.data.domain.Pageable; // Import Pageable
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -15,35 +13,35 @@ public interface SPService {
 
     SPDTO getSP(Integer spId);
 
-    // Modified to return a Page of SPDTOs
-    Page<SPDTO> getAllSP(Pageable pageable);
+    // Reverted to return a List of SPDTOs
+    List<SPDTO> getAllSP();
 
-    // Modified to return a Page of SPDTOs
-    Page<SPDTO> getSPFromAdviser(Integer adviserId, Pageable pageable);
+    // Reverted to return a List of SPDTOs
+    List<SPDTO> getSPFromAdviser(Integer adviserId);
 
-    // Modified to return a Page of SPDTOs
-    Page<SPDTO> getSPFromStudent(Integer studentId, Pageable pageable);
+    // Reverted to return a List of SPDTOs
+    List<SPDTO> getSPFromStudent(Integer studentId);
 
-    // Modified to return a Page of SPDTOs
-    Page<SPDTO> getSPFromFaculty(Integer facultyId, Pageable pageable);
+    // *** CORRECTED METHOD NAME IN INTERFACE ***
+    // Reverted to return a List of SPDTOs
+    List<SPDTO> getSPFromFaculty(Integer facultyId);
 
     SPDTO createSP(SPDTO spDTO);
 
-    // Modified to return a Page of SPDTOs
-    Page<SPDTO> getSPsWithTags(List<Integer> tagIds, Pageable pageable);
+    // Reverted to return a List of SPDTOs
+    List<SPDTO> getSPsWithTags(List<Integer> tagIds);
 
     void incrementViewCount(Integer spId);
 
-    List<SPDTO> getMostViewedSPs(Integer limit); // This can remain List if you only need top N
+    List<SPDTO> getMostViewedSPs(Integer limit);
 
     Integer getSPViewCount(Integer spId);
 
-    List<AdviserDTO> getTopAdvisersByViews(); // This can remain List if you only need top N
+    List<AdviserDTO> getTopAdvisersByViews();
 
     SPDTO updateSP(Integer spId, SPDTO spDTO);
 
     Map<String, Object> processSPUpload(MultipartFile file, Integer uploadedById) throws IOException;
 
-    // New method for filtering with pagination
-    Page<SPDTO> filterSPs(List<Integer> adviserIds, List<Integer> tagIds, Integer facultyId, String searchTerm, Pageable pageable);
+    // Reverted to return a List of SPDTOs
 }
