@@ -1,3 +1,4 @@
+import { Typography } from '@mui/material';
 import React, { useState, useEffect, useRef } from 'react';
 import { useProjectContext } from '../contexts/ProjectContext';
 import '../styles/SPFilterSystem.css';
@@ -773,51 +774,66 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
           </div>
 
          {/* --- Custom Pagination using MUI Pagination and Select --- */}
-        {/* Container with flexbox to align items */}
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '0 16px', width: '100%', 
-                      margin: '20px 0', }}>
-            {/* Pagination Numbers (Left) */}
-            {/* Only render pagination if there's more than one page */}
-            {totalPages > 1 && (
-                <Pagination
-                    count={totalPages} // Total number of pages
-                    page={currentPage} // Current page (1-indexed)
-                    onChange={handlePageChange} // Handler for page changes
-                    variant="outlined"
-                    shape="rounded"
-                    color="primary"
-                    // Add any custom styling for the pagination component itself here
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'center',
-                      
-                      '& .Mui-selected': {
-                          backgroundColor: '#800000 !important',
-                          color: '#fff',
-                        }}
-                      }
-                />
-            )}
+         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', width: '100%', margin: '20px 0' }}>
+    {/* Left spacer or content (can be empty - adjust width if needed) */}
+    {/* This div helps push the pagination to the center when justifyContent is space-between */}
+    <div style={{ width: '120px' }}>{/* Adjust width based on the width of your right controls */}</div>
 
+{/* Container with flexbox to align items */}
+<div style={{ 
+  display: 'flex', 
+  justifyContent: 'space-between', 
+  alignItems: 'center', 
+  padding: '0 16px', 
+  width: '100%',
+  margin: '10px 0',
+}}>
+  {/* Empty div for left side spacing */}
+  <div style={{ width: '150px' }}></div>
+  
+  {/* Pagination Numbers (Center) */}
+  {totalPages > 1 && (
+    <Pagination
+      count={totalPages}
+      page={currentPage}
+      onChange={handlePageChange}
+      size="medium"
+      shape="rounded"
+      color="primary"
+      sx={{
+        '& .MuiPaginationItem-root': {
+          color: '#333',
+          borderColor: '#e4e4e4',
+        },
+        '& .Mui-selected': {
+          backgroundColor: '#800000 !important',
+          color: '#fff',
+        }
+      }}
+    />
+  )}
 
-            {/* Rows per page control (Right) */}
-             <FormControl variant="outlined" size="small" sx={{ minWidth: 120, position: 'absolute',transform: 'translateX(370%)' }}>
-                <InputLabel id="rows-per-page-label">Items</InputLabel>
-                <Select
-                    labelId="rows-per-page-label"
-                    id="rows-per-page-select"
-                    value={itemsPerPage}
-                    onChange={handleItemsPerPageChange}
-                    label="Rows per page"
-                >
-                    <MenuItem value={5}>5</MenuItem>
-                    <MenuItem value={10}>10</MenuItem>
-                    <MenuItem value={20}>20</MenuItem>
-                    <MenuItem value={50}>50</MenuItem>
-                    <MenuItem value={100}>100</MenuItem>
-                </Select>
-            </FormControl>
-        </div>
+  {/* Rows per page control with label (Right) */}
+  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+    <Typography variant="body2" style={{ whiteSpace: 'nowrap' }}>
+      Show rows:
+    </Typography>
+    <FormControl variant="outlined" size="small" sx={{ minWidth: 100 }}>
+      <Select
+        id="rows-per-page-select"
+        value={itemsPerPage}
+        onChange={handleItemsPerPageChange}
+      >
+        <MenuItem value={5}>5</MenuItem>
+        <MenuItem value={10}>10</MenuItem>
+        <MenuItem value={20}>20</MenuItem>
+        <MenuItem value={50}>50</MenuItem>
+        <MenuItem value={100}>100</MenuItem>
+      </Select>
+    </FormControl>
+  </div>
+</div>
+</div>
          {/* --- End Custom Pagination --- */}
 
 
@@ -985,7 +1001,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                     ×
                   </button>
                 </div>
-              ))}\n            </div>
+              ))}            </div>
           </div>
 
           {/* Tags Filter Section */}
@@ -1049,7 +1065,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                     ×
                   </button>
                 </div>
-              ))}\n            </div>
+              ))}           </div>
           </div>
         </div>
       </div>
