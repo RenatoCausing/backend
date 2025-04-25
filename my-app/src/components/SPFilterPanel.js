@@ -6,6 +6,9 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
   // Get the refresh trigger from context
   // This value changing is what should trigger the data fetch useEffect below
   const { refreshTrigger } = useProjectContext();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20; // Set the desired items per page
+
 
   // State management
   const [advisers, setAdvisers] = useState([]);
@@ -19,7 +22,15 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
   const [adviserData, setAdviserData] = useState({});
   // REMOVED studentGroups as it's no longer used with the new relationship
   // const [studentGroups, setStudentGroups] = useState({});
+  const indexOfLastItem = currentPage * itemsPerPage;
+const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+const currentItems = filteredSps.slice(indexOfFirstItem, indexOfLastItem);
+const totalPages = Math.ceil(filteredSps.length / itemsPerPage);
 
+
+  const paginate = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 const [sortBy, setSortBy] = useState('dateIssued'); // Default sort option
 const [sortDirection, setSortDirection] = useState('desc'); // Default direction (descending)
   // Filter states
@@ -457,6 +468,9 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
 
        // Apply sorting to filtered results
        const sortedResults = sortSPs(filteredResults || []);
+    setFilteredSps(sortedResults);
+    setCurrentPage(1);
+       
        setFilteredSps(sortedResults);
 
        if (debouncedSearchTerm) {
@@ -467,6 +481,8 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
        } else {
          setSearchResults(null);
        }
+
+       
      } catch (err) {
        console.error('Error applying filters:', err);
        setError('Failed to apply filters. Please try again.');
@@ -732,7 +748,47 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
             </div>
           )}
         </div>
-
+        <div className="pagination">
+  <button 
+    onClick={() => currentPage > 1 && paginate(currentPage - 1)}
+    className={`pagination-nav ${currentPage === 1 ? 'disabled' : ''}`}
+  >
+    &lt; Back
+  </button>
+  
+  {/* Page numbers */}
+  {Array.from({ length: Math.min(totalPages, 8) }, (_, i) => i + 1).map(num => (
+    <button
+      key={num}
+      onClick={() => paginate(num)}
+      className={`pagination-item ${currentPage === num ? 'active' : ''}`}
+    >
+      {num}
+    </button>
+  ))}
+  
+  {/* Ellipsis - only show if more than 9 pages */}
+  {totalPages > 8 && (
+    <button className="pagination-item ellipsis" disabled>...</button>
+  )}
+  
+  {/* Last page - only show if more than 8 pages */}
+  {totalPages > 8 && (
+    <button
+      onClick={() => paginate(totalPages)}
+      className={`pagination-item ${currentPage === totalPages ? 'active' : ''}`}
+    >
+      {totalPages}
+    </button>
+  )}
+  
+  <button 
+    onClick={() => currentPage < totalPages && paginate(currentPage + 1)}
+    className={`pagination-nav ${currentPage === totalPages ? 'disabled' : ''}`}
+  >
+    Next &gt;
+  </button>
+</div>
         {/* Loading and Error States - Only show loading during initial load */}
         {initialLoading && <div className="bg-blue-50 p-4 text-center text-blue-700 rounded">Loading...</div>}
         {error && <div className="bg-red-50 p-4 text-center text-red-700 rounded">{error}</div>}
@@ -748,7 +804,7 @@ const [sortDirection, setSortDirection] = useState('desc'); // Default direction
             </div>
           )}
 
-          {filteredSps.map((sp, index) => (
+{currentItems.map((sp, index) => ( 
             <div key={sp.spId} className="relative">
               <div className="mb-6">
                 {/* Modified header to position buttons properly */}
