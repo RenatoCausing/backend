@@ -45,13 +45,8 @@ export const UserProvider = ({ children }) => {
     const isAuthenticated = !!currentUser && !currentUser.isGuest;
 
     return (
-        <UserContext.Provider value={{ currentUser, isAuthenticated, login, logout, loading }}>
-            {/* Render children only after loading is complete */}
-            {!loading && children}
-            {/* Optionally show a loading indicator here if needed */}
-            {loading && <div>Loading user session...</div>}
-        </UserContext.Provider>
-    );
+                <UserContext.Provider value={{ currentUser, isAuthenticated, login, logout, loading }}>{!loading && children}{loading && <div>Loading user session...</div>}</UserContext.Provider>
+            );
 };
 
 export const useUser = () => useContext(UserContext);

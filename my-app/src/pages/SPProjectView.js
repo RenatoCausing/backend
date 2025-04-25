@@ -50,7 +50,7 @@ const SPProjectView = () => {
 
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ marginTop: "20px" }}>
+    <div className="flex flex-col min-h-screen">
       <AdviserNavbar />
 
       <div className="flex flex-1 overflow-hidden">

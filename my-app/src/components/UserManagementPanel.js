@@ -165,9 +165,9 @@ const UserManagementPanel = () => {
           </div>
 
           {/* --- Custom Pagination using MUI Pagination and Select (Top) --- */}
-          <div style={{ display: 'flex',md: 'row', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', width: '100%', margin: '20px 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', width: '100%', margin: '20px 0' }}>
              {/* Placeholder or alignment div */}
-              <div style={{ width: '33%', flexShrink: 0, display: 'flex', md: 'block' }}></div> {/* Hide on small screens */}
+              <div style={{ width: '33%', flexShrink: 0, display: 'none', md: 'block' }}></div> {/* Hide on small screens */}
               <div style={{ 
   display: 'flex', 
   justifyContent: 'space-between', 
@@ -201,7 +201,7 @@ const UserManagementPanel = () => {
              )}
 
               {/* Rows per page control with label (Right/Bottom) */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                 <Typography variant="body2" style={{ whiteSpace: 'nowrap' }}>
                   Show rows:
                 </Typography>

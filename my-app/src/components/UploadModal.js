@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'; // Import useEffect
-import '../styles/UploadModal.css'; // Make sure you have this CSS file
+import React, { useState, useEffect, useRef } from 'react';
+import '../styles/UploadModal.css';
 import { useUser } from '../contexts/UserContext';
 
 const UploadModal = ({ show, onClose, onUploadSuccess }) => {
@@ -7,6 +7,8 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
     const [uploading, setUploading] = useState(false);
     const [uploadError, setUploadError] = useState(null);
     const [uploadResult, setUploadResult] = useState(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const fileInputRef = useRef(null);
 
     // Get user object and loading state from UserContext
     const { currentUser: user, loading: userContextLoading } = useUser();
@@ -15,23 +17,55 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
     useEffect(() => {
         console.log("UploadModal: User context loading state:", userContextLoading);
         console.log("UploadModal: Current user from context:", user);
-         // Check if user is loaded and has adminId when the modal becomes visible
+        // Check if user is loaded and has adminId when the modal becomes visible
         if (show && !userContextLoading && (!user || user.adminId === null || user.adminId === undefined)) {
-             console.warn("UploadModal: Modal is shown, user context finished loading, but user or adminId is missing.", { user, userContextLoading });
-             // Optionally display a message to the user or disable upload button
-         }
-    }, [user, userContextLoading, show]); // Re-run effect if user, loading state, or show prop changes
-
+            console.warn("UploadModal: Modal is shown, user context finished loading, but user or adminId is missing.", { user, userContextLoading });
+            // Optionally display a message to the user or disable upload button
+        }
+    }, [user, userContextLoading, show]);
 
     // Ensure user is available and has an adminId (for uploadedBy)
     // Access user?.adminId only after context is not loading
     const uploadedById = (!userContextLoading && user) ? user.adminId : undefined;
 
-
     const handleFileChange = (event) => {
-        setSelectedFile(event.target.files[0]);
-        setUploadError(null); // Clear previous errors
-        setUploadResult(null); // Clear previous results
+        const file = event.target.files[0];
+        if (file && file.type === 'text/csv') {
+            setSelectedFile(file);
+            setUploadError(null);
+            setUploadResult(null);
+        } else {
+            setUploadError('Please select a valid CSV file.');
+        }
+    };
+
+    const handleDrop = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsDragging(false);
+        
+        if (event.dataTransfer.files && event.dataTransfer.files.length > 0) {
+            const file = event.dataTransfer.files[0];
+            if (file.type === 'text/csv') {
+                setSelectedFile(file);
+                setUploadError(null);
+                setUploadResult(null);
+            } else {
+                setUploadError('Please select a valid CSV file.');
+            }
+        }
+    };
+
+    const handleDragOver = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsDragging(false);
     };
 
     const handleUpload = async () => {
@@ -40,7 +74,7 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
             return;
         }
 
-        // *** FIX: Add check for user context loading and valid user/adminId before proceeding ***
+        // Add check for user context loading and valid user/adminId before proceeding
         if (userContextLoading) {
             setUploadError('User data is still loading. Please wait.');
             console.warn("UploadModal: Upload attempted while user context is loading.");
@@ -48,13 +82,10 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
         }
 
         if (user === null || user === undefined || uploadedById === null || uploadedById === undefined) {
-             // This is the check that is throwing the error if user or adminId is missing
-             console.error("UploadModal: Upload attempted but user or adminId is null/undefined.", { user, uploadedById });
-             setUploadError('Error: Uploader user not identified. Please ensure you are logged in.');
-             return;
-         }
-        // *** END FIX ***
-
+            console.error("UploadModal: Upload attempted but user or adminId is null/undefined.", { user, uploadedById });
+            setUploadError('Error: Uploader user not identified. Please ensure you are logged in.');
+            return;
+        }
 
         setUploading(true);
         setUploadError(null);
@@ -62,17 +93,16 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
 
         const formData = new FormData();
         formData.append('file', selectedFile);
-        formData.append('uploadedById', uploadedById); // Send the uploader's ID
+        formData.append('uploadedById', uploadedById);
 
         try {
             const response = await fetch('http://localhost:8080/api/sp/upload-csv', {
                 method: 'POST',
                 body: formData,
-                // 'Content-Type': 'multipart/form-data' is automatically set with FormData
-                credentials: 'include' // Include cookies for authentication if needed
+                credentials: 'include'
             });
 
-             // Always attempt to read the response body for more details
+            // Always attempt to read the response body for more details
             const result = await response.json();
 
             if (response.ok) {
@@ -83,7 +113,7 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
                 }
             } else {
                 // Handle backend errors (e.g., validation errors from CSV processing)
-                console.error('Upload failed response:', response.status, result); // Log the failed response and body
+                console.error('Upload failed response:', response.status, result);
                 setUploadError(result.error || `Upload failed with status: ${response.status}`);
                 setUploadResult(result); // Show partial results or backend error details if available
             }
@@ -100,71 +130,125 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
         return null;
     }
 
+    const handleSelectFilesClick = () => {
+        fileInputRef.current.click();
+    };
+
     return (
         <div className="modal-overlay">
-            <div className="modal-content">
-                <h2>Upload SPs via CSV</h2>
-                <p>Please upload a CSV file with the following columns (order matters):</p>
-                <p><code>title, authors, adviser, date_issued (YYYY-MM-DD), uri, abstract_text, documentPath, tags, year, semester (1st, 2nd, Midyear)</code></p>
-                <p>Authors and Tags should be separated by semicolons (;). Author and Adviser names should be in "LastName, FirstName" format.</p>
+            <div className="modal-content"><button 
+    className="close-modal-button" 
+    onClick={onClose}
+    disabled={uploading}
+>
+    ×
+</button>
+                
+                <h2>Upload SPs with CSV</h2>
+                <p className="upload-description">
+                    CSV files should STRICTLY follow the required form  at.
+                </p>
 
-                <input
-                    type="file"
-                    accept=".csv"
-                    onChange={handleFileChange}
-                    disabled={uploading || userContextLoading || !user || uploadedById === undefined} // Disable input if loading, uploading, or user/adminId is missing
-                />
+                <div 
+                    className={`upload-dropzone ${isDragging ? 'dragging' : ''} ${selectedFile ? 'has-file' : ''}`}
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                >
+                    <div className="upload-icon">
+                        {selectedFile ? (
+                            <svg viewBox="0 0 24 24" width="40" height="40">
+                                <path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
+                            </svg>
+                        ) : (
+                            <svg viewBox="0 0 24 24" width="40" height="40">
+                                <path fill="currentColor" d="M19.35,10.04C18.67,6.59 15.64,4 12,4C9.11,4 6.6,5.64 5.35,8.04C2.34,8.36 0,10.91 0,14A6,6 0 0,0 6,20H19A5,5 0 0,0 24,15C24,12.36 21.95,10.22 19.35,10.04M19,18H6A4,4 0 0,1 2,14C2,11.95 3.53,10.24 5.56,10.03L6.63,9.92L7.13,8.97C8.08,7.14 9.94,6 12,6C14.62,6 16.88,7.86 17.39,10.43L17.69,11.93L19.22,12.04C20.78,12.14 22,13.45 22,15A3,3 0 0,1 19,18M8,13H10.55V16H13.45V13H16L12,9L8,13Z" />
+                            </svg>
+                        )}
+                    </div>
+                    
+                    <div className="upload-prompt">
+                        {selectedFile ? (
+                            <p className="selected-filename">{selectedFile.name}</p>
+                        ) : (
+                            <>
+                                <p>Drag and drop CSV file to upload</p>
+                                <p className="upload-note">Your file will be private until you publish.</p>
+                            </>
+                        )}
+                    </div>
 
-                {selectedFile && (
-                    <p>Selected file: {selectedFile.name}</p>
-                )}
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".csv"
+                        onChange={handleFileChange}
+                        disabled={uploading || userContextLoading || !user || uploadedById === undefined}
+                        style={{ display: 'none' }}
+                    />
+
+                    <button 
+                        className="select-files-button"
+                        onClick={handleSelectFilesClick}
+                        disabled={uploading || userContextLoading || !user || uploadedById === undefined}
+                    >
+                        Select file
+                    </button>
+                </div>
 
                 {uploadError && (
                     <p className="upload-error">Error: {uploadError}</p>
                 )}
 
-                 {/* Display upload result summary if available */}
                 {uploadResult && (
                     <div className="upload-results">
-                         <h3>Upload Summary:</h3>
-                         <p>Processed Rows: {uploadResult.processedRows}</p>
-                         <p>Successfully Uploaded: {uploadResult.successCount}</p>
-                         <p>Failed Rows: {uploadResult.errorCount}</p>
-                         {uploadResult.errors && uploadResult.errors.length > 0 && (
-                           <div>
-                             <h4>Details:</h4>
-                             <ul>
-                               {uploadResult.errors.map((error, index) => (
-                                 <li key={index} className="upload-error-detail">{error}</li>
-                               ))}
-                             </ul>
-                           </div>
-                         )}
+                        <h3>Upload Summary:</h3>
+                        <p>Processed Rows: {uploadResult.processedRows}</p>
+                        <p>Successfully Uploaded: {uploadResult.successCount}</p>
+                        <p>Failed Rows: {uploadResult.errorCount}</p>
+                        {uploadResult.errors && uploadResult.errors.length > 0 && (
+                            <div>
+                                <h4>Details:</h4>
+                                <ul>
+                                    {uploadResult.errors.map((error, index) => (
+                                        <li key={index} className="upload-error-detail">{error}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
                     </div>
                 )}
 
+                <div className="modal-actions">
+                    <button
+                        onClick={onClose}
+                        className="cancel-button"
+                        disabled={uploading}
+                    >
+                        Cancel
+                    </button>
+                    
+                    <button
+                        onClick={handleUpload}
+                        disabled={!selectedFile || uploading || userContextLoading || !user || uploadedById === undefined}
+                        className="upload-button"
+                    >
+                        {uploading ? 'Uploading...' : 'Upload'}
+                    </button>
+                </div>
 
-                <button
-                    onClick={handleUpload}
-                    // Disable if no file, uploading, user context is loading, or user/adminId is missing
-                    disabled={!selectedFile || uploading || userContextLoading || !user || uploadedById === undefined}
-                    className="upload-button"
-                >
-                    {uploading ? 'Uploading...' : userContextLoading ? 'Loading User...' : 'Upload CSV'}
-                </button>
-
-                <button
-                    onClick={() => {
-                        onClose();
-                        setSelectedFile(null); // Clear file input on close
-                        setUploadError(null); // Clear errors on close
-                        setUploadResult(null); // Clear results on close
-                    }}
-                    className="close-button"
-                    disabled={uploading} // Disable close button while uploading
-                >
-                    Close
-                </button>
+                <div className="upload-guide">
+                    <details>
+                        <summary>Required CSV format</summary>
+                        <div className="guide-content">
+                            <p>Your CSV file should have these columns (in this order):</p>
+                            <p><code>title, authors, adviser, date_issued (YYYY-MM), uri, abstract_text, documentPath, tags, year, semester (1st, 2nd, Midyear)</code></p>
+                            <p>- NULLABLE Columns: <code>adviser, uri, year, semester, tags</code> </p>
+                            <p>- Author and Adviser names should be in "LastName, FirstName" format.</p>
+                            <p>- Authors and Tags should be separated by semicolons (;).</p>
+                        </div>
+                    </details>
+                </div>
             </div>
         </div>
     );

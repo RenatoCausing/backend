@@ -63,35 +63,41 @@ const Dashboard = () => {
     return `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || "User";
   };
 
+  // Check if user has staff role
+  const isStaffUser = currentUser && currentUser.role === 'staff';
+
   return (
     <div className="dashboard-container">
       {/* Left Sidebar */}
       <div className="sidebar">
         <div className="logo-container">
           <img 
-            src="https://upload.wikimedia.org/wikipedia/en/thumb/3/3d/University_of_the_Philippines_Manila_Seal.svg/640px-University_of_the_Philippines_Manila_Seal.svg.png" 
-            alt="University Logo" 
-            className="university-logo" 
+            src="https://upload.wikimedia.org/wikipedia/en/thumb/3/3d/University_of_the_Philippines_Manila_Seal.svg/640px-University_of_the_Philippines_Manila_Seal.svg.png"
+            alt="University Logo"
+            className="university-logo"
           />
         </div>
         
         <div className="nav-links">
-          <button 
-            className={`nav-button ${activePanel === 'Home' ? 'active' : ''}`} 
+          <button
+            className={`nav-button ${activePanel === 'Home' ? 'active' : ''}`}
             onClick={() => navigateToPanel('Home')}
           >
             <i className="fas fa-home"></i> Home
           </button>
           
-          <button 
-            className={`nav-button ${activePanel === 'User' ? 'active' : ''}`} 
-            onClick={() => navigateToPanel('User')}
-          >
-            <i className="fas fa-user"></i> User
-          </button>
+          {/* Only show User panel button if user has staff role */}
+          {isStaffUser && (
+            <button
+              className={`nav-button ${activePanel === 'User' ? 'active' : ''}`}
+              onClick={() => navigateToPanel('User')}
+            >
+              <i className="fas fa-user"></i> User
+            </button>
+          )}
           
-          <button 
-            className={`nav-button ${activePanel === 'SP' ? 'active' : ''}`} 
+          <button
+            className={`nav-button ${activePanel === 'SP' ? 'active' : ''}`}
             onClick={() => navigateToPanel('SP')}
           >
             <i className="fas fa-file-alt"></i> SP
