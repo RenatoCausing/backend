@@ -23,206 +23,156 @@ import java.util.Map;
 @RequestMapping("/api/sp")
 public class SPController {
 
-    private static final Lo
+private static final Logger logger = LoggerFactory.getLogger(SPController.class);
 
-        @Autowired
+@Autowired
+private SPService spService;
 
-    
-        @GetMapping("/{spId}")
-        public
-            SPDTO spDTO = spService.getSP(spId);
+@GetMapping("/{spId}")
+public ResponseEntity<SPDTO> getSP(@PathVariable Integer spId) {
+SPDTO spDTO = spService.getSP(spId);
+return ResponseEntity.ok(spDTO);
+}
 
-    
-        // Modified to acc
-        @GetMapping
-            public ResponseEntity<Pag
-     
+// Modified to accept pagination parameters and return a Page
+@GetMapping
+public ResponseEntity<Page<SPDTO>> getAllSP(
+@RequestParam(defaultValue = "0") int page, // Default page is 0
+@RequestParam(defaultValue = "10") int size // Default size is 10
+)
 
-        ) {
-            Pageable pageable = Pag
-                Page<SPDTO> spPage =
-     
-
-    
-        // Modified to accept pagination parameters and return a Page
-                @GetMapping("/adviser/{adviserId}")
-                public ResponseEntity<Page<SPDTO>> getSPFromAdvis
-                        @PathVariable Integer adviserId,
-                        @RequestParam(defaultValue = "0") int pa
-
-            ) {
-                Pageable pageable = PageRequest.of(page, size);
-                Page<SPDTO> spPage = spService.getSPFromAdvi
-
-            }
-                
-
-            @GetMapping("/st
-
-                    @PathVariable Integer studentId,
-                    @RequestPara
-                        @RequestParam(defaultValue = "10") int siz
-                ) {
-                Pageable pageable = PageRequest.of(page, size);
-                    Page<SPDTO> spPage = spService.getSPFromStudent(
-                    return ResponseEntity.ok(spPage);
-                }
+    Page<SPDTO> spPage = spService.getAllSP(pageable);
+    return ResponseEntity.ok(spPage);
+    }
             
-            // Modified to accept pagination parameters a
-                @GetMapping("/faculty/{facultyId}")
-                public ResponseEntity<Page<SPDTO>> getS
-                
-                        @RequestParam(defaultValue
-                        @RequestParam(defaultValue = "10") int 
-                ) {
-                    Pageable pageable = Pag
-         
+            // Modified to accept pagination parameters
+            @GetMapping("/adviser/{adviserId}")pub
+        @PathVariable Integer adviserId,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10"
+    )
 
-            }
-        // 
+    Page<SPDTO> spPage = spService.getSPFromAdviser(adviserId, pa
+    return ResponseEntity.ok(spPage);
+    }
+            
+            // Modified to accept pagination parameters
+            @GetMapping("/student/{studentId}")pub
+        @PathVariable Integer studentId,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10"
+    )
 
+    Page<SPDTO> spPage = spService.getSPFromStudent(studentId, pa
+    return ResponseEntity.ok(spPage);
+    }
+            
+            // Modified to accept pagination parameters
+            @GetMapping("/faculty/{facultyId}")pub
+        @PathVariable Integer facultyId,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10"
+    )
+
+    return Respo
+    }
         
-     
-
+            
+            @PostMapping
+        public ResponseEntity<SPDTO> createSP
             try {
-                SPDTO createdSP = spService.createSP(spDTO);
-                    return new ResponseEntity<>(creat
-     
-
-            } catch (Exception e) {
-                logger.error("Error creating SP", e);
-                    return ResponseEntity.status(Http
-     
-
-    
-        // Modified to accept pagination parameters and return a Page
-            @GetMapping("/tags")
-            public ResponseEntity<Page<SPDT
-     
-
-                @RequestParam(defaultVa
-        ) {
-                Pageable pageable = PageRequest.of(pa
-     
-
-        }
-    
-            @PutMapping("/{spId}/view")
-        // 
-            p
-                    spService.incrementViewCount(spId);
-                    return ResponseEntity.ok().build();
-            }
-            
-                @GetMapping("/most-viewed")
-                public ResponseEntity<List<SPDTO>> getMostViewedSPs(
-                List<SPDTO> sps
-                    return ResponseEntity.ok(sps);
-                }
-        
-     
-
-            Integer view
-            return ResponseEntity.ok(viewCount);
-            }
-    
-
-        public ResponseEntity<List<Ad
-            List<AdviserDTO> advisers = spService.getTopAdvisersByViews();
-             
-                }
-        
-                @PutMapping("/{spId}/update")
-         
-     
-
-                return Resp
+        SPDTO createdSP = spSer
+            return new ResponseEntity<>(createdSP
             } catch (ResponseStatusException e) {
-                    throw e;
-                } catch (Exception e) {
-                    logger.erro
-                        return ResponseEntity.status(H
-         
-            }
+        t
+    }
+
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR
+    }
+    }
+            
+            // Modified to accept pagination parameters
+            @GetMapping("/tags")pub
+        @RequestParam List<Integer> tagIds,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10"
+    )
+
+    Page<SPDTO> spPage = spServ
+    return ResponseEntity.ok(spPage);
+        }
+        
+    @
+
+    rn ResponseEntity.ok().build();
+        }
+        
+    @
+
+    rn ResponseEntity.ok(sps);
+}
+
+    
+@GetMapping("/{spId}/view-c
+
     
 
-        public ResponseEntity<Ma
-                @RequestParam("file") MultipartFile file,
-                    @RequestParam("uploadedById") Intege
-                logger.info("Received request to upload SP CSV by Admin I
+@GetMapping("/top-advisers")
+public ResponseEntity<List<AdviserDTO>> getTopAdvisersByViews() {
+List<AdviserDTO> advisers = spService.getTopAdvisersByViews();
+return ResponseEntity.ok(advisers);
+}
 
-                    return ResponseE
-                    }
-                    try {
-         
+@PutMapping("/{spId}/update")
+public ResponseEntity<SPDTO> updateSP(@PathVariable Integer spId, @RequestBody SPDTO spDTO) {
+try {
+SPDTO updatedSP = spService.updateSP(spId, spDTO);
+return ResponseEntity.ok(updatedSP);
+} catch (ResponseStatusException e) {
+throw e;
+} catch (Exception e) {
+logger.error("Error updating SP with ID: {}", spId, e);
+return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+}
+}
 
-                } catch (ResponseStatusException e) {
-                    logger.error("Upload faile
-     
+@PostMapping("/upload-csv")
+public ResponseEntity<Map<String, Object>> uploadSPCSV(
+@RequestParam("file") MultipartFile file,
+@RequestParam("uploadedById") Integer uploadedById) {
+logger.info("R
 
-                logger.error("Err
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error
-                } catch (RuntimeException e) { // Catch the Runtime
-                     logger.error("Critical error during upload process", e);
-
-             
-                        logger.error("An unexpected error occu
-                        return ResponseEntity.st
-                }
-                }
-            
-            // New endpoint for
-                @GetMapping("/filter")
-                public ResponseEntity<Page<SPDTO>> filterSPs(
-         
-     
-
-                @RequestParam(required = f
-                @RequestParam(d
-                @RequestParam(defaultValue = "10") int size
-                ) {
-                    Pageable pageable = PageRequest.of(page, size);
-                    Page<SPDTO> spPage = spService.filterSPs(a   
+    file.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "
             }
+            try {
+            Map<String, Object> result = spService.processSPUp
+            return ResponseEntity.ok(result);
+            } catch (ResponseStatusException e) {log
+        return ResponseEntity.status(e.getStatusCode())
+        } catch (IOException e) {
+        logger.error("Error processing CS
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Error processing CSV file: " + e.getMessage()));
+}
+return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "A critical error occurred during upload: " + e.getMessage()));
+} catch (Exception e) {
+logger.error("An unexpected error occurred during upload", e);
+return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "An unexpected error occurred during upload: " + e.getMessage()));
+}
+}
 
-        
-            
-            
-        
-
-        
-        
-        
-            
-            
-                    
-        
-        
-        
-
-        
-            
-            
-                    
-            
-            
-            
-            
-        
-            
-            
-            
-                    
-        
-            
-            // 
-            
-                    
-            
-        
-            
-            
-            
-                    
-        
-    
+// New endpoint for filtering with pagination
+@GetMapping("/filter")
+public ResponseEntity<Page<SPDTO>> filterSPs(
+@RequestParam(required = false) List<Integer> adviserIds,
+@RequestParam(required = false) List<Integer> tagIds,
+@RequestParam(required = false) Integer facultyId,
+@RequestParam(required = false) String searchTerm,
+@RequestParam(defaultValue = "0") int page,
+@RequestParam(defaultValue = "10") int size
+) {
+Pageable pageable = PageRequest.of(page, size);
+Page<SPDTO> spPage = spService.filterSPs(adviserIds, tagIds, facultyId, searchTerm, pageable);
+return ResponseEntity.ok(spPage);
+}
+}
