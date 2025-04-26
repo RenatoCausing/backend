@@ -334,7 +334,7 @@ function HomePage() {
             <div className="browse-container-wrapper">
               <div className="browse-container" ref={browseContainerRef}>
                 {isLoading ? (
-                  <div className="loading-state">Loading projects...</div>
+                  <div className="loading-state"></div>
                 ) : (
                   randomSPs && randomSPs.map((sp, index) => (
                     <div 
