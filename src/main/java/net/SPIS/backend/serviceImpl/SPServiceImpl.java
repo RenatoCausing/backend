@@ -39,6 +39,7 @@ public class SPServiceImpl implements SPService {
 
     @Autowired
     private TagRepository tagRepository;
+
     @Autowired
     private FacultyRepository facultyRepository;
 
@@ -144,6 +145,19 @@ public class SPServiceImpl implements SPService {
             sp.setStudents(new HashSet<>());
         }
 
+        f (spDTO.getFacultyId() != null) {
+            Faculty faculty = facultyRepository.findById(spDTO.getFacultyId()) // Assuming you have facultyRepository Autowired [cite: 98]
+                    .orElseThrow(() -> {
+                        logger.error("Faculty not found with ID: {}", spDTO.getFacultyId());
+                        return new ResponseStatusException(HttpStatus.NOT_FOUND, "Faculty not found with ID: " + spDTO.getFacultyId());
+                    });
+            sp.setFaculty(faculty);
+            logger.debug("Set faculty to ID: {}", faculty.getFacultyId());
+        } else {
+            sp.setFaculty(null); // Handle case where facultyId is not provided
+            logger.debug("Faculty ID is null in DTO, setting faculty to null.");
+        }
+
         SP savedSP = spRepository.save(sp);
         logger.info("Successfully created SP with ID: {}", savedSP.getSpId());
         return toDTO(savedSP);
@@ -242,7 +256,6 @@ public class SPServiceImpl implements SPService {
         if (spDTO.getDateIssued() != null) {
             sp.setDateIssued(spDTO.getDateIssued());
         }
-
         if (spDTO.getAdviserId() != null) {
             logger.debug("Updating adviser to ID: {}", spDTO.getAdviserId());
             Admin adviser = adminRepository.findById(spDTO.getAdviserId())
@@ -252,6 +265,25 @@ public class SPServiceImpl implements SPService {
         } else {
             logger.debug("Adviser ID field is null in update DTO, setting adviser to null.");
             sp.setAdviser(null);
+        }
+        if (spDTO.getFacultyId() != null) {
+            // Check if the faculty ID in the DTO is different from the current one,
+            // or if the current one is null to avoid unnecessary lookups/updates.
+            if (sp.getFaculty() == null || !sp.getFaculty().getFacultyId().equals(spDTO.getFacultyId())) {
+                Faculty faculty = facultyRepository.findById(spDTO.getFacultyId()) // Assuming facultyRepository Autowired [cite: 98]
+                        .orElseThrow(() -> {
+                             logger.error("Faculty not found with ID: {}", spDTO.getFacultyId());
+                            return new ResponseStatusException(HttpStatus.NOT_FOUND, "Faculty not found with ID: " + spDTO.getFacultyId());
+                         });
+                sp.setFaculty(faculty);
+                logger.debug("Updated faculty to ID: {}", faculty.getFacultyId());
+            }
+        } else {
+            // If facultyId is explicitly null in the DTO, remove the association
+            if (sp.getFaculty() != null) {
+                 logger.debug("Faculty ID is null in update DTO, setting faculty to null.");
+                 sp.setFaculty(null);
+            }
         }
 
         Set<Integer> tagIds = spDTO.getTagIds();
@@ -312,6 +344,11 @@ public class SPServiceImpl implements SPService {
             dto.setUploadedById(sp.getUploadedBy().getAdminId());
         } else {
             dto.setUploadedById(null);
+        }
+        if (sp.getFaculty() != null) {
+            dto.setFacultyId(sp.getFaculty().getFacultyId()); // Assuming Faculty entity has getFacultyId()
+        } else {
+            dto.setFacultyId(null);
         }
 
         List<Integer> studentIds = new ArrayList<>();

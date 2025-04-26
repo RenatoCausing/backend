@@ -21,6 +21,7 @@ public class SPDTO {
     private String documentPath;
     private LocalDate dateIssued;
     private Integer uploadedById;
+    private Integer facultyId;
     // REMOVE groupId since SP is no longer directly linked to a single Group for
     // students
     // private Integer groupId;

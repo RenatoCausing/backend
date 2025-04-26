@@ -50,6 +50,10 @@ public class SP {
         @JoinColumn(name = "adviser_id") // Maps to the adviser_id column (nullable)
         private Admin adviser;
 
+        @ManyToOne(fetch = FetchType.LAZY) // Use LAZY loading for performance
+        @JoinColumn(name = "faculty_id") // Name of the foreign key column in the 'sp' table
+        private Faculty faculty;
+
         // Many-to-one relationship with Group (based on your old script)
         @ManyToOne(fetch = FetchType.LAZY) // Use LAZY loading
         @JoinColumn(name = "group_id") // Maps to the group_id column (nullable based on new script)
