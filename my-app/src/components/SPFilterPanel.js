@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Typography } from '@mui/material';
 import React, { useState, useEffect, useRef } from 'react';
 import { useProjectContext } from '../contexts/ProjectContext';
+import { useUser } from '../contexts/UserContext';
 import '../styles/SPFilterSystem.css';
 // Import Pagination and Select/FormControl/InputLabel from MUI
 import Pagination from '@mui/material/Pagination';
@@ -14,9 +15,8 @@ import InputLabel from '@mui/material/InputLabel';
 // import { Stack } from '@mui/material';
 
 const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
-  // Get the refresh trigger from context
-  // This value changing is what should trigger the data fetch useEffect below
-  const { refreshTrigger } = useProjectContext();
+  const { refreshTrigger } = useProjectContext(); // [cite: 5]
+  const { currentUser } = useUser(); // <--- Get the current user from context
 
   // State management
   const [advisers, setAdvisers] = useState([]);
@@ -25,7 +25,8 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
   const [filteredSps, setFilteredSps] = useState([]);
   const [filterLoading, setFilterLoading] = useState(false); // Keep this state
   const filterLoadingTimerRef = useRef(null); // <-- NEW: Ref to hold the timer ID
-  
+  const isStaff = currentUser?.role === 'staff';
+
   const [loading, setLoading] = useState(true);
   const [initialLoading, setInitialLoading] = useState(true);
   // Separate state for initial loading
@@ -734,16 +735,19 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
           {/* Search and Filter Row */}
           <div className="mb-4">
             <form onSubmit={handleSearch} className="flex gap-2 mb-9">
-              {/* Upload Button */}
-              {onUploadClick && (
-                <button
-                  type="button"
-                  className="bg-red-800 text-white rounded p-2 flex items-center justify-center gap-1"
-                  onClick={onUploadClick}
-                >
-                  <i className="fa fa-upload"></i> UPLOAD
-                </button>
-              )}
+               {/* Upload Button */}
+                {onUploadClick && (
+                  <button
+                    type="button"
+                    className={`text-white rounded p-2 flex items-center justify-center gap-1 ${
+                      !isStaff ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-800 hover:bg-red-900'
+                    }`} // Conditionally change background and cursor
+                    onClick={onUploadClick}
+                    disabled={!isStaff} // <-- Disable button if not staff
+                  >
+                    <i className="fa fa-upload"></i> UPLOAD
+                  </button>
+                )}
 
               {/* Department Filter Dropdown */}
               <select
@@ -1100,7 +1104,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                     ×
                   </button>
                 </div>
-              ))}           </div>
+              ))}</div>
           </div>
         </div>
       </div>
