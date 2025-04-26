@@ -285,8 +285,7 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
                         <div className="guide-content">
                             <p>Your CSV file should have these columns (in this order):</p>
                              <p><code>title, authors, adviser, date_issued (YYYY-MM), uri, abstract_text, documentPath, faculty (BSBC, BSCS, BSAP), tags, year, semester (1st, 2nd, Midyear)</code></p>
-                             <p>- Required Columns: <code>title, authors, date_issued (YYYY-MM), uri, abstract_text, documentPath, faculty, tags, year, semester</code> (Ensure these are filled if not marked nullable)</p>
-                            <p>- NULLABLE Columns: <code>adviser</code> </p> {/* Updated nullable columns */}
+                            <p>- NULLABLE Columns: <code>uri</code>, <code>tags</code>,  </p> {/* Updated nullable columns */}
                             <p>- Author and Adviser names should be in "LastName, FirstName" format.</p>
                             <p>- Authors and Tags should be separated by semicolons (;).</p>
                             <p>- **Faculty column must contain 'BSBC', 'BSCS', or 'BSAP'.**</p>
