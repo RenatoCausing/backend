@@ -39,7 +39,7 @@ function HomePage() {
       })
       .then(data => {
         console.log('Top advisers data:', data);
-        const limitedData = Array.isArray(data) ? data.slice(0, 5) : [];
+        const limitedData = Array.isArray(data) ? data.slice(0,8) : [];
         setTopAdvisers(limitedData);
       })
       .catch(error => {

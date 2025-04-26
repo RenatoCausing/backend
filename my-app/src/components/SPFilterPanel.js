@@ -759,17 +759,6 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                 <option value="3">BSAP</option>
               </select>
 
-              {/* Field Filter Dropdown */}
-              <select
-                className="border border-gray-300 rounded p-2 w-40"
-                onChange={handleFieldChange}
-                value={selectedField}
-              >
-                <option value="">Any Field</option>
-                <option value="1">AI</option>
-                <option value="2">Database</option>
-                {/* Add other fields as needed */}
-              </select>
 
               {/* Search Input and Button */}
               <div className="flex flex-1">
