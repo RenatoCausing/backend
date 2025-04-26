@@ -759,8 +759,8 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                 disabled={filterLoading}
               >
                 <option value="">Department</option>
-                <option value="1">BSCS</option>
-                <option value="2">BSBC</option>
+                <option value="1">BSBC</option>
+                <option value="2">BSCS</option>
                 <option value="3">BSAP</option>
               </select>
 

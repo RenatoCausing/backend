@@ -10,6 +10,9 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef(null);
 
+    // Removed state for selected Faculty ID
+    // const [selectedFacultyId, setSelectedFacultyId] = useState('');
+
     // Get user object and loading state from UserContext
     const { currentUser: user, loading: userContextLoading } = useUser();
 
@@ -35,7 +38,9 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
             setUploadError(null);
             setUploadResult(null);
         } else {
+            setSelectedFile(null); // Clear selected file if invalid
             setUploadError('Please select a valid CSV file.');
+            setUploadResult(null);
         }
     };
 
@@ -43,7 +48,7 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
         event.preventDefault();
         event.stopPropagation();
         setIsDragging(false);
-        
+
         if (event.dataTransfer.files && event.dataTransfer.files.length > 0) {
             const file = event.dataTransfer.files[0];
             if (file.type === 'text/csv') {
@@ -51,7 +56,9 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
                 setUploadError(null);
                 setUploadResult(null);
             } else {
+                setSelectedFile(null); // Clear selected file if invalid
                 setUploadError('Please select a valid CSV file.');
+                setUploadResult(null);
             }
         }
     };
@@ -67,6 +74,12 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
         event.stopPropagation();
         setIsDragging(false);
     };
+
+    // Removed handleFacultyChange as faculty is now in CSV
+    // const handleFacultyChange = (event) => {
+    //     setSelectedFacultyId(event.target.value);
+    // };
+
 
     const handleUpload = async () => {
         if (!selectedFile) {
@@ -87,6 +100,13 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
             return;
         }
 
+        // Removed check for selected faculty as it's now in CSV
+        //  if (!selectedFacultyId) {
+        //      setUploadError('Please select the Department (Faculty).');
+        //      return;
+        //  }
+
+
         setUploading(true);
         setUploadError(null);
         setUploadResult(null);
@@ -94,6 +114,9 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
         const formData = new FormData();
         formData.append('file', selectedFile);
         formData.append('uploadedById', uploadedById);
+        // Removed including selected Faculty ID in the form data
+        //  formData.append('facultyId', selectedFacultyId);
+
 
         try {
             const response = await fetch('http://localhost:8080/api/sp/upload-csv', {
@@ -136,20 +159,39 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
 
     return (
         <div className="modal-overlay">
-            <div className="modal-content"><button 
-    className="close-modal-button" 
-    onClick={onClose}
-    disabled={uploading}
->
-    ×
-</button>
-                
+            <div className="modal-content">
+                <button
+                    className="close-modal-button"
+                    onClick={onClose}
+                    disabled={uploading}
+                >
+                    ×
+                </button>
+
                 <h2>Upload SPs with CSV</h2>
                 <p className="upload-description">
-                    CSV files should STRICTLY follow the required form  at.
+                    Select the CSV file to upload. Ensure it includes the Department column.
                 </p>
 
-                <div 
+                 {/* Removed Department (Faculty) Select */}
+                 {/* <div className="form-group">
+                     <label htmlFor="upload-faculty" className="upload-label">Department:</label>
+                     <select
+                         id="upload-faculty"
+                         className="upload-select"
+                         value={selectedFacultyId}
+                         onChange={handleFacultyChange}
+                         disabled={uploading || userContextLoading || !user || uploadedById === undefined}
+                     >
+                         <option value="">Select Department</option>
+                         <option value="1">BSBC</option>
+                         <option value="2">BSCS</option>
+                         <option value="3">BSAP</option>
+                     </select>
+                 </div> */}
+
+
+                <div
                     className={`upload-dropzone ${isDragging ? 'dragging' : ''} ${selectedFile ? 'has-file' : ''}`}
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}
@@ -166,7 +208,7 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
                             </svg>
                         )}
                     </div>
-                    
+
                     <div className="upload-prompt">
                         {selectedFile ? (
                             <p className="selected-filename">{selectedFile.name}</p>
@@ -187,7 +229,7 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
                         style={{ display: 'none' }}
                     />
 
-                    <button 
+                    <button
                         className="select-files-button"
                         onClick={handleSelectFilesClick}
                         disabled={uploading || userContextLoading || !user || uploadedById === undefined}
@@ -227,10 +269,10 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
                     >
                         Cancel
                     </button>
-                    
+
                     <button
                         onClick={handleUpload}
-                        disabled={!selectedFile || uploading || userContextLoading || !user || uploadedById === undefined}
+                        disabled={!selectedFile || uploading || userContextLoading || !user || uploadedById === undefined} // No longer checking for selectedFacultyId
                         className="upload-button"
                     >
                         {uploading ? 'Uploading...' : 'Upload'}
@@ -242,10 +284,12 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
                         <summary>Required CSV format</summary>
                         <div className="guide-content">
                             <p>Your CSV file should have these columns (in this order):</p>
-                            <p><code>title, authors, adviser, date_issued (YYYY-MM), uri, abstract_text, documentPath, tags, year, semester (1st, 2nd, Midyear)</code></p>
-                            <p>- NULLABLE Columns: <code>adviser, uri, year, semester, tags</code> </p>
+                             <p><code>title, authors, adviser, date_issued (YYYY-MM), uri, abstract_text, documentPath, faculty (BSBC, BSCS, BSAP), tags, year, semester (1st, 2nd, Midyear)</code></p>
+                             <p>- Required Columns: <code>title, authors, date_issued (YYYY-MM), uri, abstract_text, documentPath, faculty, tags, year, semester</code> (Ensure these are filled if not marked nullable)</p>
+                            <p>- NULLABLE Columns: <code>adviser</code> </p> {/* Updated nullable columns */}
                             <p>- Author and Adviser names should be in "LastName, FirstName" format.</p>
                             <p>- Authors and Tags should be separated by semicolons (;).</p>
+                            <p>- **Faculty column must contain 'BSBC', 'BSCS', or 'BSAP'.**</p>
                         </div>
                     </details>
                 </div>
