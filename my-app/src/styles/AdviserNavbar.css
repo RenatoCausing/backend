@@ -197,3 +197,101 @@
   .logout-link:hover {
     background-color: #f1f1f1;
   }
+
+  /* User avatar button and dropdown styling */
+.user-menu-container {
+    position: relative;
+  }
+  
+  .avatar-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    outline: none;
+  }
+  
+  .user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: #8b0000; /* Matching the profile button color */
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .avatar-button:hover .user-avatar {
+    background-color: #6d0000; /* Matching the hover state */
+  }
+  
+  .user-dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: 45px;
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    min-width: 160px;
+    z-index: 1000;
+    overflow: hidden;
+  }
+  
+  .dropdown-item {
+    color: #333;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+    border-bottom: 1px solid #f1f1f1;
+    transition: background-color 0.3s ease;
+    font-size: 0.9rem;
+  }
+  
+  .dropdown-item:last-child {
+    border-bottom: none;
+  }
+  
+  .dropdown-item:hover {
+    background-color: #f5f5f5;
+  }
+  
+  /* Styling for specific dropdown items */
+  .dropdown-item[href="/"] {
+    color: #4CAF50; /* Green color for logout, matching logout-button */
+    font-weight: 500;
+  }
+  
+  /* For mobile menu, make sure dropdown items are properly styled */
+  @media (max-width: 768px) {
+    .user-menu-container {
+      display: none; /* Hide the avatar dropdown in mobile view */
+    }
+    
+    /* The mobile menu will show the items directly instead */
+    .mobile-menu .dropdown-item {
+      width: 100%;
+      padding: 12px 20px;
+    }
+  }
+  
+  /* Ensure signin button maintains its styling */
+  .signin-button {
+    background-color: #8b0000;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .signin-button:hover {
+    background-color: #6d0000;
+  }

@@ -221,7 +221,7 @@ function AdviserProfile() {
         // Update the local state with the image from currentUser
         setAdviser({...adviser, imagePath: currentUser.imagePath});
         // Show success notification
-        showNotification("Profile image updated successfully!", "success");
+        showNotification("Profile image updated successfully to current google avatar!", "success");
       })
       .catch(error => {
         console.error('Error updating adviser image:', error);
