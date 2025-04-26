@@ -14,6 +14,8 @@ import SPDetails from './pages/SPDetails';
 import SPProjectView from './pages/SPProjectView';
 import UserManagementView from './pages/UserManagementView';
 import { UserManagementProvider } from './contexts/UserManagementContext';
+import LeaderboardPage from './pages/LeaderboardPage';
+import ProjectsLeaderboardPage from './pages/ProjectsLeaderboardPage';
 
 // Component to check if user is authenticated (any logged-in user)
 const RequireAuth = ({ children }) => {
@@ -142,6 +144,33 @@ function App() {
           element={
             <RequireAuth>
               <HomePage />
+            </RequireAuth>
+          }
+        />
+        {/* clout routing */}
+        <Route
+          path="/leaderboard"
+          element={
+            <RequireAuth>
+              <ProjectsLeaderboardPage/>
+            </RequireAuth>
+          }
+        />
+        {/* clout routing */}
+        <Route
+          path="/leaderboard/sp"
+          element={
+            <RequireAuth>
+              <ProjectsLeaderboardPage/>
+            </RequireAuth>
+          }
+        />
+        {/* clout routing */}
+        <Route
+          path="/leaderboard/adviser"
+          element={
+            <RequireAuth>
+              <LeaderboardPage/>
             </RequireAuth>
           }
         />

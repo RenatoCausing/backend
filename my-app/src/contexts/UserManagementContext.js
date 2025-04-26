@@ -282,29 +282,30 @@ export const UserManagementProvider = ({ children }) => {
   };
 
   const handleDeleteUser = async () => {
-    if (!userToDelete) return;
+      if (!userToDelete) return;
 
-    try {
-      await axios.delete(`http://localhost:8080/api/advisers/admin/${userToDelete}`);
+    try {
+      // Use userToDelete directly instead of userId parameter
+      await axios.delete(`http://localhost:8080/api/advisers/admin/${userToDelete}`);
 
-      // Remove user from state
-      setUsers(prevUsers => prevUsers.filter(user => user.adminId !== userToDelete));
+      // Remove user from state
+      setUsers(prevUsers => prevUsers.filter(user => user.adminId !== userToDelete));
 
-      // Close the delete confirmation dialog
-      setShowDeleteConfirm(false);
-      setUserToDelete(null);
-      setError(null); // Clear any previous errors
+      // Close the delete confirmation dialog
+      setShowDeleteConfirm(false);
+      setUserToDelete(null);
+      setError(null); // Clear any previous errors
 
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      // Check for specific error message from backend if available
-      if (error.response && error.response.data) {
-        setError(`Failed to delete user: ${error.response.data}`);
-      } else {
-        setError("Failed to delete user. It might be associated with other data.");
-      }
-      setShowDeleteConfirm(false); // Close modal even on error
-    }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      // Check for specific error message from backend if available
+      if (error.response && error.response.data) {
+        setError(`Failed to delete user: ${error.response.data}`);
+      } else {
+        setError("Failed to delete user. It might be associated with other data.");
+      }
+      setShowDeleteConfirm(false); // Close modal even on error
+    }
   };
 
 // Handler for changing role within an individual user item

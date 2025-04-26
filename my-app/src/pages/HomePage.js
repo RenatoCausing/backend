@@ -44,10 +44,29 @@ function HomePage() {
       .catch(error => {
         console.error('Error fetching top advisers:', error);
         // Set default data for testing
+        // Update the default topAdvisers data in the catch block of the fetch call:
         setTopAdvisers([
-          { adminId: 1, firstName: 'John', lastName: 'Pork' },
-          { adminId: 2, firstName: 'Bombardino', lastName: 'Crocodillo' },
-          { adminId: 3, firstName: 'Tim', lastName: 'Cheese' }
+          { 
+            adminId: 1, 
+            firstName: 'John', 
+            lastName: 'Pork',
+            description: 'Specializes in blockchain technologies and distributed systems with focus on security implications.',
+            imagePath: 'https://via.placeholder.com/150?text=JP'
+          },
+          { 
+            adminId: 2, 
+            firstName: 'Bombardino', 
+            lastName: 'Crocodillo',
+            description: 'Expert in AI and neural networks with applications in natural language processing.',
+            imagePath: 'https://via.placeholder.com/150?text=BC'
+          },
+          { 
+            adminId: 3, 
+            firstName: 'Tim', 
+            lastName: 'Cheese',
+            description: 'Researches web technologies and cloud computing architectures for scalable applications.',
+            imagePath: 'https://via.placeholder.com/150?text=TC'
+          }
         ]);
       });
 
@@ -81,7 +100,8 @@ function HomePage() {
       })
       .then(data => {
         console.log('Top SPs data:', data);
-        setTopSPs(Array.isArray(data) ? data : []);
+        const limitedData = Array.isArray(data) ? data.slice(0, 5) : [];
+        setTopSPs(limitedData);
       })
       .catch(error => {
         console.error('Error fetching top SPs:', error);
@@ -367,13 +387,15 @@ function HomePage() {
                       id={adviser.adminId}
                       firstName={adviser.firstName || 'Unknown'}
                       lastName={adviser.lastName || 'Adviser'}
+                      description={adviser.description || ''}
+                      imagePath={adviser.imagePath || ''}
                     />
                   ))
                 ) : (
                   <p>No adviser data available.</p>
                 )}
               </div>
-              <Link to="/advisers" className="browse-button-adviser">Browse Popular Advisers</Link>
+              <Link to="/leaderboard/adviser" className="browse-button-adviser">Browse Popular Advisers</Link>
             </div>
 
             <div className="popular-projects">
@@ -398,7 +420,7 @@ function HomePage() {
                   <p>No project data available.</p>
                 )}
               </div>
-              <Link to="/projects" className="browse-button-sp">Browse Popular SPs</Link>
+              <Link to="/leaderboard/sp" className="browse-button-sp">Browse Popular SPs</Link>
             </div>
           </div>
         </div>
