@@ -62,7 +62,6 @@ public class SPController {
 
         // Call the new comprehensive filter method in the service layer
         List<SPDTO> results = spService.filterSPs(adviserIds, tagIds, facultyId, searchTerm);
-
         logger.debug("Filtered SPs count: {}", results.size());
         return results;
     }

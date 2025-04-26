@@ -33,7 +33,8 @@ public interface SPRepository extends JpaRepository<SP, Integer> {
         @Query(value = "SELECT a.admin_id, a.first_name, a.last_name, a.middle_name, a.role, a.faculty_id, a.image_path, a.description, a.email, COALESCE(SUM(sp.view_count), 0) as total_views "
                         +
                         "FROM admin a " +
-                        "LEFT JOIN sp ON a.admin_id = sp.adviser_id " +
+                        "LEFT JOIN sp ON a.admin_id = sp.adviser_id "
+                        +
                         "WHERE a.role = 'faculty' " +
                         "GROUP BY a.admin_id, a.first_name, a.last_name, a.middle_name, a.role, a.faculty_id, a.image_path, a.description, a.email "
                         +
@@ -50,12 +51,12 @@ public interface SPRepository extends JpaRepository<SP, Integer> {
         @Query("SELECT DISTINCT sp FROM SP sp " +
                         "LEFT JOIN sp.adviser adviser " +
                         "LEFT JOIN sp.tags tag " +
-                        "LEFT JOIN sp.students student " + // Join with students for faculty filtering
-                        "LEFT JOIN student.faculty studentFaculty " + // Join students with faculty
+                        // Removed join with students and student faculty as faculty filtering is now
+                        // direct on SP
                         "WHERE (:adviserIds IS NULL OR adviser.adminId IN :adviserIds) " +
                         "AND (:tagIds IS NULL OR tag.tagId IN :tagIds) " +
-                        "AND (:facultyId IS NULL OR studentFaculty.facultyId = :facultyId) " + // Filter by student's
-                                                                                               // faculty
+                        "AND (:facultyId IS NULL OR sp.faculty.facultyId = :facultyId) " + // Filter by SP's faculty
+                                                                                           // [cite: 252]
                         "AND (:searchTerm IS NULL OR LOWER(sp.title) LIKE %:searchTerm% OR LOWER(sp.abstractText) LIKE %:searchTerm%)")
         List<SP> findSPsByFilters(
                         @Param("adviserIds") List<Integer> adviserIds,

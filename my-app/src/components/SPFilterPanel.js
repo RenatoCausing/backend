@@ -736,18 +736,19 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
           <div className="mb-4">
             <form onSubmit={handleSearch} className="flex gap-2 mb-9">
                {/* Upload Button */}
-                {onUploadClick && (
-                  <button
-                    type="button"
-                    className={`text-white rounded p-2 flex items-center justify-center gap-1 ${
-                      !isStaff ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-800 hover:bg-red-900'
-                    }`} // Conditionally change background and cursor
-                    onClick={onUploadClick}
-                    disabled={!isStaff} // <-- Disable button if not staff
-                  >
-                    <i className="fa fa-upload"></i> UPLOAD
-                  </button>
-                )}
+               {onUploadClick && isStaff && ( // Add the isStaff check here
+  <button
+    type="button"
+    className={`text-white rounded p-2 flex items-center justify-center gap-1 ${
+      // You can simplify this now, as the button is only rendered if isStaff is true
+      'bg-red-800 hover:bg-red-900'
+    }`}
+    onClick={onUploadClick}
+    // Remove the disabled attribute
+  >
+    <i className="fa fa-upload"></i> UPLOAD
+  </button>
+)}
 
               {/* Department Filter Dropdown */}
               <select

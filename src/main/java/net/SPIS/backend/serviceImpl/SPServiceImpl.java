@@ -39,7 +39,6 @@ public class SPServiceImpl implements SPService {
 
     @Autowired
     private TagRepository tagRepository;
-
     @Autowired
     private FacultyRepository facultyRepository;
 
@@ -50,7 +49,6 @@ public class SPServiceImpl implements SPService {
     public SPDTO getSP(Integer spId) {
         SP sp = spRepository.findById(spId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "SP not found"));
-
         return toDTO(sp);
     }
 
@@ -72,6 +70,8 @@ public class SPServiceImpl implements SPService {
 
     @Override
     public List<SPDTO> getSPFromFaculty(Integer facultyId) {
+        // This method still filters by adviser's faculty, might need review if direct
+        // SP faculty is preferred here too
         return spRepository.findByAdviserFacultyId(facultyId).stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
@@ -156,7 +156,8 @@ public class SPServiceImpl implements SPService {
             sp.setFaculty(faculty);
             logger.debug("Set faculty to ID: {}", faculty.getFacultyId());
         } else {
-            sp.setFaculty(null); // Handle case where facultyId is not provided
+            sp.setFaculty(null);
+            // Handle case where facultyId is not provided
             logger.debug("Faculty ID is null in DTO, setting faculty to null.");
         }
 
@@ -197,9 +198,9 @@ public class SPServiceImpl implements SPService {
     }
 
     public List<AdviserDTO> getTopAdvisersByViews() {
-        Pageable pageable = PageRequest.of(0, 8); // Get top 5
+        Pageable pageable = PageRequest.of(0, 8);
+        // Get top 5
         List<Object[]> results = spRepository.findTopAdvisersByViews(pageable);
-
         return results.stream()
                 // No need to filter out null adviser or 0 views based on previous logic,
                 // as the native query and COALESCE handle 0 views.
@@ -221,10 +222,8 @@ public class SPServiceImpl implements SPService {
                     // result[9] is the total_views aggregate, not directly part of AdviserDTO
                     // typically,
                     // but you can use it for filtering if needed.
-
                     // Note: The toDTO(Admin admin) helper method is no longer directly used here
                     // because we are getting column values, not an Admin entity.
-
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -403,8 +402,7 @@ public class SPServiceImpl implements SPService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Uploading Admin not found with ID: " + uploadedById));
         try (CSVReader reader = new CSVReader(new InputStreamReader(file.getInputStream()))) {
-            String[] headers = reader.readNext();
-            // Read header row
+            String[] headers = reader.readNext(); // Read header row
             if (headers == null) {
                 throw new IOException("CSV file is empty or header row is missing.");
             }
@@ -415,8 +413,7 @@ public class SPServiceImpl implements SPService {
                 processedRows++;
                 logger.debug("Processing row {}: {}", processedRows, Arrays.toString(line));
 
-                final int EXPECTED_COLUMNS = 10;
-                // Based on your previous CSV structure
+                final int EXPECTED_COLUMNS = 10; // Based on your previous CSV structure
                 if (line.length < EXPECTED_COLUMNS) {
                     errors.add("Row " + processedRows + ": Incorrect number of columns. Expected " + EXPECTED_COLUMNS
                             + ", found " + line.length + ". Skipping row.");
@@ -639,16 +636,14 @@ public class SPServiceImpl implements SPService {
     @Transactional
     private Admin findOrCreateAdviser(String adviserStr, int rowNum) { // *** CORRECTED: Added rowNum parameter ***
         if (adviserStr == null || adviserStr.trim().isEmpty()) {
-            logger.debug("Row {}: Adviser name string is empty or null, returning null.", rowNum);
-            // Added rowNum log
+            logger.debug("Row {}: Adviser name string is empty or null, returning null.", rowNum); // Added rowNum log
             return null;
         }
 
         String[] names = adviserStr.trim().split(",", 2);
         if (names.length != 2) {
             logger.warn("Row {}: Invalid adviser format: '{}'. Expected 'LastName, FirstName'. Cannot process.", rowNum,
-                    adviserStr);
-            // Added rowNum log
+                    adviserStr); // Added rowNum log
             throw new IllegalArgumentException("Invalid adviser format: Expected 'LastName, FirstName'");
         }
 
@@ -656,8 +651,7 @@ public class SPServiceImpl implements SPService {
         String firstName = names[1].trim();
         if (lastName.isEmpty() || firstName.isEmpty()) {
             logger.warn("Row {}: Empty first or last name after parsing adviser: '{}'. Cannot process.", rowNum,
-                    adviserStr);
-            // Added rowNum log
+                    adviserStr); // Added rowNum log
             throw new IllegalArgumentException("Invalid adviser name: Empty first or last name.");
         }
 
@@ -667,38 +661,31 @@ public class SPServiceImpl implements SPService {
                 .findFirst();
         if (foundAdviser.isPresent()) {
             logger.debug("Row {}: Found existing faculty adviser: {} {} (ID: {})", rowNum, firstName, lastName,
-                    foundAdviser.get().getAdminId());
-            // Added rowNum log
+                    foundAdviser.get().getAdminId()); // Added rowNum log
             return foundAdviser.get();
         } else {
             logger.info("Row {}: Faculty adviser not found matching name: {} {}. Creating new Admin entity.", rowNum,
-                    firstName, lastName);
-            // Added rowNum log
+                    firstName, lastName); // Added rowNum log
             Admin newAdviser = new Admin();
             newAdviser.setFirstName(firstName);
             newAdviser.setLastName(lastName);
             newAdviser.setMiddleName(null); // Assuming middle name is not in this format
-            newAdviser.setEmail(null);
-            // Assuming email is not in this format
-            newAdviser.setRole("faculty");
-            // Default role for newly created adviser
-            newAdviser.setFaculty(null);
-            // Assuming faculty is not in this format
+            newAdviser.setEmail(null); // Assuming email is not in this format
+            newAdviser.setRole("faculty"); // Default role for newly created adviser
+            newAdviser.setFaculty(null); // Assuming faculty is not in this format
             newAdviser.setImagePath(null);
             newAdviser.setDescription(null);
 
             try {
                 Admin savedAdviser = adminRepository.save(newAdviser);
-                logger.info("Row {}: Created new faculty adviser with ID: {}", rowNum, savedAdviser.getAdminId());
-                // Added
+                logger.info("Row {}: Created new faculty adviser with ID: {}", rowNum, savedAdviser.getAdminId()); // Added
 
                 // rowNum
 
                 // log
                 return savedAdviser;
             } catch (Exception e) {
-                logger.error("Row {}: Failed to create new adviser '{} {}'", rowNum, firstName, lastName, e);
-                // Added
+                logger.error("Row {}: Failed to create new adviser '{} {}'", rowNum, firstName, lastName, e); // Added
 
                 // rowNum
 
@@ -752,10 +739,8 @@ public class SPServiceImpl implements SPService {
                 newStudent.setFirstName(firstName);
                 newStudent.setLastName(lastName);
                 newStudent.setMiddleName(null); // Assuming middle name is not in this format
-                newStudent.setFaculty(null);
-                // Assuming faculty is not in this format
-                newStudent.setGroup(null);
-                // Assuming group is not in this format
+                newStudent.setFaculty(null); // Assuming faculty is not in this format
+                newStudent.setGroup(null); // Assuming group is not in this format
 
                 // Removed the try-catch block here to allow exceptions to propagate
                 Student savedStudent = studentRepository.save(newStudent);
@@ -813,7 +798,6 @@ public class SPServiceImpl implements SPService {
         // If searchTerm is not null and not empty, pass it to the repository method
         String finalSearchTerm = (searchTerm != null && !searchTerm.trim().isEmpty()) ? searchTerm.trim().toLowerCase()
                 : null;
-
         List<SP> filteredSPs = spRepository.findSPsByFilters(adviserIds, tagIds, facultyId, finalSearchTerm);
         return filteredSPs.stream().map(this::toDTO).collect(Collectors.toList());
     }
