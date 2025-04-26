@@ -4,8 +4,7 @@ import '../styles/AdviserCard.css';
 
 function AdviserCard({ id, firstName, lastName, description, imagePath }) {
   // Default image path as fallback if none is provided
-  const defaultImage = `https://via.placeholder.com/60?text=${firstName.charAt(0)}${lastName.charAt(0)}`;
-  
+  const defaultImage = 'https://media.istockphoto.com/id/2151669184/vector/vector-flat-illustration-in-grayscale-avatar-user-profile-person-icon-gender-neutral.jpg?s=612x612&w=0&k=20&c=UEa7oHoOL30ynvmJzSCIPrwwopJdfqzBs0q69ezQoM8=';  
   // Truncate description if it's too long
   const truncateDescription = (text, maxLength = 80) => {
     if (!text) return '';
@@ -17,7 +16,6 @@ function AdviserCard({ id, firstName, lastName, description, imagePath }) {
       <div className="adviser-image">
         <img 
           src={imagePath || defaultImage} 
-          alt={`${firstName} ${lastName}`} 
         />
       </div>
       <div className="adviser-info">

@@ -1,3 +1,5 @@
+
+import axios from 'axios';
 import { Typography } from '@mui/material';
 import React, { useState, useEffect, useRef } from 'react';
 import { useProjectContext } from '../contexts/ProjectContext';
@@ -21,6 +23,9 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
   const [tags, setTags] = useState([]);
   const [sps, setSps] = useState([]);
   const [filteredSps, setFilteredSps] = useState([]);
+  const [filterLoading, setFilterLoading] = useState(false); // Keep this state
+  const filterLoadingTimerRef = useRef(null); // <-- NEW: Ref to hold the timer ID
+  
   const [loading, setLoading] = useState(true);
   const [initialLoading, setInitialLoading] = useState(true);
   // Separate state for initial loading
@@ -453,58 +458,87 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
 
  // Effect to apply filters whenever filter states change
  // Use debouncedSearchTerm to avoid excessive API calls while typing
+ // Effect to apply filters whenever filter states change
+ // Use debouncedSearchTerm to avoid excessive API calls while typing
  useEffect(() => {
-   const applyFiltersAndSort = async () => {
-     try {
-       // Construct filter object from state
-       const filters = {
-         adviserIds: selectedAdvisers.map(adviser => adviser.adminId),
-         tagIds: selectedTags.map(tag => tag.tagId),
-         departmentId: selectedDepartment,
-         searchTerm: debouncedSearchTerm
-       };
+  const applyFiltersAndSort = async () => {
+    // <-- NEW: Clear any existing timer before starting a new operation
+    if (filterLoadingTimerRef.current) {
+      clearTimeout(filterLoadingTimerRef.current);
+      filterLoadingTimerRef.current = null;
+    }
 
-       // Use the applyFilters service which handles server-side or client-side filtering
-       const filteredResults = await SPApiService.applyFilters(filters);
+    // <-- NEW: Start a timer to show the loading indicator after a short delay
+    // The loading state will only become true if the fetch takes longer than 150ms
+    filterLoadingTimerRef.current = setTimeout(() => {
+      setFilterLoading(true);
+    }, 150); // Adjust the delay (e.g., 100, 200, 300) as needed
 
-       // Apply sorting to the filtered results
-       const sortedResults = sortSPs(filteredResults || []);
 
-       // Update the filtered SPs state and reset pagination to the first page
-       setFilteredSps(sortedResults);
-       setCurrentPage(1); // Reset to the first page (1-indexed) after filtering
+    try {
+      // Construct filter object from state (no change needed here)
+      const filters = {
+        adviserIds: selectedAdvisers.map(adviser => adviser.adminId),
+        tagIds: selectedTags.map(tag => tag.tagId),
+        departmentId: selectedDepartment,
+        searchTerm: debouncedSearchTerm
+      };
 
-       // Update search results count if a search term is active
+      // Use the applyFilters service (no change needed here)
+      const filteredResults = await SPApiService.applyFilters(filters);
+      console.log("Filtered SPs fetched successfully:", filteredResults);
+
+      // Apply sorting (no change needed here)
+      const sortedResults = sortSPs(filteredResults || []);
+
+      // Update state and reset pagination (no change needed here)
+      setFilteredSps(sortedResults);
+      setCurrentPage(1);
+
+      // Update search results... (no change needed here)
        if (debouncedSearchTerm) {
          setSearchResults({
            term: debouncedSearchTerm,
-           count: filteredResults.length // Use the count from the filtered results
+           count: filteredResults.length
          });
        } else {
-         // Clear search results message if search term is empty
          setSearchResults(null);
        }
-     }
-     catch (err) {
-       console.error('Error applying filters:', err);
-       setError('Failed to apply filters. Please try again.');
-       // Optionally clear results or set filteredSps to empty on error
-       setFilteredSps([]);
-       setSearchResults(null);
-     }
-   };
-
-   // Only apply filters if initial data has been loaded (sps array is populated)
-   // or if initial loading has completed (to handle cases where sps might be empty initially)
-   if (sps.length > 0 || !initialLoading) {
-     applyFiltersAndSort();
-   }
-   // Dependencies: Re-run this effect when any of the filter states, sort options,
-   // or the original sps data changes (after initial fetch)
- }, [selectedAdvisers, selectedTags, selectedDepartment, debouncedSearchTerm, sortBy, sortDirection, sps, initialLoading]);
+       setError(null); // Clear filter-specific errors on success
 
 
-  // Helper functions
+    } catch (err) {
+      console.error('Error applying filters:', err);
+      setError('Failed to apply filters. Please try again.');
+      setFilteredSps([]);
+      setSearchResults(null);
+    } finally {
+      // <-- NEW: Clear the timer and set filter loading to false when done, regardless of success/failure
+      if (filterLoadingTimerRef.current) {
+        clearTimeout(filterLoadingTimerRef.current);
+        filterLoadingTimerRef.current = null;
+      }
+      setFilterLoading(false); // Always set filter loading to false when the operation completes
+    }
+  };
+
+  // Only apply filters if initial loading has completed (keep this condition)
+  if (!initialLoading) {
+    applyFiltersAndSort();
+  }
+
+  // <-- NEW: Cleanup function for the effect
+  // This runs when the component unmounts or the dependencies change
+  return () => {
+    // Clear the timer if the effect is cleaned up before it fires
+    if (filterLoadingTimerRef.current) {
+      clearTimeout(filterLoadingTimerRef.current);
+      filterLoadingTimerRef.current = null;
+    }
+  };
+
+}, [selectedAdvisers, selectedTags, selectedDepartment, debouncedSearchTerm, sortBy, sortDirection, initialLoading]); // Dependencies remain the same
+
 
   // Get adviser name from fetched adviser data
   const getAdviserName = (adviserId) => {
@@ -565,7 +599,16 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
       }
     }
   };
-
+  const handleViewCountIncrement = async (spId) => {
+    console.log(`Attempting to increment view count for SP ID: ${spId}`); // Keep this log
+    console.log("Click handler triggered on <a> tag"); // <-- Add this new log
+    try {
+      await axios.post(`http://localhost:8080/api/sp/${spId}/view`);
+      console.log(`View count incremented successfully for SP ID: ${spId}`);
+    } catch (error) {
+      console.error(`Error incrementing view count for SP ID: ${spId}`, error);
+    }
+  };
   // Handle tag clicks on SP cards
   const handleTagClick = (tagName) => {
     // Find the tag object by name in the tags list
@@ -707,6 +750,8 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                 className="border border-gray-300 rounded p-2 w-40"
                 onChange={handleDepartmentChange}
                 value={selectedDepartment}
+
+                disabled={filterLoading}
               >
                 <option value="">Department</option>
                 <option value="1">BSCS</option>
@@ -838,7 +883,8 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
 
 
           {/* Loading and Error States */}
-          {initialLoading && <div className="bg-blue-50 p-4 text-center text-blue-700 rounded">Loading...</div>}
+          
+          {(initialLoading || filterLoading) && <div className="bg-blue-50 p-4 text-center text-blue-700 rounded">Fetching SPs...</div>}
           {error && <div className="bg-red-50 p-4 text-center text-red-700 rounded">{error}</div>}
 
           {/* SP Results List */}
@@ -861,7 +907,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                   <div className="flex mb-2">
                     <h3 className="text-lg font-semibold flex-1">
                       {/* Link to the project detail page */}
-                      <a href={`/project/${sp.spId}`} className="text-blue-600 hover:underline">{sp.title || 'Untitled Project'}</a>
+                      <a href={`/project/${sp.spId}`} className="text-blue-600 hover:underline"  onClick={() => handleViewCountIncrement(sp.spId)}>{sp.title || 'Untitled Project'}</a>
                     </h3>
 
                     {/* Action buttons (Edit, Delete) */}

@@ -48,14 +48,7 @@ function SPDetails() {
         console.log('SP data:', spDataResponse);
         setSpData(spDataResponse);
         
-        // Increment view count
-        try {
-          await fetch(`${BACKEND_URL}/api/sp/${spId}/view`, {
-            method: 'POST'
-          });
-        } catch (viewError) {
-          console.error("Error incrementing view count:", viewError);
-        }
+
         
         // Fetch adviser data
         const adviserResponse = await fetch(`${BACKEND_URL}/api/advisers/sp/${spId}`);

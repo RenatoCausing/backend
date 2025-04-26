@@ -45,7 +45,7 @@ export const UserProvider = ({ children }) => {
     const isAuthenticated = !!currentUser && !currentUser.isGuest;
 
     return (
-                <UserContext.Provider value={{ currentUser, isAuthenticated, login, logout, loading }}>{!loading && children}{loading && <div>Loading user session...</div>}</UserContext.Provider>
+                <UserContext.Provider value={{ currentUser, isAuthenticated, login, logout, loading }}>{!loading && children}</UserContext.Provider>
             );
 };
 

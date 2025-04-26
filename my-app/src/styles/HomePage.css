@@ -118,6 +118,10 @@
   padding: 2rem 0;  
   box-shadow: 0 20px 20px rgba(0, 0, 0, 0.7);
 }
+.leaderboard-page{
+  background-color: white;
+  height: 100%;
+}
 
 .leaderboard-section {
   position: relative;
@@ -258,8 +262,8 @@
 }
 
 .card-title {
-  font-size: 1.2rem;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 500;
   color: #222;
   line-height: 1;
   padding-bottom: .5rem;
@@ -358,7 +362,7 @@
 .adviser-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1.5rem;
+  gap: 1rem;
   margin-top: 1.5rem;
 }
 

@@ -30,11 +30,14 @@ public interface SPRepository extends JpaRepository<SP, Integer> {
         @Query("SELECT sp FROM SP sp ORDER BY sp.viewCount DESC")
         List<SP> findTopSPs(PageRequest pageable);
 
-        @Query("SELECT a, COALESCE(SUM(sp.viewCount), 0) FROM Admin a " +
-                        "LEFT JOIN SP sp ON a.adminId = sp.adviser.adminId " +
+        @Query(value = "SELECT a.admin_id, a.first_name, a.last_name, a.middle_name, a.role, a.faculty_id, a.image_path, a.description, a.email, COALESCE(SUM(sp.view_count), 0) as total_views "
+                        +
+                        "FROM admin a " +
+                        "LEFT JOIN sp ON a.admin_id = sp.adviser_id " +
                         "WHERE a.role = 'faculty' " +
-                        "GROUP BY a.adminId, a.firstName, a.lastName " +
-                        "ORDER BY COALESCE(SUM(sp.viewCount), 0) DESC")
+                        "GROUP BY a.admin_id, a.first_name, a.last_name, a.middle_name, a.role, a.faculty_id, a.image_path, a.description, a.email "
+                        +
+                        "ORDER BY total_views DESC", nativeQuery = true)
         List<Object[]> findTopAdvisersByViews(Pageable pageable);
 
         // Find SPs by Student ID using the Many-to-Many relationship

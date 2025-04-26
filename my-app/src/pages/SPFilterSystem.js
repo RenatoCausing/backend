@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/SPFilterSystem.css';
 import AdviserNavbar from '../components/AdviserNavbar';
@@ -23,6 +25,8 @@ const SPFilterSystem = () => {
   const [adviserData, setAdviserData] = useState({});
   const [studentGroups, setStudentGroups] = useState({});
 
+  const [filterLoading, setFilterLoading] = useState(false); // Keep this state
+  const filterLoadingTimerRef = useRef(null); // <-- NEW: Ref to hold the timer ID
   // Pagination state (using 1-indexed page for MUI Pagination)
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20); // Default items per page
@@ -483,58 +487,87 @@ const SPFilterSystem = () => {
 
  // Effect to apply filters whenever filter states change
  // Use debouncedSearchTerm to avoid excessive API calls while typing
- useEffect(() => {
+// Effect to apply filters whenever filter states change
+ // Use debouncedSearchTerm to avoid excessive API calls while typing
+  useEffect(() => {
    const applyFiltersAndSort = async () => {
+     // <-- NEW: Clear any existing timer before starting a new operation
+     if (filterLoadingTimerRef.current) {
+       clearTimeout(filterLoadingTimerRef.current);
+       filterLoadingTimerRef.current = null;
+     }
+ 
+     // <-- NEW: Start a timer to show the loading indicator after a short delay
+     // The loading state will only become true if the fetch takes longer than 150ms
+     filterLoadingTimerRef.current = setTimeout(() => {
+       setFilterLoading(true);
+     }, 150); // Adjust the delay (e.g., 100, 200, 300) as needed
+ 
+ 
      try {
-       // Construct filter object from state
+       // Construct filter object from state (no change needed here)
        const filters = {
          adviserIds: selectedAdvisers.map(adviser => adviser.adminId),
          tagIds: selectedTags.map(tag => tag.tagId),
          departmentId: selectedDepartment,
          searchTerm: debouncedSearchTerm
        };
-
-       // Use the applyFilters service which handles server-side or client-side filtering
+ 
+       // Use the applyFilters service (no change needed here)
        const filteredResults = await SPApiService.applyFilters(filters);
-
-       // Apply sorting to the filtered results
+       console.log("Filtered SPs fetched successfully:", filteredResults);
+ 
+       // Apply sorting (no change needed here)
        const sortedResults = sortSPs(filteredResults || []);
-
-       // Update the filtered SPs state and reset pagination to the first page
+ 
+       // Update state and reset pagination (no change needed here)
        setFilteredSps(sortedResults);
-       setCurrentPage(1); // Reset to the first page (1-indexed) after filtering
-
-       // Update search results count if a search term is active
-       if (debouncedSearchTerm) {
-         setSearchResults({
-           term: debouncedSearchTerm,
-           count: filteredResults.length // Use the count from the filtered results
-         });
-       } else {
-         // Clear search results message if search term is empty
-         setSearchResults(null);
-       }
-     }
-     catch (err) {
+       setCurrentPage(1);
+ 
+       // Update search results... (no change needed here)
+        if (debouncedSearchTerm) {
+          setSearchResults({
+            term: debouncedSearchTerm,
+            count: filteredResults.length
+          });
+        } else {
+          setSearchResults(null);
+        }
+        setError(null); // Clear filter-specific errors on success
+ 
+ 
+     } catch (err) {
        console.error('Error applying filters:', err);
        setError('Failed to apply filters. Please try again.');
-       // Optionally clear results or set filteredSps to empty on error
        setFilteredSps([]);
        setSearchResults(null);
+     } finally {
+       // <-- NEW: Clear the timer and set filter loading to false when done, regardless of success/failure
+       if (filterLoadingTimerRef.current) {
+         clearTimeout(filterLoadingTimerRef.current);
+         filterLoadingTimerRef.current = null;
+       }
+       setFilterLoading(false); // Always set filter loading to false when the operation completes
      }
    };
-
-   // Only apply filters if initial data has been loaded (sps array is populated)
-   // or if initial loading has completed (to handle cases where sps might be empty initially)
-   if (sps.length > 0 || !initialLoading) {
+ 
+   // Only apply filters if initial loading has completed (keep this condition)
+   if (!initialLoading) {
      applyFiltersAndSort();
    }
-   // Dependencies: Re-run this effect when any of the filter states, sort options,
-   // or the original sps data changes (after initial fetch)
- }, [selectedAdvisers, selectedTags, selectedDepartment, debouncedSearchTerm, sortBy, sortDirection, sps, initialLoading]);
-
-  // Helper functions
-
+ 
+   // <-- NEW: Cleanup function for the effect
+   // This runs when the component unmounts or the dependencies change
+   return () => {
+     // Clear the timer if the effect is cleaned up before it fires
+     if (filterLoadingTimerRef.current) {
+       clearTimeout(filterLoadingTimerRef.current);
+       filterLoadingTimerRef.current = null;
+     }
+   };
+ 
+ }, [selectedAdvisers, selectedTags, selectedDepartment, debouncedSearchTerm, sortBy, sortDirection, initialLoading]); // Dependencies remain the same
+ 
   // Get adviser name from fetched adviser data
   const getAdviserName = (adviserId) => {
     const adviser = adviserData[adviserId];
@@ -634,6 +667,16 @@ const SPFilterSystem = () => {
   const clearAllAdvisers = () => {
     setSelectedAdvisers([]);
     setAdviserInput(''); // Clear input field as well
+  };
+  const handleViewCountIncrement = async (spId) => {
+    console.log(`Attempting to increment view count for SP ID: ${spId}`); // Keep this log
+    console.log("Click handler triggered on <a> tag"); // <-- Add this new log
+    try {
+      await axios.post(`http://localhost:8080/api/sp/${spId}/view`);
+      console.log(`View count incremented successfully for SP ID: ${spId}`);
+    } catch (error) {
+      console.error(`Error incrementing view count for SP ID: ${spId}`, error);
+    }
   };
 
   // Clear all selected tags
@@ -854,6 +897,7 @@ const SPFilterSystem = () => {
                 className="border border-gray-300 rounded p-2 w-40"
                 onChange={handleDepartmentChange}
                 value={selectedDepartment}
+                disabled ={filterLoading}
               >
                 <option value="">Department</option>
                 <option value="1">BSBC</option>
@@ -975,7 +1019,7 @@ const SPFilterSystem = () => {
 
 
           {/* Loading and Error States */}
-          {initialLoading && <div className="bg-blue-50 p-4 text-center text-blue-700 rounded">Loading...</div>}
+          {(initialLoading || filterLoading) && <div className="bg-blue-50 p-4 text-center text-blue-700 rounded">Fetching SPs...</div>}
           {error && <div className="bg-red-50 p-4 text-center text-red-700 rounded">{error}</div>}
 
           {/* SP Results List - Map through currentItems */}
@@ -995,7 +1039,7 @@ const SPFilterSystem = () => {
               <div key={sp.spId} className="relative">
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold mb-2">
-                    <a href={`/project/${sp.spId}`} className="text-blue-600 hover:underline">{sp.title || 'Untitled Project'}</a>
+                    <a href={`/project/${sp.spId}`} className="text-blue-600 hover:underline" onClick={() => handleViewCountIncrement(sp.spId)}>{sp.title || 'Untitled Project'}</a>
                   </h3>
 
                   <div className="text-sm text-gray-600 mb-3">

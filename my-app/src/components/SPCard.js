@@ -3,12 +3,27 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/SPCard.css';
 
+import axios from 'axios'; // <-- Make sure axios is imported
 function SPCard({ id, title, year, semester, viewCount, tags = [] }) {
   // Default tags if none provided
   const projectTags = tags.length > 0 ? tags : ['Research', 'Technology'];
-  
+  // <-- NEW: Function to handle the view count increment API call
+  const handleViewCountIncrement = async (spId) => {
+    try {
+      // Make the POST request to your backend endpoint
+      await axios.post(`http://localhost:8080/api/sp/${spId}/view`);
+      console.log(`View count incremented for SP ID: ${spId}`);
+      // You might want to update the view count displayed on the card locally here,
+      // but keep in mind this local update won't persist on refresh unless data is re-fetched.
+      // The backend is the source of truth for the view count.
+    } catch (error) {
+      console.error(`Error incrementing view count for SP ID: ${spId}`, error);
+      // Handle errors if the API call fails
+    }
+  };
   return (
-    <Link to={`/project/${id}`} className="sp-card-link">
+    <Link to={`/project/${id}`} className="sp-card-link"  onClick={() => handleViewCountIncrement(id)} // Call the handler with the project ID
+    >
       <div className="sp-card">
         <div className="sp-info">
           <h3>{title}</h3>

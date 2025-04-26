@@ -1,3 +1,5 @@
+
+import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/AdviserNavbar';
@@ -42,19 +44,7 @@ function ProjectsLeaderboardPage() {
         console.error('Error fetching top SPs:', error);
         // Default SPs data
         const defaultSPs = [
-          { spId: 1, title: "Neural Networks in Image Recognition", viewCount: 312, year: 2024, semester: "1st", tagIds: [1, 3] },
-          { spId: 2, title: "Quantum Computing Applications", viewCount: 287, year: 2024, semester: "2nd", tagIds: [2, 5] },
-          { spId: 3, title: "Blockchain for Supply Chain Management", viewCount: 265, year: 2023, semester: "1st", tagIds: [4] },
-          { spId: 4, title: "AI-Powered Patient Diagnosis System", viewCount: 243, year: 2023, semester: "2nd", tagIds: [1, 6] },
-          { spId: 5, title: "Smart Urban Transportation Solutions", viewCount: 228, year: 2023, semester: "1st", tagIds: [7, 8] },
-          { spId: 6, title: "Renewable Energy Grid Optimization", viewCount: 211, year: 2023, semester: "2nd", tagIds: [9] },
-          { spId: 7, title: "Cybersecurity for IoT Devices", viewCount: 196, year: 2022, semester: "1st", tagIds: [10, 11] },
-          { spId: 8, title: "Natural Language Processing for Legal Documents", viewCount: 189, year: 2022, semester: "2nd", tagIds: [1, 12] },
-          { spId: 9, title: "Augmented Reality Applications in Education", viewCount: 175, year: 2022, semester: "1st", tagIds: [13, 14] },
-          { spId: 10, title: "Sustainable Water Purification Methods", viewCount: 162, year: 2022, semester: "2nd", tagIds: [15] },
-          { spId: 11, title: "Machine Learning for Financial Forecasting", viewCount: 158, year: 2021, semester: "1st", tagIds: [1, 16] },
-          { spId: 12, title: "3D Bioprinting of Organic Tissues", viewCount: 147, year: 2021, semester: "2nd", tagIds: [17, 18] }
-        ];
+];
         // Sort by view count (highest first)
         const sortedDefaultSPs = [...defaultSPs].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
         setSpecialProjects(sortedDefaultSPs);
@@ -77,24 +67,7 @@ function ProjectsLeaderboardPage() {
         console.error('Error fetching tags:', error);
         // Default tags if API fails
         setTags([
-          { tagId: 1, tagName: "AI" },
-          { tagId: 2, tagName: "Quantum Computing" },
-          { tagId: 3, tagName: "Computer Vision" },
-          { tagId: 4, tagName: "Blockchain" },
-          { tagId: 5, tagName: "Algorithms" },
-          { tagId: 6, tagName: "Healthcare" },
-          { tagId: 7, tagName: "Smart Cities" },
-          { tagId: 8, tagName: "Transportation" },
-          { tagId: 9, tagName: "Energy" },
-          { tagId: 10, tagName: "Cybersecurity" },
-          { tagId: 11, tagName: "IoT" },
-          { tagId: 12, tagName: "NLP" },
-          { tagId: 13, tagName: "AR/VR" },
-          { tagId: 14, tagName: "Education" },
-          { tagId: 15, tagName: "Environmental" },
-          { tagId: 16, tagName: "Finance" },
-          { tagId: 17, tagName: "Biotech" },
-          { tagId: 18, tagName: "3D Printing" }
+
         ]);
       });
   }, []);
@@ -106,6 +79,19 @@ function ProjectsLeaderboardPage() {
       .filter(tag => sp.tagIds.includes(tag.tagId))
       .map(tag => tag.tagName || 'Unknown Tag');
   };
+  const handleViewCountIncrement = async (spId) => {
+    try {
+      // Make the POST request to your backend endpoint
+      await axios.post(`http://localhost:8080/api/sp/${spId}/view`);
+      console.log(`View count incremented for SP ID: ${spId}`);
+      // You might want to update the view count displayed on the card locally here,
+      // but keep in mind this local update won't persist on refresh unless data is re-fetched.
+      // The backend is the source of truth for the view count.
+    } catch (error) {
+      console.error(`Error incrementing view count for SP ID: ${spId}`, error);
+      // Handle errors if the API call fails
+    }
+  }
 
   // Calculate total pages
   const totalItems = specialProjects.length;
@@ -134,11 +120,15 @@ function ProjectsLeaderboardPage() {
       
       {/* Added padding-top to fix navbar clipping */}
       <div className="container" style={{ paddingTop: '100px' }}>
-        <div className="leaderboard-header">
+        <div className="leaderboard-header" style={{
+    display: 'flex',
+    justifyContent: 'space-between', // This will push items to the left and right
+    alignItems: 'center' // Vertically align items in the center
+}}>
           <h1>Most Popular Special Projects</h1>
           
           {/* Added navigation button to Advisers leaderboard */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end'}}>
             <Link to="/leaderboard/adviser" style={{ textDecoration: 'none' }}>
               <button 
                 style={{ 
@@ -160,7 +150,14 @@ function ProjectsLeaderboardPage() {
             </Link>
           </div>
         </div>
-        
+        <div><p style={{ marginTop: '2rem', marginBottom: '3rem', color: '#555', fontSize: '.9rem', lineHeight: '1.5rem'}}>
+        Explore the forefront of student research and innovation by browsing our Most Popular Special Projects. <br />
+         This curated list features the projects that have received the highest view counts across the platform, indicating <br />
+         their relevance and impact within the community. Each project is a testament to student dedication and faculty 
+         guidance.<br /> Simply click on a project to reveal comprehensive details and learn more about the work behind the views.
+                </p>
+                </div>
+
         <div className="leaderboard-content">
           {/* Top Pagination */}
           <div style={{ 
@@ -238,7 +235,7 @@ function ProjectsLeaderboardPage() {
               
               return (
                 <div key={project.spId} className="relative">
-                  <Link to={`/project/${project.spId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <Link to={`/project/${project.spId}`} style={{ textDecoration: 'none', color: 'inherit' }} onClick={() => handleViewCountIncrement(project.spId)}>
                     <div className="mb-6">
                       {/* Ranking number - Added above the title */}
                       <div style={{ 
@@ -256,7 +253,7 @@ function ProjectsLeaderboardPage() {
                       </div>
                       
                       {/* Updated header with project title and view count */}
-                      <div className="flex mb-2">
+                      <div className="flex mb-2"style={{ marginRight: '3rem'}}>
                         <h3 className="text-lg font-semibold flex-1">
                           {project.title || 'Untitled Project'}
                         </h3>

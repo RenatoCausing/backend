@@ -45,6 +45,7 @@ export function ProjectProvider({ children }) {
   
   // Function to trigger a refresh of the SPFilterPanel data
   const triggerDataRefresh = () => {
+    console.log("triggerDataRefresh called!");
     setRefreshTrigger(prev => prev + 1);
   };
   

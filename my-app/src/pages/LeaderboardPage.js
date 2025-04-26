@@ -179,38 +179,48 @@ function LeaderboardPage() {
   };
 
   return (
+    
     <div className="leaderboard-page">
       <Navbar />
       
       {/* Added padding-top to fix navbar clipping */}
       <div className="container" style={{ paddingTop: '100px' }}>
-        <div className="leaderboard-header">
-          <h1>Most Popular Advisers</h1>
-          
-          {/* Added navigation button to SP leaderboard */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-            <Link to="/leaderboard/sp" style={{ textDecoration: 'none' }}>
-              <button 
-                style={{ 
-                  backgroundColor: '#800000', 
-                  color: 'white', 
-                  padding: '0.5rem 1rem', 
-                  borderRadius: '0.25rem',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontWeight: '500',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}
-              >
-                <span>View Special Projects Leaderboard</span>
-                <i className="fas fa-arrow-right"></i>
-              </button>
-            </Link>
-          </div>
-        </div>
-        
+      <div className="leaderboard-header" style={{
+    display: 'flex',
+    justifyContent: 'space-between', // This will push items to the left and right
+    alignItems: 'center' // Vertically align items in the center
+}}>
+    <h1>Most Popular Advisers</h1>
+
+    {/* Navigation button to SP leaderboard */}
+    {/* Removed the extra div with justifyContent: 'flex-end' */}
+    <Link to="/leaderboard/sp" style={{ textDecoration: 'none' }}>
+        <button
+            style={{
+                backgroundColor: '#800000',
+                color: 'white',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.25rem',
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: '500',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+            }}
+        >
+            <span>View SP Leaderboard</span>
+            <i className="fas fa-arrow-right"></i>
+        </button>
+    </Link>
+</div>
+        <div><p style={{ marginTop: '2rem', marginBottom: '3rem', color: '#555', fontSize: '.9rem', lineHeight: '1.5rem'}}>
+              Discover the driving forces behind our top Special Projects. This section features the most popular advisers,<br /> 
+              recognized for their dedication to guiding innovative student research. Their ranking here is a testament to their impact <br />
+              and the engagement their mentored projects receive. You can delve deeper into each adviser's background and <br />
+              areas of expertise by viewing their profile, and easily see their standing among their peers on this leaderboard.
+                </p>
+                </div>
         <div className="leaderboard-content">
           {/* Top Pagination */}
           <div style={{ 
@@ -265,7 +275,7 @@ function LeaderboardPage() {
           </div>
           
           {/* Advisers List */}
-          <div style={{width: '100%'}}>
+          <div style={{width: '100%', alignItems: 'center'}}>
             {/* Top divider */}
             <div className="sp-divider top-divider" style={{backgroundColor: 'rgba(229, 231, 235, 0.7)'}}></div>
 
@@ -285,7 +295,7 @@ function LeaderboardPage() {
             {!isLoading && currentItems.map((adviser, index) => (
               <div key={adviser.adminId} className="relative">
                 <Link to={`/adviser/${adviser.adminId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                  <div className="mb-6" style={{ position: 'relative', paddingTop: '12px' }}>
+                  <div className="mb-6" style={{ position: 'relative', paddingTop: '12px', paddingLeft: '40px'}}>
                     {/* Ranking Number - New Feature */}
                     <div style={{ 
                       position: 'absolute',
@@ -305,8 +315,7 @@ function LeaderboardPage() {
                       {/* Profile Picture */}
                       <div style={{ flexShrink: 0 }}>
                         <img 
-                          src={adviser.imagePath || `https://via.placeholder.com/60?text=${adviser.firstName.charAt(0)}${adviser.lastName.charAt(0)}`}
-                          alt={`${adviser.firstName} ${adviser.lastName}`}
+                          src={adviser.imagePath || `https://media.istockphoto.com/id/2151669184/vector/vector-flat-illustration-in-grayscale-avatar-user-profile-person-icon-gender-neutral.jpg?s=612x612&w=0&k=20&c=UEa7oHoOL30ynvmJzSCIPrwwopJdfqzBs0q69ezQoM8=`}
                           style={{ 
                             width: '60px', 
                             height: '60px', 
@@ -370,7 +379,7 @@ function LeaderboardPage() {
             justifyContent: 'space-between', 
             alignItems: 'center', 
             padding: '0 16px', 
-            width: '100%',
+            width: '15%',
             margin: '20px 0',
           }}>
             <div style={{ width: '150px' }}></div>

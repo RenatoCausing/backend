@@ -49,7 +49,7 @@ public class SPServiceImpl implements SPService {
     public SPDTO getSP(Integer spId) {
         SP sp = spRepository.findById(spId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "SP not found"));
-        incrementViewCount(spId);
+
         return toDTO(sp);
     }
 
@@ -180,30 +180,35 @@ public class SPServiceImpl implements SPService {
         return sp.getViewCount();
     }
 
-    @Override
     public List<AdviserDTO> getTopAdvisersByViews() {
-        Pageable pageable = PageRequest.of(0, 5);
+        Pageable pageable = PageRequest.of(0, 8); // Get top 5
         List<Object[]> results = spRepository.findTopAdvisersByViews(pageable);
+
         return results.stream()
-                .filter(result -> result[1] != null && (Long) result[1] > 0)
+                // No need to filter out null adviser or 0 views based on previous logic,
+                // as the native query and COALESCE handle 0 views.
+                // If you still want to filter > 0 views, add it here based on result[9]
+                // .filter(result -> result[9] != null && (Long) result[9] > 0)
                 .map(result -> {
-                    Admin adviser = (Admin) result[0];
                     AdviserDTO dto = new AdviserDTO();
+                    // Manually map columns from Object[] to AdviserDTO properties
+                    // Ensure indices match the SELECT order in the native query
+                    dto.setAdminId((Integer) result[0]); // admin_id
+                    dto.setFirstName((String) result[1]); // first_name
+                    dto.setLastName((String) result[2]); // last_name
+                    dto.setMiddleName((String) result[3]); // middle_name
+                    dto.setRole((String) result[4]); // role
+                    dto.setFacultyId((Integer) result[5]); // faculty_id
+                    dto.setImagePath((String) result[6]); // image_path
+                    dto.setDescription((String) result[7]); // description
+                    dto.setEmail((String) result[8]); // email
+                    // result[9] is the total_views aggregate, not directly part of AdviserDTO
+                    // typically,
+                    // but you can use it for filtering if needed.
 
-                    dto.setAdminId(adviser.getAdminId());
-                    dto.setFirstName(adviser.getFirstName());
-                    dto.setLastName(adviser.getLastName());
-                    dto.setMiddleName(adviser.getMiddleName());
-                    if (adviser.getFaculty() != null) {
-                        dto.setFacultyId(adviser.getFaculty().getFacultyId());
-                    } else {
-                        dto.setFacultyId(null);
-                    }
+                    // Note: The toDTO(Admin admin) helper method is no longer directly used here
+                    // because we are getting column values, not an Admin entity.
 
-                    dto.setEmail(adviser.getEmail());
-                    dto.setImagePath(adviser.getImagePath());
-                    dto.setDescription(adviser.getDescription());
-                    dto.setRole(adviser.getRole());
                     return dto;
                 })
                 .collect(Collectors.toList());

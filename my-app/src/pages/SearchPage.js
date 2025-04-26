@@ -27,7 +27,7 @@ const SearchPage = () => {
     { value: 'keywords', label: 'Keywords' },
     { value: 'year', label: 'Year' }
   ];
-  
+
   // Departments for dropdown
   const departments = [
     { value: '', label: 'Department' },
@@ -105,7 +105,7 @@ const SearchPage = () => {
       })
       .catch(error => console.error('Error searching SPs:', error));
   };
-  
+
   const toggleTag = (tag) => {
     if (activeTags.some(t => t.id === tag.id)) {
       setActiveTags(activeTags.filter(t => t.id !== tag.id));
@@ -129,7 +129,16 @@ const SearchPage = () => {
   const removeAdviser = (adviser) => {
     setActiveAdvisers(activeAdvisers.filter(a => a.adviserId !== adviser.adviserId));
   };
-
+  const handleViewCountIncrement = async (spId) => {
+    console.log(`Attempting to increment view count for SP ID: ${spId}`); // Keep this log
+    console.log("Click handler triggered on <a> tag"); // <-- Add this new log
+    try {
+      await axios.post(`http://localhost:8080/api/sp/${spId}/view`);
+      console.log(`View count incremented successfully for SP ID: ${spId}`);
+    } catch (error) {
+      console.error(`Error incrementing view count for SP ID: ${spId}`, error);
+    }
+  };
   return (
     <div className="search-page">
       <div className="search-container">
@@ -214,7 +223,7 @@ const SearchPage = () => {
         <div className="search-results">
           {searchResults.map(sp => (
             <div key={sp.spId} className="search-result-item">
-              <a href={`/sp/${sp.spId}`} className="sp-title">{sp.title}</a>
+              <a href={`/sp/${sp.spId}`} className="sp-title" onClick={() => handleViewCountIncrement(sp.spId)}>{sp.title}</a>
               <div className="sp-metadata">
                 <span>By {sp.authors.join(", ")}</span>
                 <span className="sp-date">📅 {sp.year}</span>
