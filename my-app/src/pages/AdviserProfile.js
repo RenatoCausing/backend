@@ -7,6 +7,11 @@ import { useUser } from '../contexts/UserContext';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
+import Pagination from '@mui/material/Pagination';
+import Typography from '@mui/material/Typography';
+import FormControl from '@mui/material/FormControl';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
 
 function AdviserProfile() {
   const { adviserId } = useParams();
@@ -18,7 +23,11 @@ function AdviserProfile() {
   const [editableDescription, setEditableDescription] = useState('');
   const [isOwner, setIsOwner] = useState(false);
   
- // Notification state
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+  
+  // Notification state
   const [notification, setNotification] = useState({
     show: false,
     message: '',
@@ -230,12 +239,29 @@ function AdviserProfile() {
       });
   };
 
-
   // Cancel editing
   const cancelEditing = () => {
     setEditableDescription(adviser.description || '');
     setIsEditing(false);
   };
+
+  // Handle page change
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+  };
+
+  // Handle items per page change
+  const handleItemsPerPageChange = (event) => {
+    setItemsPerPage(event.target.value);
+    setCurrentPage(1); // Reset to first page when changing items per page
+  };
+
+  // Calculate pagination values
+  const totalItems = adviserSPs.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = adviserSPs.slice(indexOfFirstItem, indexOfLastItem);
 
   // Loading state
   if (loading || !adviser) {
@@ -346,31 +372,154 @@ function AdviserProfile() {
         <div className="special-projects-section">
           <div className="section-header">
             <h2>Special Projects Advised</h2>
-            <button className="browse-all-button">Browse All</button>
           </div>
           
-          <div className="project-cards-container">
-            {adviserSPs.map(sp => (
-              <Link to={`/project/${sp.spId}`} key={sp.spId} className="project-card-link">
-                <div className="project-card">
-                  <h3>{sp.title}</h3>
-                  <div className="view-count">
-                    <svg className="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                    {sp.viewCount}
-                  </div>
-                  <p className="project-details">Year: {sp.year}, Semester: {sp.semester}</p>
-                  <div className="project-tags">
-                    {sp.tags && sp.tags.map((tag, index) => (
-                      <span key={index} className="project-tag">{tag}</span>
-                    ))}
-                  </div>
-                </div>
-              </Link>
-            ))}
+          {/* Top Pagination Controls */}
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            padding: '0 16px', 
+            width: '100%',
+            margin: '10px 0',
+          }}>
+            <div style={{ width: '150px' }}></div>
+            {/* Pagination Numbers */}
+            {totalPages > 1 && (
+              <Pagination
+                count={totalPages}
+                page={currentPage}
+                onChange={handlePageChange}
+                size="medium"
+                shape="rounded"
+                color="primary"
+                sx={{
+                  '& .MuiPaginationItem-root': {
+                    color: '#333',
+                    borderColor: '#e4e4e4',
+                  },
+                  '& .Mui-selected': {
+                    backgroundColor: '#800000 !important',
+                    color: '#fff',
+                  }
+                }}
+              />
+            )}
+
+            {/* Rows per page control with label */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+              <Typography variant="body2" style={{ whiteSpace: 'nowrap' }}>
+                Show rows:
+              </Typography>
+              <FormControl variant="outlined" size="small" sx={{ minWidth: 80 }}>
+                <Select
+                  id="rows-per-page-select"
+                  value={itemsPerPage}
+                  onChange={handleItemsPerPageChange}
+                >
+                  <MenuItem value={3}>3</MenuItem>
+                  <MenuItem value={5}>5</MenuItem>
+                  <MenuItem value={10}>10</MenuItem>
+                  <MenuItem value={20}>20</MenuItem>
+                </Select>
+              </FormControl>
+            </div>
           </div>
+          
+          {/* Top divider */}
+          <div className="sp-divider top-divider" style={{backgroundColor: 'rgba(229, 231, 235, 0.7)', margin: '10px 0'}}></div>
+          
+          {/* Project Cards Container */}
+          <div className="project-cards-container">
+            {currentItems.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
+                No special projects found for this adviser.
+              </div>
+            ) : (
+              currentItems.map((sp, index) => (
+                <div key={sp.spId} className="relative">
+                  <Link to={`/project/${sp.spId}`} className="project-card-link">
+                    <div className="project-card">
+                      <h3>{sp.title}</h3>
+                      <div className="view-count">
+                        <svg className="eye-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                        {sp.viewCount}
+                      </div>
+                      <p className="project-details">Year: {sp.year}, Semester: {sp.semester}</p>
+                      <div className="project-tags">
+                        {sp.tags && sp.tags.map((tag, index) => (
+                          <span key={index} className="project-tag">{tag}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </Link>
+                  
+                  {/* Divider between projects (except the last one) */}
+                  {index < currentItems.length - 1 && (
+                    <div
+                      className="sp-divider"
+                      style={{backgroundColor: 'rgba(229, 231, 235, 0.7)', margin: '10px 0'}}
+                    ></div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+          
+          {/* Bottom Pagination Controls */}
+          {totalPages > 1 && (
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center', 
+              padding: '0 16px', 
+              width: '100%',
+              margin: '20px 0',
+            }}>
+              <div style={{ width: '150px' }}></div>
+              {/* Pagination Numbers */}
+              <Pagination
+                count={totalPages}
+                page={currentPage}
+                onChange={handlePageChange}
+                size="medium"
+                shape="rounded"
+                color="primary"
+                sx={{
+                  '& .MuiPaginationItem-root': {
+                    color: '#333',
+                    borderColor: '#e4e4e4',
+                  },
+                  '& .Mui-selected': {
+                    backgroundColor: '#800000 !important',
+                    color: '#fff',
+                  }
+                }}
+              />
+              
+              {/* Rows per page control */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                <Typography variant="body2" style={{ whiteSpace: 'nowrap' }}>
+                  Show rows:
+                </Typography>
+                <FormControl variant="outlined" size="small" sx={{ minWidth: 80 }}>
+                  <Select
+                    id="rows-per-page-select-bottom"
+                    value={itemsPerPage}
+                    onChange={handleItemsPerPageChange}
+                  >
+                    <MenuItem value={3}>3</MenuItem>
+                    <MenuItem value={5}>5</MenuItem>
+                    <MenuItem value={10}>10</MenuItem>
+                    <MenuItem value={20}>20</MenuItem>
+                  </Select>
+                </FormControl>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
