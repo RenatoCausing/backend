@@ -39,7 +39,8 @@ function HomePage() {
       })
       .then(data => {
         console.log('Top advisers data:', data);
-        setTopAdvisers(Array.isArray(data) ? data : []);
+        const limitedData = Array.isArray(data) ? data.slice(0, 5) : [];
+        setTopAdvisers(limitedData);
       })
       .catch(error => {
         console.error('Error fetching top advisers:', error);
