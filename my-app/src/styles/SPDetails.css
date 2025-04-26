@@ -120,7 +120,7 @@
 }
 
 .abstract-text {
-  font-size: 1rem;
+  font-size: .9rem;
   line-height: 1.4rem;
   color: #000000;
 
@@ -213,8 +213,11 @@
 
 .student-authors h3, .adviser-info h3 {
   margin: 0 0 5px 0;
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   color: #333;
+}
+.adviser-header h3{
+  margin:0;
 }
 
 .student-authors p, .adviser-info p {

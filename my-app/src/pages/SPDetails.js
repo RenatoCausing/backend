@@ -301,7 +301,7 @@ function SPDetails() {
           
           {/* Display adviser with icon */}
           {adviser && (
-            <div className="adviser-info">
+            <div className="adviser-info" style = {{marginLeft: '1rem'}}>
               <div className="adviser-header">
                 <FontAwesomeIcon icon={faUser} className="adviser-icon" />
                 <h3>Adviser</h3>
