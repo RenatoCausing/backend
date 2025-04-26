@@ -145,11 +145,13 @@ public class SPServiceImpl implements SPService {
             sp.setStudents(new HashSet<>());
         }
 
-        f (spDTO.getFacultyId() != null) {
-            Faculty faculty = facultyRepository.findById(spDTO.getFacultyId()) // Assuming you have facultyRepository Autowired [cite: 98]
+        if (spDTO.getFacultyId() != null) {
+            Faculty faculty = facultyRepository.findById(spDTO.getFacultyId()) // Assuming you have facultyRepository
+                                                                               // Autowired [cite: 98]
                     .orElseThrow(() -> {
                         logger.error("Faculty not found with ID: {}", spDTO.getFacultyId());
-                        return new ResponseStatusException(HttpStatus.NOT_FOUND, "Faculty not found with ID: " + spDTO.getFacultyId());
+                        return new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                "Faculty not found with ID: " + spDTO.getFacultyId());
                     });
             sp.setFaculty(faculty);
             logger.debug("Set faculty to ID: {}", faculty.getFacultyId());
@@ -270,19 +272,21 @@ public class SPServiceImpl implements SPService {
             // Check if the faculty ID in the DTO is different from the current one,
             // or if the current one is null to avoid unnecessary lookups/updates.
             if (sp.getFaculty() == null || !sp.getFaculty().getFacultyId().equals(spDTO.getFacultyId())) {
-                Faculty faculty = facultyRepository.findById(spDTO.getFacultyId()) // Assuming facultyRepository Autowired [cite: 98]
+                Faculty faculty = facultyRepository.findById(spDTO.getFacultyId()) // Assuming facultyRepository
+                                                                                   // Autowired [cite: 98]
                         .orElseThrow(() -> {
-                             logger.error("Faculty not found with ID: {}", spDTO.getFacultyId());
-                            return new ResponseStatusException(HttpStatus.NOT_FOUND, "Faculty not found with ID: " + spDTO.getFacultyId());
-                         });
+                            logger.error("Faculty not found with ID: {}", spDTO.getFacultyId());
+                            return new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                    "Faculty not found with ID: " + spDTO.getFacultyId());
+                        });
                 sp.setFaculty(faculty);
                 logger.debug("Updated faculty to ID: {}", faculty.getFacultyId());
             }
         } else {
             // If facultyId is explicitly null in the DTO, remove the association
             if (sp.getFaculty() != null) {
-                 logger.debug("Faculty ID is null in update DTO, setting faculty to null.");
-                 sp.setFaculty(null);
+                logger.debug("Faculty ID is null in update DTO, setting faculty to null.");
+                sp.setFaculty(null);
             }
         }
 

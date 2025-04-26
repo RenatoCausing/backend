@@ -14,6 +14,7 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
     dateIssued: '',
     uploadedBy: '',
     adviserId: '',
+    facultyId: '', // Added facultyId to state
     author: '',
     adviserName: '',
     tags: [],
@@ -24,46 +25,47 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
 
   // Panel container ref for scroll management
   const panelContainerRef = useRef(null);
-  
+
   // State for dropdown selections
   const [showTagSelector, setShowTagSelector] = useState(false);
   const [showAdviserSelector, setShowAdviserSelector] = useState(false);
   const [showAuthorSelector, setShowAuthorSelector] = useState(false);
-  
-  // State for available options
+
+  // State for available options (faculties are now hardcoded)
   const [availableTags, setAvailableTags] = useState([]);
   const [availableAdvisers, setAvailableAdvisers] = useState([]);
   const [availableStudents, setAvailableStudents] = useState([]);
+  // Removed availableFaculties state
   const [tagInput, setTagInput] = useState('');
   const [adviserInput, setAdviserInput] = useState('');
   const [authorInput, setAuthorInput] = useState('');
-  
+
   // State for thumbnail handling
   const [thumbnailFailed, setThumbnailFailed] = useState(false);
-  
+
   // Refs for closing dropdowns when clicking outside
   const tagSelectorRef = useRef(null);
   const adviserSelectorRef = useRef(null);
   const authorSelectorRef = useRef(null);
-  
+
   // Extract Google Drive file ID from various URL formats
   const extractGoogleDriveFileId = (url) => {
     if (!url) return null;
-    
+
     // Handle direct file IDs
     if (!url.includes('/') && !url.includes('drive.google.com')) {
       return url;
     }
-    
+
     // Extract from standard Drive URLs
-    const fileIdMatch = url.match(/\/d\/([^\/]+)/) || 
-                       url.match(/id=([^&]+)/) ||
-                       url.match(/file\/d\/([^\/]+)/);
-                      
+    const fileIdMatch = url.match(/\/d\/([^\/]+)/) ||
+                        url.match(/id=([^&]+)/) ||
+                        url.match(/file\/d\/([^\/]+)/);
+
     if (fileIdMatch && fileIdMatch[1]) {
       return fileIdMatch[1];
     }
-    
+
     return null;
   };
 
@@ -71,11 +73,11 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
   const getGoogleDrivePreviewUrl = (driveUrl) => {
     const fileId = extractGoogleDriveFileId(driveUrl);
     if (!fileId) return null;
-    
+
     // This returns a preview URL that can be used in an iframe
     return `https://drive.google.com/file/d/${fileId}/preview`;
   };
-  
+
   // Update form data whenever the project prop changes
   useEffect(() => {
     if (project) {
@@ -89,6 +91,7 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
         dateIssued: project.dateIssued || '',
         uploadedBy: project.uploadedBy || '',
         adviserId: project.adviserId || '',
+        facultyId: project.facultyId || '', // Initialize facultyId from project
         author: project.author || '',
         adviserName: project.adviserName || '',
         tags: project.tags || [],
@@ -99,30 +102,33 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
       setThumbnailFailed(false);
     }
   }, [project]);
-  
-  // Fetch advisers, tags, and students on component mount
+
+  // Fetch advisers, tags, and students on component mount (faculties are hardcoded)
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch all advisers
         const adviserResponse = await axios.get('http://localhost:8080/api/advisers');
         setAvailableAdvisers(adviserResponse.data || []);
-        
+
         // Fetch all tags
         const tagResponse = await axios.get('http://localhost:8080/api/tags');
         setAvailableTags(tagResponse.data || []);
-        
+
         // Fetch all students
         const studentResponse = await axios.get('http://localhost:8080/api/students');
         setAvailableStudents(studentResponse.data || []);
+
+        // Removed faculty fetch
+
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-    
+
     fetchData();
   }, []);
-  
+
   // Set up click outside handlers for dropdowns
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -136,7 +142,7 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
         setShowAuthorSelector(false);
       }
     };
-    
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
@@ -153,7 +159,7 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Create updated project object with editable fields
     const updatedProjectData = {
       title: formData.title,
@@ -163,17 +169,18 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
       uri: formData.uri,
       documentPath: formData.documentPath,
       adviserId: formData.adviserId ? parseInt(formData.adviserId) : null,
+      facultyId: formData.facultyId ? parseInt(formData.facultyId) : null, // Include facultyId in update data
       tagIds: formData.tagIds && formData.tagIds.length > 0 ? formData.tagIds : [],
       studentIds: formData.studentIds && formData.studentIds.length > 0 ? formData.studentIds : []
     };
-    
+
     try {
       // Make the API call to update the project
       const response = await axios.put(
-        `http://localhost:8080/api/sp/${project.spId}/update`, 
+        `http://localhost:8080/api/sp/${project.spId}/update`,
         updatedProjectData
       );
-      
+
       // Call the parent's onSave function with updated data
       onSave(response.data);
       onClose();
@@ -188,10 +195,10 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
     if (indexToRemove !== -1) {
       const newTags = [...formData.tags];
       const newTagIds = [...formData.tagIds];
-      
+
       newTags.splice(indexToRemove, 1);
       newTagIds.splice(indexToRemove, 1);
-      
+
       setFormData(prevState => ({
         ...prevState,
         tags: newTags,
@@ -199,16 +206,16 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
       }));
     }
   };
-  
+
   const removeAuthor = (authorToRemove) => {
     const indexToRemove = formData.authors.indexOf(authorToRemove);
     if (indexToRemove !== -1) {
       const newAuthors = [...formData.authors];
       const newStudentIds = [...formData.studentIds];
-      
+
       newAuthors.splice(indexToRemove, 1);
       newStudentIds.splice(indexToRemove, 1);
-      
+
       setFormData(prevState => ({
         ...prevState,
         authors: newAuthors,
@@ -216,12 +223,12 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
       }));
     }
   };
-  
+
   const addTag = (tag) => {
     if (!formData.tags.includes(tag.tagName)) {
       const newTags = [...formData.tags, tag.tagName];
       const newTagIds = [...formData.tagIds, tag.tagId];
-      
+
       setFormData(prevState => ({
         ...prevState,
         tags: newTags,
@@ -231,13 +238,13 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
     setTagInput('');
     setShowTagSelector(false);
   };
-  
+
   const addAuthor = (student) => {
     const authorName = `${student.lastName}${student.firstName ? ', ' + student.firstName : ''}`;
     if (!formData.authors.includes(authorName)) {
       const newAuthors = [...formData.authors, authorName];
       const newStudentIds = [...formData.studentIds, student.studentId];
-      
+
       setFormData(prevState => ({
         ...prevState,
         authors: newAuthors,
@@ -247,34 +254,34 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
     setAuthorInput('');
     setShowAuthorSelector(false);
   };
-  
+
   const selectAdviser = (adviser) => {
     setFormData(prevState => ({
       ...prevState,
       adviserId: adviser.adminId,
       adviserName: `${adviser.lastName}${adviser.firstName ? ', ' + adviser.firstName : ''}`
     }));
-    
+
     setAdviserInput('');
     setShowAdviserSelector(false);
   };
 
   // Filter advisers based on input
-  const filteredAdvisers = availableAdvisers.filter(adviser => 
-    adviser && adviser.lastName && 
+  const filteredAdvisers = availableAdvisers.filter(adviser =>
+    adviser && adviser.lastName &&
     (adviser.lastName.toLowerCase().includes(adviserInput.toLowerCase()) ||
      (adviser.firstName && adviser.firstName.toLowerCase().includes(adviserInput.toLowerCase())))
   );
-  
+
   // Filter tags based on input
-  const filteredTags = availableTags.filter(tag => 
-    tag && tag.tagName && 
+  const filteredTags = availableTags.filter(tag =>
+    tag && tag.tagName &&
     tag.tagName.toLowerCase().includes(tagInput.toLowerCase())
   );
-  
+
   // Filter students based on input
-  const filteredStudents = availableStudents.filter(student => 
-    student && student.lastName && 
+  const filteredStudents = availableStudents.filter(student =>
+    student && student.lastName &&
     (student.lastName.toLowerCase().includes(authorInput.toLowerCase()) ||
      (student.firstName && student.firstName.toLowerCase().includes(authorInput.toLowerCase())))
   );
@@ -287,7 +294,7 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
       {/* Panel header - removed red styling */}
       <div className="panel-header plain-header">
         <h2 className="panel-title">Edit Project</h2>
-        
+
         {/* Close button */}
         <button
           onClick={onClose}
@@ -299,16 +306,16 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
           </svg>
         </button>
       </div>
-      
+
       {/* Panel content */}
       <div className="panel-content" ref={panelContainerRef}>
         {formData.documentPath && (
           <div className="document-thumbnail-container">
             {extractGoogleDriveFileId(formData.documentPath) ? (
-              <iframe 
+              <iframe
                 src={getGoogleDrivePreviewUrl(formData.documentPath)}
-                width="100%" 
-                height="300" 
+                width="100%"
+                height="300"
                 title="Document Preview"
               ></iframe>
             ) : (
@@ -325,32 +332,32 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
             <label className="form-label required-field" htmlFor="title">
               Project Title
             </label>
-            <input 
+            <input
               id="title"
               name="title"
-              type="text" 
+              type="text"
               className="form-control"
               value={formData.title}
               onChange={handleChange}
               required
             />
           </div>
-          
+
           <div className="form-grid">
             <div className="form-group">
               <label className="form-label" htmlFor="year">
                 Year
               </label>
-              <input 
+              <input
                 id="year"
                 name="year"
-                type="text" 
+                type="text"
                 className="form-control"
                 value={formData.year}
                 onChange={handleChange}
               />
             </div>
-            
+
             <div className="form-group">
               <label className="form-label" htmlFor="semester">
                 Semester
@@ -362,13 +369,33 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
                 value={formData.semester}
                 onChange={handleChange}
               >
+                <option value="">Select Semester</option>
                 <option value="1st">1st Semester</option>
                 <option value="2nd">2nd Semester</option>
                 <option value="Summer">Summer</option>
               </select>
             </div>
           </div>
-          
+
+           {/* Faculty Selection (Hardcoded) */}
+           <div className="form-group">
+            <label className="form-label" htmlFor="faculty">
+              Faculty
+            </label>
+            <select
+              id="faculty"
+              name="facultyId" // Use name="facultyId" to match the state
+              className="form-control"
+              value={formData.facultyId}
+              onChange={handleChange}
+            >
+              <option value="">Select Faculty</option>
+              <option value="1">BSBC</option>
+              <option value="2">BSCS</option>
+              <option value="3">BSAP</option>
+            </select>
+          </div>
+
           {/* Authors Selection */}
           <div className="form-group">
             <label className="form-label" htmlFor="authors">
@@ -376,15 +403,15 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
             </label>
             <div className="dropdown-container" ref={authorSelectorRef}>
               <div className="dropdown-input-group">
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   className="dropdown-input"
                   placeholder="Search for authors"
                   value={authorInput}
                   onChange={(e) => setAuthorInput(e.target.value)}
                   onClick={() => setShowAuthorSelector(true)}
                 />
-                <button 
+                <button
                   type="button"
                   className="dropdown-button"
                   onClick={() => {
@@ -401,13 +428,13 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
                   </svg>
                 </button>
               </div>
-              
+
               {showAuthorSelector && (
                 <div className="dropdown-menu shadow-md">
                   {filteredStudents.length > 0 ? (
                     filteredStudents.map(student => (
-                      <div 
-                        key={student.studentId} 
+                      <div
+                        key={student.studentId}
                         className="dropdown-item"
                         onClick={() => addAuthor(student)}
                       >
@@ -420,12 +447,12 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
                 </div>
               )}
             </div>
-            
+
             <div className="chips-container">
               {formData.authors.map((author, index) => (
                 <div key={index} className="chip">
                   {author}
-                  <button 
+                  <button
                     type="button"
                     className="chip-remove"
                     onClick={() => removeAuthor(author)}
@@ -436,7 +463,7 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
               ))}
             </div>
           </div>
-          
+
           {/* Adviser Selection */}
           <div className="form-group">
             <label className="form-label" htmlFor="adviser">
@@ -444,15 +471,15 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
             </label>
             <div className="dropdown-container" ref={adviserSelectorRef}>
               <div className="dropdown-input-group">
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   className="dropdown-input"
                   placeholder="Search for adviser"
                   value={adviserInput}
                   onChange={(e) => setAdviserInput(e.target.value)}
                   onClick={() => setShowAdviserSelector(true)}
                 />
-                <button 
+                <button
                   type="button"
                   className="dropdown-button"
                   onClick={() => {
@@ -469,12 +496,12 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
                   </svg>
                 </button>
               </div>
-              
+
               {showAdviserSelector && filteredAdvisers.length > 0 && (
                 <div className="dropdown-menu shadow-md">
                   {filteredAdvisers.map(adviser => (
-                    <div 
-                      key={adviser.adminId} 
+                    <div
+                      key={adviser.adminId}
                       className="dropdown-item"
                       onClick={() => selectAdviser(adviser)}
                     >
@@ -484,12 +511,12 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
                 </div>
               )}
             </div>
-            
+
             {formData.adviserName && (
               <div className="chips-container">
                 <div className="chip">
                   {formData.adviserName}
-                  <button 
+                  <button
                     type="button"
                     className="chip-remove"
                     onClick={() => {
@@ -506,13 +533,13 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
               </div>
             )}
           </div>
-          
+
           {/* Abstract */}
           <div className="form-group">
             <label className="form-label" htmlFor="abstractText">
               Abstract
             </label>
-            <textarea 
+            <textarea
               id="abstractText"
               name="abstractText"
               className="form-control textarea"
@@ -520,7 +547,7 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
               onChange={handleChange}
             />
           </div>
-          
+
           {/* Tags Selection */}
           <div className="form-group">
             <label className="form-label" htmlFor="tags">
@@ -528,15 +555,15 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
             </label>
             <div className="dropdown-container" ref={tagSelectorRef}>
               <div className="dropdown-input-group">
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   className="dropdown-input"
                   placeholder="Search for tags"
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                   onClick={() => setShowTagSelector(true)}
                 />
-                <button 
+                <button
                   type="button"
                   className="dropdown-button"
                   onClick={() => {
@@ -553,13 +580,13 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
                   </svg>
                 </button>
               </div>
-              
+
               {showTagSelector && (
                 <div className="dropdown-menu shadow-md">
                   {filteredTags.length > 0 ? (
                     filteredTags.map(tag => (
-                      <div 
-                        key={tag.tagId} 
+                      <div
+                        key={tag.tagId}
                         className="dropdown-item"
                         onClick={() => addTag(tag)}
                       >
@@ -572,12 +599,12 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
                 </div>
               )}
             </div>
-            
+
             <div className="chips-container">
               {formData.tags.map((tag, index) => (
                 <div key={index} className="chip">
                   {tag}
-                  <button 
+                  <button
                     type="button"
                     className="chip-remove"
                     onClick={() => removeTag(tag)}
@@ -588,16 +615,16 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
               ))}
             </div>
           </div>
-          
+
           {/* Document Path field */}
           <div className="form-group">
             <label className="form-label" htmlFor="documentPath">
               PDF Link
             </label>
-            <input 
+            <input
               id="documentPath"
               name="documentPath"
-              type="text" 
+              type="text"
               className="form-control"
               value={formData.documentPath}
               onChange={handleChange}
@@ -605,17 +632,17 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
           </div>
         </form>
       </div>
-      
+
       {/* Panel footer with action buttons */}
       <div className="panel-footer">
-        <button 
+        <button
           type="button"
           className="btn btn-secondary"
           onClick={onClose}
         >
           Cancel
         </button>
-        <button 
+        <button
           type="button"
           onClick={handleSubmit}
           className="btn btn-primary"
