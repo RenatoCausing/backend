@@ -1,3 +1,5 @@
+
+import axios from 'axios';
 import React, { useEffect, useState, useRef } from 'react';
 import Navbar from '../components/AdviserNavbar';
 import HeroSection from '../components/HeroSection';
@@ -119,7 +121,19 @@ function HomePage() {
       .filter(tag => sp.tagIds.includes(tag.tagId))
       .map(tag => tag.tagName || 'Unknown Tag');
   };
-
+  const handleViewCountIncrement = async (spId) => {
+    try {
+      // Make the POST request to your backend endpoint
+      await axios.post(`http://localhost:8080/api/sp/${spId}/view`);
+      console.log(`View count incremented for SP ID: ${spId}`);
+      // You might want to update the view count displayed on the card locally here,
+      // but keep in mind this local update won't persist on refresh unless data is re-fetched.
+      // The backend is the source of truth for the view count.
+    } catch (error) {
+      console.error(`Error incrementing view count for SP ID: ${spId}`, error);
+      // Handle errors if the API call fails
+    }
+  };
   const fetchRandomSPs = () => {
     setIsLoading(true);
     fetch(`${BACKEND_URL}/api/sp`)
@@ -352,7 +366,7 @@ function HomePage() {
                           }
                         </div>
                         
-                        <Link to={`/project/${sp.spId}`} className="view-details-button">
+                        <Link to={`/project/${sp.spId}`} className="view-details-button" onClick={() => handleViewCountIncrement(sp.spId)} >
                           View Details
                         </Link>
                       </div>
