@@ -70,7 +70,7 @@ function AdviserProfile() {
         setEditableDescription(data.description || '');
         
         // Check if current user is the owner of this profile
-        if (isAuthenticated && currentUser && data.email === currentUser.email) {
+        if (isAuthenticated && currentUser && data.email === currentUser.email && currentUser.role == "faculty") {
           setIsOwner(true);
         }
       })
