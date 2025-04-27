@@ -116,7 +116,12 @@
 .author-name {
   font-size: 1rem;
   line-height: 1.4rem;
-  color: #000000;
+  color: #800000;
+}
+.author-name span {
+  font-size: 1rem;
+  line-height: 1.4rem;
+  color: #800000;
 }
 
 .abstract-text {
@@ -209,10 +214,10 @@
 /* New styling for student and adviser sections */
 .student-authors, .adviser-info {
   margin-bottom: 10px;
+  margin-left: 1rem;
 }
 
 .student-authors h3, .adviser-info h3 {
-  margin: 0 0 5px 0;
   font-size: 1.1rem;
   color: #333;
 }
