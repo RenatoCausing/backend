@@ -197,15 +197,12 @@ public class SPServiceImpl implements SPService {
         return sp.getViewCount();
     }
 
+    @Override
     public List<AdviserDTO> getTopAdvisersByViews() {
+        // Hardcoded limit to 8 as per the original code, adjust if needed
         Pageable pageable = PageRequest.of(0, 8);
-        // Get top 5
         List<Object[]> results = spRepository.findTopAdvisersByViews(pageable);
         return results.stream()
-                // No need to filter out null adviser or 0 views based on previous logic,
-                // as the native query and COALESCE handle 0 views.
-                // If you still want to filter > 0 views, add it here based on result[9]
-                // .filter(result -> result[9] != null && (Long) result[9] > 0)
                 .map(result -> {
                     AdviserDTO dto = new AdviserDTO();
                     // Manually map columns from Object[] to AdviserDTO properties
@@ -219,9 +216,9 @@ public class SPServiceImpl implements SPService {
                     dto.setImagePath((String) result[6]); // image_path
                     dto.setDescription((String) result[7]); // description
                     dto.setEmail((String) result[8]); // email
-                    // result[9] is the total_views aggregate, not directly part of AdviserDTO
-                    // typically,
-                    // but you can use it for filtering if needed.
+                    // --- NEW: Map the total_views (index 9) to the viewCount field ---
+                    // The result[9] is a Long from SUM, cast it to Integer
+                    dto.setViewCount(((Long) result[9]).intValue()); // total_views
                     // Note: The toDTO(Admin admin) helper method is no longer directly used here
                     // because we are getting column values, not an Admin entity.
                     return dto;

@@ -17,4 +17,5 @@ public class AdviserDTO {
     private String imagePath;
     private String description;
     private String role; // Added role field to support UserManagementPanel
+    private Integer viewCount; // --- NEW: Add field for total view count ---
 }
