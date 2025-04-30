@@ -854,4 +854,27 @@ public class SPServiceImpl implements SPService {
         List<SP> filteredSPs = spRepository.findSPsByFilters(adviserIds, tagIds, facultyId, finalSearchTerm);
         return filteredSPs.stream().map(this::toDTO).collect(Collectors.toList());
     }
+
+    // --- Implementation for deleting an SP ---
+    @Override
+    @Transactional // Ensure this operation is transactional
+    public void deleteSP(Integer spId) {
+        logger.info("Attempting to delete SP with ID: {}", spId);
+        // Check if the SP exists
+        if (!spRepository.existsById(spId)) {
+            logger.warn("SP not found with ID: {}", spId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "SP not found with ID: " + spId);
+        }
+
+        try {
+            // Delete the SP
+            spRepository.deleteById(spId);
+            logger.info("Successfully deleted SP with ID: {}", spId);
+        } catch (Exception e) {
+            logger.error("Error deleting SP with ID: {}", spId, e);
+            // Rethrow as a ResponseStatusException with Internal Server Error
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete SP with ID: " + spId,
+                    e);
+        }
+    }
 }

@@ -1,4 +1,3 @@
-
 import axios from 'axios';
 import { Typography } from '@mui/material';
 import React, { useState, useEffect, useRef } from 'react';
@@ -14,8 +13,13 @@ import InputLabel from '@mui/material/InputLabel';
 // Removed unused Stack import
 // import { Stack } from '@mui/material';
 
+// Import the new DeleteConfirmationModal component
+import DeleteConfirmationModal from './DeleteConfirmationModal';
+
+
 const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
-  const { refreshTrigger } = useProjectContext(); // [cite: 5]
+  // --- CORRECTED: Destructure triggerDataRefresh instead of setRefreshTrigger ---
+  const { refreshTrigger, triggerDataRefresh } = useProjectContext();
   const { currentUser } = useUser(); // <--- Get the current user from context
 
   // State management
@@ -75,6 +79,12 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
   const adviserDropdownRef = useRef(null);
   const tagDropdownRef = useRef(null);
   const searchTimeoutRef = useRef(null);
+
+  // --- State for Delete Confirmation Modal ---
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [spToDelete, setSpToDelete] = useState(null); // Holds { spId, spTitle }
+  // --- New state to track deletion loading ---
+  const [isDeleting, setIsDeleting] = useState(false);
 
 
   // --- Pagination Handlers ---
@@ -302,6 +312,45 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
 
         return result; // Return client-side filtered results
       }
+    },
+
+    // --- New Delete SP API Call ---
+    deleteSP: async (spId) => {
+        try {
+            const response = await axios.delete(`http://localhost:8080/api/sp/${spId}`, { withCredentials: true });
+            if (response.status === 204) { // 204 No Content is typical for successful deletion
+                console.log(`SP with ID ${spId} deleted successfully.`);
+                return true; // Indicate success
+            } else {
+                 console.error(`Failed to delete SP with ID ${spId}. Status: ${response.status}`);
+                 // Handle other success status codes if necessary, though 204 is standard
+                 return false; // Indicate failure
+            }
+        } catch (error) {
+            console.error(`Error deleting SP with ID ${spId}:`, error);
+             // Check for specific error responses (e.g., 404 Not Found, 401 Unauthorized)
+            if (error.response) {
+                 console.error("Error response data:", error.response.data);
+                 console.error("Error response status:", error.response.status);
+                 console.error("Error response headers:", error.response.headers);
+                 if (error.response.status === 401 || error.response.status === 403) {
+                     alert("You are not authorized to delete this project.");
+                 } else if (error.response.status === 404) {
+                     alert("Project not found.");
+                 } else {
+                     alert(`Failed to delete project: ${error.response.data?.message || error.message}`);
+                 }
+            } else if (error.request) {
+                 // The request was made but no response was received
+                 console.error("Error request:", error.request);
+                 alert("Failed to delete project: No response from server.");
+            } else {
+                 // Something happened in setting up the request that triggered an Error
+                 console.error("Error message:", error.message);
+                 alert(`Failed to delete project: ${error.message}`);
+            }
+            return false; // Indicate failure
+        }
     }
   };
 
@@ -475,6 +524,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
       setFilterLoading(true);
     }, 150); // Adjust the delay (e.g., 100, 200, 300) as needed
 
+    console.log("Applying filters effect triggered."); // Add log
 
     try {
       // Construct filter object from state (no change needed here)
@@ -538,7 +588,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
     }
   };
 
-}, [selectedAdvisers, selectedTags, selectedDepartment, debouncedSearchTerm, sortBy, sortDirection, initialLoading]); // Dependencies remain the same
+}, [selectedAdvisers, selectedTags, selectedDepartment, debouncedSearchTerm, sortBy, sortDirection, initialLoading, refreshTrigger]); // Added refreshTrigger dependency
 
 
   // Get adviser name from fetched adviser data
@@ -727,6 +777,44 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
     // You would typically open a modal or navigate to an upload form here
   };
 
+  // --- Delete Modal Handlers ---
+  const handleDeleteClick = (sp) => {
+      console.log("Delete button clicked for SP:", sp);
+      setSpToDelete({ spId: sp.spId, spTitle: sp.title }); // Set the SP to be deleted
+      setShowDeleteModal(true); // Show the modal
+  };
+
+  const handleDeleteConfirm = async () => {
+      console.log("Delete confirmed for SP ID:", spToDelete?.spId);
+      if (spToDelete?.spId) {
+          setIsDeleting(true); // --- Set loading state to true ---
+          try {
+              const success = await SPApiService.deleteSP(spToDelete.spId);
+              if (success) {
+                  console.log("Deletion successful. Triggering SP list refresh.");
+                  triggerDataRefresh(); // Call triggerDataRefresh from context
+                  // Clear the SP to delete and hide the modal
+                  setSpToDelete(null);
+                  setShowDeleteModal(false);
+              } else {
+                  console.error("Deletion failed.");
+                  // Keep the modal open or show an error message to the user
+                  // The SPApiService.deleteSP already handles showing alerts for common errors
+                  // You might add more specific error handling here if needed
+              }
+          } finally {
+              setIsDeleting(false); // --- Set loading state to false when done ---
+          }
+      }
+  };
+
+  const handleDeleteCancel = () => {
+      console.log("Delete cancelled.");
+      setSpToDelete(null); // Clear the SP to delete
+      setShowDeleteModal(false); // Hide the modal
+  };
+
+
   return (
     <div className="sp-filter-panel-container">
       <div className="flex w-full max-w-6xl mx-auto" style={{backgroundColor: 'white'}}>
@@ -819,17 +907,17 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
     <div style={{ width: '33%', flexShrink: 0, display: 'flex', md: 'block' }}></div> {/* Hide on small screens */}
 
 {/* Container with flexbox to align items */}
-<div style={{ 
-  display: 'flex', 
-  justifyContent: 'space-between', 
-  alignItems: 'center', 
-  padding: '0 16px', 
+<div style={{
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  padding: '0 16px',
   width: '100%',
   margin: '10px 0',
 }}>
   {/* Empty div for left side spacing */}
   <div style={{ width: '150px' }}></div>
-  
+
   {/* Pagination Numbers (Center) */}
   {totalPages > 1 && (
     <Pagination
@@ -877,7 +965,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
 
 
           {/* Loading and Error States */}
-          
+
           {(initialLoading || filterLoading) && <div className="bg-blue-50 p-4 text-center text-blue-700 rounded">Fetching SPs...</div>}
           {error && <div className="bg-red-50 p-4 text-center text-red-700 rounded">{error}</div>}
 
@@ -920,14 +1008,20 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                       >
                         <i className="fa-solid fa-pen"></i>
                       </button>
-                      {/* Delete Button (Placeholder) */}
-                      <button
-                        className="text-red-600 hover:text-red-800 p-2"
-                        aria-label="Delete project"
-                        // Add onClick handler for delete functionality
-                      >
-                        <i className="fa fa-trash"></i>
-                      </button>
+                      {/* Delete Button (Visible only to staff) */}
+                      {isStaff && (
+                          <button
+                            className="text-red-600 hover:text-red-800 p-2"
+                            aria-label="Delete project"
+                            onClick={(e) => {
+                                e.preventDefault(); // Prevent default link behavior
+                                e.stopPropagation(); // Stop event propagation
+                                handleDeleteClick(sp); // Call the new delete handler
+                            }}
+                          >
+                            <i className="fa fa-trash"></i>
+                          </button>
+                      )}
                     </div>
                   </div>
 
@@ -999,7 +1093,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                   value={adviserInput}
                   onChange={(e) => setAdviserInput(e.target.value)}
                   onClick={() => setShowAdviserDropdown(true)} // Show dropdown on input click
-                  onFocus={() => setShowAdviserDropdown(true)} // Show dropdown on focus
+                   onFocus={() => setShowAdviserDropdown(true)} // Show dropdown on focus
                 />
                  {/* Clear Advisers Button */}
                 <button
@@ -1012,16 +1106,22 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
               </div>
               {/* Adviser Dropdown */}
               {showAdviserDropdown && filteredAdvisers.length > 0 && (
-                <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-b mt-1 max-h-40 overflow-y-auto shadow-lg">
-                  {filteredAdvisers.map(adviser => (
-                    <div
-                      key={adviser.adminId}
-                      className="p-2 hover:bg-gray-100 cursor-pointer text-dm"
-                      onClick={() => handleSelectAdviser(adviser)} // Handle adviser selection
-                    >
-                      {formatName(adviser)}
-                    </div>
-                  ))}
+                <div
+                  className="absolute z-10 w-full bg-white border border-gray-300 rounded-b mt-1 max-h-40 overflow-y-auto shadow-lg">
+                  {/* Corrected conditional rendering syntax */}
+                  {filteredAdvisers.length > 0 ? (
+                    filteredAdvisers.map(adviser => (
+                      <div
+                        key={adviser.adminId}
+                        className="p-2 hover:bg-gray-100 cursor-pointer text-dm"
+                        onClick={() => handleSelectAdviser(adviser)} // Handle adviser selection
+                      >
+                        {formatName(adviser)}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-2 text-sm text-gray-500">No matching advisers</div>
+                  )}
                 </div>
               )}
             </div>
@@ -1109,6 +1209,15 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
           </div>
         </div>
       </div>
+
+      {/* Render the Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+          isOpen={showDeleteModal}
+          onClose={handleDeleteCancel}
+          onConfirm={handleDeleteConfirm}
+          itemToDelete={spToDelete} // Pass the SP details to the modal
+          isDeleting={isDeleting} // --- Pass the loading state ---
+      />
     </div>
   );
 };

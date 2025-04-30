@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -189,6 +190,26 @@ public class SPController {
             logger.error("Unexpected error during CSV upload for admin ID {}", uploadedById, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "An unexpected server error occurred during upload: " + e.getMessage()));
+        }
+    }
+
+    // --- New endpoint for deleting an SP ---
+    @DeleteMapping("/{spId}")
+    public ResponseEntity<Void> deleteSP(@PathVariable Integer spId) {
+        logger.info("Received request to delete SP with ID: {}", spId);
+        try {
+            spService.deleteSP(spId);
+            // Return 204 No Content on successful deletion
+            return ResponseEntity.noContent().build();
+        } catch (ResponseStatusException e) {
+            logger.error("Error deleting SP {}: {} - {}", spId, e.getStatusCode(), e.getReason());
+            // Propagate the ResponseStatusException with the appropriate status code (e.g.,
+            // 404)
+            throw e;
+        } catch (Exception e) {
+            logger.error("Unexpected error deleting SP {}", spId, e);
+            // Return 500 Internal Server Error for any other unexpected exceptions
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }
