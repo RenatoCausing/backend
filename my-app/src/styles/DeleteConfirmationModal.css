@@ -53,15 +53,25 @@
     transition: color 0.2s ease;
   }
   
-  .close-button:hover {
+  .close-button:hover:not(:disabled) {
     color: #777;
   }
+  
+  .close-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+  }
+  
   
   /* Modal Body */
   .modal-body {
     font-size: 1em;
     line-height: 1.5;
     color: #555;
+    display: flex; /* Use flexbox for body content */
+    flex-direction: column;
+    align-items: center; /* Center content horizontally */
+    text-align: center; /* Center text */
   }
   
   .modal-body strong {
@@ -90,10 +100,9 @@
   .cancel-button {
     background-color: #ddd;
     color: #333;
-    justify-content: center;
   }
   
-  .cancel-button:hover {
+  .cancel-button:hover:not(:disabled) {
     background-color: #ccc;
   }
   
@@ -102,9 +111,17 @@
     color: white;
   }
   
-  .delete-button:hover {
+  .delete-button:hover:not(:disabled) {
     background-color: #c82333; /* Darker red on hover */
   }
+  
+  /* --- NEW: Style for the delete button when it's disabled --- */
+  .delete-button:disabled {
+      background-color: #8B0000; /* Dark red */
+      cursor: not-allowed;
+      opacity: 0.7; /* Slightly less opaque than other disabled buttons */
+  }
+  
   
   /* Optional: Add responsiveness */
   @media (max-width: 600px) {
@@ -125,5 +142,21 @@
       padding: 6px 12px;
       font-size: 0.9em;
     }
+  }
+  
+  /* Basic Loading Spinner CSS */
+  .loading-spinner {
+    border: 4px solid #f3f3f3; /* Light grey */
+    border-top: 4px solid #800000; /* UP Maroon */
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite; /* Animation */
+    margin-top: 10px; /* Space below text */
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
   

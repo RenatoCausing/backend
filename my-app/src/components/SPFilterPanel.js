@@ -48,6 +48,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  // --- CORRECTED: Use indexOfLastItem instead of lastItemIndex ---
   const currentItems = filteredSps.slice(indexOfFirstItem, indexOfLastItem);
 
 
@@ -85,6 +86,8 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
   const [spToDelete, setSpToDelete] = useState(null); // Holds { spId, spTitle }
   // --- New state to track deletion loading ---
   const [isDeleting, setIsDeleting] = useState(false);
+  // --- New state to track list refreshing after deletion ---
+  const [isRefreshingList, setIsRefreshingList] = useState(false);
 
 
   // --- Pagination Handlers ---
@@ -437,9 +440,11 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
 
 
   // *** THIS useEffect FETCHES THE INITIAL DATA AND DEPENDS ON refreshTrigger ***
+  // --- MODIFIED: Add isRefreshingList state management and modal closing logic ---
   useEffect(() => {
     const fetchData = async () => {
       setInitialLoading(true);
+      setIsRefreshingList(true); // --- Set refreshing state to true ---
       try {
         console.log('Fetching all data...');
 
@@ -474,8 +479,19 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Failed to load data. Please try again later.');
+        setFilteredSps([]); // Clear SPs on error
       } finally {
         setInitialLoading(false); // Set initial loading to false regardless of success or failure
+        setIsRefreshingList(false); // --- Set refreshing state to false ---
+        console.log("Data fetching complete. isRefreshingList set to false.");
+
+        // --- NEW: Close the delete modal if it's open and deletion is complete ---
+        // This ensures the modal stays open during the refresh and closes after
+        if (showDeleteModal && spToDelete !== null && !isDeleting) {
+             console.log("Closing delete modal after refresh.");
+             setSpToDelete(null);
+             setShowDeleteModal(false);
+        }
       }
     };
 
@@ -787,31 +803,35 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
   const handleDeleteConfirm = async () => {
       console.log("Delete confirmed for SP ID:", spToDelete?.spId);
       if (spToDelete?.spId) {
-          setIsDeleting(true); // --- Set loading state to true ---
+          setIsDeleting(true); // --- Set loading state to true for API call ---
           try {
               const success = await SPApiService.deleteSP(spToDelete.spId);
               if (success) {
-                  console.log("Deletion successful. Triggering SP list refresh.");
+                  console.log("Deletion API call successful. Triggering SP list refresh.");
+                  // Don't close the modal here. It will close after the refresh is complete.
                   triggerDataRefresh(); // Call triggerDataRefresh from context
-                  // Clear the SP to delete and hide the modal
-                  setSpToDelete(null);
-                  setShowDeleteModal(false);
               } else {
-                  console.error("Deletion failed.");
+                  console.error("Deletion API call failed.");
                   // Keep the modal open or show an error message to the user
                   // The SPApiService.deleteSP already handles showing alerts for common errors
                   // You might add more specific error handling here if needed
               }
           } finally {
-              setIsDeleting(false); // --- Set loading state to false when done ---
+              setIsDeleting(false); // --- Set loading state to false after API call ---
+               console.log("Deletion API call finished. isDeleting set to false.");
           }
       }
   };
 
   const handleDeleteCancel = () => {
       console.log("Delete cancelled.");
-      setSpToDelete(null); // Clear the SP to delete
-      setShowDeleteModal(false); // Hide the modal
+      // Only close if not currently deleting or refreshing
+      if (!isDeleting && !isRefreshingList) {
+          setSpToDelete(null); // Clear the SP to delete
+          setShowDeleteModal(false); // Hide the modal
+      } else {
+          console.log("Cannot cancel deletion/refresh in progress.");
+      }
   };
 
 
@@ -966,7 +986,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
 
           {/* Loading and Error States */}
 
-          {(initialLoading || filterLoading) && <div className="bg-blue-50 p-4 text-center text-blue-700 rounded">Fetching SPs...</div>}
+          {(initialLoading || filterLoading || isRefreshingList) && <div className="bg-blue-50 p-4 text-center text-blue-700 rounded">Fetching SPs...</div>} {/* Include isRefreshingList here */}
           {error && <div className="bg-red-50 p-4 text-center text-red-700 rounded">{error}</div>}
 
           {/* SP Results List */}
@@ -975,7 +995,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
             <div className="sp-divider top-divider" style={{backgroundColor: 'rgba(229, 231, 235, 0.7)'}}></div>
 
             {/* No Results Found Message */}
-            {!initialLoading && filteredSps.length === 0 && (
+            {!initialLoading && !filterLoading && !isRefreshingList && filteredSps.length === 0 && ( // Include loading states here
               <div className="bg-gray-100 p-4 text-center text-gray-600 rounded">
                 No results found. Try adjusting your filters.
               </div>
@@ -1216,7 +1236,8 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
           onClose={handleDeleteCancel}
           onConfirm={handleDeleteConfirm}
           itemToDelete={spToDelete} // Pass the SP details to the modal
-          isDeleting={isDeleting} // --- Pass the loading state ---
+          isDeleting={isDeleting} // --- Pass the API loading state ---
+          isRefreshingList={isRefreshingList} // --- Pass the list refreshing state ---
       />
     </div>
   );
