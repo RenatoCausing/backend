@@ -27,6 +27,10 @@ const SPFilterSystem = () => {
 
   const [filterLoading, setFilterLoading] = useState(false); // Keep this state
   const filterLoadingTimerRef = useRef(null); // <-- NEW: Ref to hold the timer ID
+
+  // --- NEW: Combined loading state for disabling controls ---
+  const isAnyLoading = initialLoading || filterLoading;
+
   // Pagination state (using 1-indexed page for MUI Pagination)
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20); // Default items per page
@@ -34,8 +38,7 @@ const SPFilterSystem = () => {
   // Calculate total pages and items for the current page
   const totalItems = filteredSps.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const indexOfLastItem = currentPage * itemsPerPage;const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredSps.slice(indexOfFirstItem, indexOfLastItem);
 
 
@@ -67,12 +70,18 @@ const SPFilterSystem = () => {
 
   // --- Pagination Handlers ---
    const handlePageChange = (event, value) => {
-    setCurrentPage(value); // value is the 1-indexed page number from Pagination
+     // Only allow page change if not loading
+     if (!isAnyLoading) {
+        setCurrentPage(value); // value is the 1-indexed page number from Pagination
+     }
   };
 
   const handleItemsPerPageChange = (event) => {
-    setItemsPerPage(parseInt(event.target.value, 10));
-    setCurrentPage(1); // Reset to the first page when rows per page changes
+    // Only allow items per page change if not loading
+    if (!isAnyLoading) {
+        setItemsPerPage(parseInt(event.target.value, 10));
+        setCurrentPage(1); // Reset to the first page when rows per page changes
+    }
   };
 
 
@@ -466,11 +475,13 @@ const SPFilterSystem = () => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       // Close adviser dropdown if click is outside
-      if (adviserDropdownRef.current && !adviserDropdownRef.current.contains(event.target)) {
+      // --- NEW: Only close if not loading ---
+      if (!isAnyLoading && adviserDropdownRef.current && !adviserDropdownRef.current.contains(event.target)) {
         setShowAdviserDropdown(false);
       }
       // Close tag dropdown if click is outside
-      if (tagDropdownRef.current && !tagDropdownRef.current.contains(event.target)) {
+      // --- NEW: Only close if not loading ---
+      if (!isAnyLoading && tagDropdownRef.current && !tagDropdownRef.current.contains(event.target)) {
         setShowTagDropdown(false);
       }
     };
@@ -482,7 +493,7 @@ const SPFilterSystem = () => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []); // Empty dependency array means this effect runs only once after the initial render
+  }, [isAnyLoading]); // --- NEW: Add isAnyLoading to dependencies ---
 
 
  // Effect to apply filters whenever filter states change
@@ -496,14 +507,14 @@ const SPFilterSystem = () => {
        clearTimeout(filterLoadingTimerRef.current);
        filterLoadingTimerRef.current = null;
      }
- 
+
      // <-- NEW: Start a timer to show the loading indicator after a short delay
      // The loading state will only become true if the fetch takes longer than 150ms
      filterLoadingTimerRef.current = setTimeout(() => {
        setFilterLoading(true);
      }, 150); // Adjust the delay (e.g., 100, 200, 300) as needed
- 
- 
+
+
      try {
        // Construct filter object from state (no change needed here)
        const filters = {
@@ -512,18 +523,18 @@ const SPFilterSystem = () => {
          departmentId: selectedDepartment,
          searchTerm: debouncedSearchTerm
        };
- 
+
        // Use the applyFilters service (no change needed here)
        const filteredResults = await SPApiService.applyFilters(filters);
        console.log("Filtered SPs fetched successfully:", filteredResults);
- 
+
        // Apply sorting (no change needed here)
        const sortedResults = sortSPs(filteredResults || []);
- 
+
        // Update state and reset pagination (no change needed here)
        setFilteredSps(sortedResults);
        setCurrentPage(1);
- 
+
        // Update search results... (no change needed here)
         if (debouncedSearchTerm) {
           setSearchResults({
@@ -534,8 +545,8 @@ const SPFilterSystem = () => {
           setSearchResults(null);
         }
         setError(null); // Clear filter-specific errors on success
- 
- 
+
+
      } catch (err) {
        console.error('Error applying filters:', err);
        setError('Failed to apply filters. Please try again.');
@@ -550,12 +561,12 @@ const SPFilterSystem = () => {
        setFilterLoading(false); // Always set filter loading to false when the operation completes
      }
    };
- 
+
    // Only apply filters if initial loading has completed (keep this condition)
    if (!initialLoading) {
      applyFiltersAndSort();
    }
- 
+
    // <-- NEW: Cleanup function for the effect
    // This runs when the component unmounts or the dependencies change
    return () => {
@@ -565,9 +576,9 @@ const SPFilterSystem = () => {
        filterLoadingTimerRef.current = null;
      }
    };
- 
+
  }, [selectedAdvisers, selectedTags, selectedDepartment, debouncedSearchTerm, sortBy, sortDirection, initialLoading]); // Dependencies remain the same
- 
+
   // Get adviser name from fetched adviser data
   const getAdviserName = (adviserId) => {
     const adviser = adviserData[adviserId];
@@ -609,64 +620,82 @@ const SPFilterSystem = () => {
 
   // Handle adviser selection from dropdown
   const handleSelectAdviser = (adviser) => {
-    // Add adviser to selectedAdvisers if not already included
-    if (!selectedAdvisers.some(a => a.adminId === adviser.adminId)) {
-      setSelectedAdvisers([...selectedAdvisers, adviser]);
+    // Only allow selection if not loading
+    if (!isAnyLoading) {
+        // Add adviser to selectedAdvisers if not already included
+        if (!selectedAdvisers.some(a => a.adminId === adviser.adminId)) {
+          setSelectedAdvisers([...selectedAdvisers, adviser]);
+        }
+        // Clear the input and hide the dropdown
+        setAdviserInput('');
+        setShowAdviserDropdown(false);
     }
-    // Clear the input and hide the dropdown
-    setAdviserInput('');
-    setShowAdviserDropdown(false);
   };
 
   // Handle tag selection from dropdown
   const handleSelectTag = (tag) => {
-    // Add tag to selectedTags if not already included
-    if (!selectedTags.some(t => t.tagId === tag.tagId)) {
-      setSelectedTags([...selectedTags, tag]);
+    // Only allow selection if not loading
+    if (!isAnyLoading) {
+        // Add tag to selectedTags if not already included
+        if (!selectedTags.some(t => t.tagId === tag.tagId)) {
+          setSelectedTags([...selectedTags, tag]);
+        }
+        // Clear the input and hide the dropdown
+        setTagInput('');
+        setShowTagDropdown(false);
     }
-    // Clear the input and hide the dropdown
-    setTagInput('');
-    setShowTagDropdown(false);
   };
 
   // Remove adviser from selected filters
   const removeAdviser = (adviserId) => {
-    setSelectedAdvisers(selectedAdvisers.filter(a => a.adminId !== adviserId));
+    // Only allow removal if not loading
+    if (!isAnyLoading) {
+        setSelectedAdvisers(selectedAdvisers.filter(a => a.adminId !== adviserId));
+    }
   };
 
   // Remove tag from selected filters
   const removeTag = (tagId) => {
-    setSelectedTags(selectedTags.filter(t => t.tagId !== tagId));
-    // Optional: Update URL to remove the tag parameter if needed
-    const url = new URL(window.location);
-    const currentTag = selectedTags.find(t => t.tagId === tagId);
-    if (currentTag) {
-      const tagParam = url.searchParams.get('tag');
-      if (tagParam && tagParam.toLowerCase() === encodeURIComponent(currentTag.tagName).toLowerCase()) {
-        url.searchParams.delete('tag');
-        window.history.pushState({}, '', url);
-      }
+    // Only allow removal if not loading
+    if (!isAnyLoading) {
+        setSelectedTags(selectedTags.filter(t => t.tagId !== tagId));
+        // Optional: Update URL to remove the tag parameter if needed
+        const url = new URL(window.location);
+        const currentTag = selectedTags.find(t => t.tagId === tagId);
+        if (currentTag) {
+          const tagParam = url.searchParams.get('tag');
+          if (tagParam && tagParam.toLowerCase() === encodeURIComponent(currentTag.tagName).toLowerCase()) {
+            url.searchParams.delete('tag');
+            window.history.pushState({}, '', url);
+          }
+        }
     }
   };
 
   // Handle tag clicks on SP cards
   const handleTagClick = (tagName) => {
-    // Find the tag object by name in the tags list
-    const tag = tags.find(t => t.tagName === tagName);
-    // If tag found and not already selected, add it to selectedTags
-    if (tag && !selectedTags.some(t => t.tagId === tag.tagId)) {
-      setSelectedTags([...selectedTags, tag]);
-      // Optional: Update URL to reflect the tag selection
-      const url = new URL(window.location);
-      url.searchParams.set('tag', encodeURIComponent(tagName));
-      window.history.pushState({}, '', url);
+    // Only allow tag click for filtering if not loading
+    if (!isAnyLoading) {
+        // Find the tag object by name in the tags list
+        const tag = tags.find(t => t.tagName === tagName);
+        // If tag found and not already selected, add it to selectedTags
+        if (tag && !selectedTags.some(t => t.tagId === tag.tagId)) {
+          setSelectedTags([...selectedTags, tag]);
+          // Optional: Update URL to reflect the tag selection
+          const url = new URL(window.location);
+          url.searchParams.set('tag', encodeURIComponent(tagName));
+          window.history.pushState({}, '', url);
+        }
     }
   };
 
   // Clear all selected advisers
   const clearAllAdvisers = () => {
-    setSelectedAdvisers([]);
-    setAdviserInput(''); // Clear input field as well
+    // Only allow clearing if not loading
+    if (!isAnyLoading) {
+        setSelectedAdvisers([]);
+        setAdviserInput(''); // Clear input field as well
+    }
   };
   const handleViewCountIncrement = async (spId) => {
     console.log(`Attempting to increment view count for SP ID: ${spId}`); // Keep this log
@@ -681,37 +710,51 @@ const SPFilterSystem = () => {
 
   // Clear all selected tags
   const clearAllTags = () => {
-    setSelectedTags([]);
-    setTagInput(''); // Clear input field as well
-    // Optional: Remove tag parameter from URL
-    const url = new URL(window.location);
-    url.searchParams.delete('tag');
-    window.history.pushState({}, '', url);
+    // Only allow clearing if not loading
+    if (!isAnyLoading) {
+        setSelectedTags([]);
+        setTagInput(''); // Clear input field as well
+        // Optional: Remove tag parameter from URL
+        const url = new URL(window.location);
+        url.searchParams.delete('tag');
+        window.history.pushState({}, '', url);
+    }
   };
 
 
   // Handle department filter change
   const handleDepartmentChange = (e) => {
-    setSelectedDepartment(e.target.value);
+    // Only allow change if not loading
+    if (!isAnyLoading) {
+        setSelectedDepartment(e.target.value);
+    }
   };
 
   // Handle field filter change (assuming 'Field' is distinct from 'Department')
   const handleFieldChange = (e) => {
-    setSelectedField(e.target.value);
+    // Only allow change if not loading
+    if (!isAnyLoading) {
+        setSelectedField(e.target.value);
+    }
   };
 
   // Handle tab selection for a specific SP details display
   const handleTabChange = (spId, tabName) => {
-    setActiveTabs(prev => ({
-      ...prev,
-      [spId]: tabName
-    }));
+    // Only allow tab change if not loading
+     if (!isAnyLoading) {
+        setActiveTabs(prev => ({
+          ...prev,
+          [spId]: tabName
+        }));
+     }
   };
 
   // Handle search form submission (actual filtering is handled by useEffect with debounce)
   const handleSearch = (e) => {
     e.preventDefault();
     // The debounce effect will handle the search when the input changes
+    // No need to explicitly check isAnyLoading here as the useEffect dependency
+    // will prevent the fetch if loading is true.
   };
 
   // Filter advisers based on input for dropdown display
@@ -774,13 +817,15 @@ const SPFilterSystem = () => {
                    value={adviserInput}
                    onChange={(e) => setAdviserInput(e.target.value)}
                    onClick={() => setShowAdviserDropdown(true)} // Show dropdown on input click
-                   onFocus={() => setShowAdviserDropdown(true)} // Show dropdown on focus
+                    onFocus={() => setShowAdviserDropdown(true)} // Show dropdown on focus
+                    disabled={isAnyLoading} // --- NEW: Disable while loading ---
                  />
                   {/* Clear Advisers Button */}
                  <button
                    className="bg-red-700 text-white px-2 rounded-r"
                    onClick={clearAllAdvisers}
                    aria-label="Clear selected advisers"
+                   disabled={isAnyLoading} // --- NEW: Disable while loading ---
                  >
                    ×
                  </button>
@@ -791,7 +836,7 @@ const SPFilterSystem = () => {
                    {filteredAdvisers.map(adviser => (
                      <div
                        key={adviser.adminId}
-                       className="p-2 hover:bg-gray-100 cursor-pointer text-dm"
+                       className={`p-2 hover:bg-gray-100 cursor-pointer text-dm ${isAnyLoading ? 'cursor-not-allowed' : ''}`} // --- NEW: Add cursor style ---
                        onClick={() => handleSelectAdviser(adviser)} // Handle adviser selection
                      >
                        {formatName(adviser)}
@@ -812,6 +857,7 @@ const SPFilterSystem = () => {
                      className="ml-2 text-white font-bold leading-none"
                      onClick={() => removeAdviser(adviser.adminId)}
                      aria-label="Remove adviser"
+                     disabled={isAnyLoading} // --- NEW: Disable while loading ---
                    >
                      ×
                    </button>
@@ -834,12 +880,14 @@ const SPFilterSystem = () => {
                    onChange={(e) => setTagInput(e.target.value)}
                    onClick={() => setShowTagDropdown(true)} // Show dropdown on input click
                     onFocus={() => setShowTagDropdown(true)} // Show dropdown on focus
+                    disabled={isAnyLoading} // --- NEW: Disable while loading ---
                  />
                  {/* Clear Tags Button */}
                  <button
                    className="bg-red-700 text-white px-2 rounded-r"
                    onClick={clearAllTags}
                     aria-label="Clear selected tags"
+                    disabled={isAnyLoading} // --- NEW: Disable while loading ---
                  >
                    ×
                  </button>
@@ -853,7 +901,7 @@ const SPFilterSystem = () => {
                      filteredTags.map(tag => (
                        <div
                          key={tag.tagId}
-                         className="p-2 hover:bg-gray-100 cursor-pointer text-dm"
+                         className={`p-2 hover:bg-gray-100 cursor-pointer text-dm ${isAnyLoading ? 'cursor-not-allowed' : ''}`} // --- NEW: Add cursor style ---
                          onClick={() => handleSelectTag(tag)}
                        >
                          {tag.tagName}
@@ -877,6 +925,7 @@ const SPFilterSystem = () => {
                      className="ml-2 text-white font-bold leading-none"
                      onClick={() => removeTag(tag.tagId)}
                      aria-label="Remove tag"
+                     disabled={isAnyLoading} // --- NEW: Disable while loading ---
                    >
                      ×
                    </button>
@@ -897,7 +946,7 @@ const SPFilterSystem = () => {
                 className="border border-gray-300 rounded p-2 w-40"
                 onChange={handleDepartmentChange}
                 value={selectedDepartment}
-                disabled ={filterLoading}
+                disabled={isAnyLoading} // --- NEW: Disable while loading ---
               >
                 <option value="">Department</option>
                 <option value="1">BSBC</option>
@@ -915,10 +964,12 @@ const SPFilterSystem = () => {
                   className="flex-1 border border-gray-300 rounded-l p-2"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  disabled={isAnyLoading} // --- NEW: Disable while loading ---
                 />
                 <button
                   type="submit"
                   className="bg-red-800 text-white px-4 rounded-r"
+                  disabled={isAnyLoading} // --- NEW: Disable while loading ---
                 >
                   <i className="fa fa-search"></i>
                 </button>
@@ -930,6 +981,7 @@ const SPFilterSystem = () => {
                   className="border border-gray-300 p-2 mr-2"
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
+                  disabled={isAnyLoading} // --- NEW: Disable while loading ---
                 >
                   <option value="" disabled>Sort By</option>
                   <option value="yearSemester">Year/Semester</option>
@@ -940,6 +992,7 @@ const SPFilterSystem = () => {
                   className="bg-red-800 hover:bg-red-900 px-4 rounded justify-center text-white" style={{ height: '100%'}}
                   onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
                   title={sortDirection === 'asc' ? 'Ascending' : 'Descending'}
+                  disabled={isAnyLoading} // --- NEW: Disable while loading ---
                 >
                   {sortDirection === 'asc' ? ' ↑ ' : ' ↓ '}
                 </button>
@@ -969,6 +1022,7 @@ const SPFilterSystem = () => {
                size="medium"
                shape="rounded"
                color="primary"
+               disabled={isAnyLoading} // --- NEW: Disable while loading ---
                sx={{
                  '& .MuiPaginationItem-root': {
                    color: '#333',
@@ -981,6 +1035,10 @@ const SPFilterSystem = () => {
                  flexGrow: 1, // Allows pagination to take available space
                  justifyContent: 'center', // Center the pagination items
                  marginBottom: { xs: '10px', md: '0' }, // Add margin bottom on small screens
+                 // --- NEW: Style for disabled pagination items ---
+                 '& .Mui-disabled': {
+                     opacity: 0.5,
+                 }
                }}
              />
            )}
@@ -995,6 +1053,7 @@ const SPFilterSystem = () => {
                   id="rows-per-page-select"
                   value={itemsPerPage}
                   onChange={handleItemsPerPageChange}
+                  disabled={isAnyLoading} // --- NEW: Disable while loading ---
                 >
                   <MenuItem value={5}>5</MenuItem>
                   <MenuItem value={10}>10</MenuItem>
@@ -1018,7 +1077,7 @@ const SPFilterSystem = () => {
             <div className="sp-divider top-divider" style={{backgroundColor: 'rgba(229, 231, 235, 0.7)'}}></div>
 
             {/* No Results Found Message */}
-            {!initialLoading && filteredSps.length === 0 && (
+            {!isAnyLoading && filteredSps.length === 0 && ( // Use isAnyLoading here
               <div className="bg-gray-100 p-4 text-center text-gray-600 rounded">
                 No results found. Try adjusting your filters.
               </div>
@@ -1029,7 +1088,8 @@ const SPFilterSystem = () => {
               <div key={sp.spId} className="relative">
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold mb-2">
-                    <a href={`/project/${sp.spId}`} className="text-blue-600 hover:underline" onClick={() => handleViewCountIncrement(sp.spId)}>{sp.title || 'Untitled Project'}</a>
+                    {/* --- NEW: Disable link while loading --- */}
+                    <a href={isAnyLoading ? '#' : `/project/${sp.spId}`} className={`text-blue-600 hover:underline ${isAnyLoading ? 'cursor-not-allowed' : ''}`} onClick={isAnyLoading ? (e) => e.preventDefault() : () => handleViewCountIncrement(sp.spId)}>{sp.title || 'Untitled Project'}</a>
                   </h3>
 
                   <div className="text-sm text-gray-600 mb-3">
@@ -1053,7 +1113,7 @@ const SPFilterSystem = () => {
                     {getTagsForSp(sp).map((tagName, index) => (
                       <span
                         key={index}
-                        className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs cursor-pointer hover:bg-gray-300"
+                        className={`bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs cursor-pointer hover:bg-gray-300 ${isAnyLoading ? 'cursor-not-allowed' : ''}`} // --- NEW: Add cursor style ---
                         onClick={() => handleTagClick(tagName)}
                       >
                         {tagName}
@@ -1088,6 +1148,7 @@ const SPFilterSystem = () => {
                  size="medium"
                  shape="rounded"
                  color="primary"
+                 disabled={isAnyLoading} // --- NEW: Disable while loading ---
                  sx={{
                    '& .MuiPaginationItem-root': {
                      color: '#333',
@@ -1100,6 +1161,10 @@ const SPFilterSystem = () => {
                    flexGrow: 1, // Allows pagination to take available space
                    justifyContent: 'center', // Center the pagination items
                    marginBottom: { xs: '10px', md: '0' }, // Add margin bottom on small screens
+                    // --- NEW: Style for disabled pagination items ---
+                    '& .Mui-disabled': {
+                        opacity: 0.5,
+                    }
                  }}
                />
              )}
@@ -1114,6 +1179,7 @@ const SPFilterSystem = () => {
                     id="rows-per-page-select"
                     value={itemsPerPage}
                     onChange={handleItemsPerPageChange}
+                    disabled={isAnyLoading} // --- NEW: Disable while loading ---
                   >
                     <MenuItem value={5}>5</MenuItem>
                     <MenuItem value={10}>10</MenuItem>

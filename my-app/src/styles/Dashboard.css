@@ -128,6 +128,8 @@ position: fixed;
     padding: 20px;
     background-color: #fff;
     overflow-y: auto;
+    z-index: 1000;
+    position: relative;
   }
   
   /* Responsive adjustments */

@@ -742,3 +742,89 @@
       cursor: not-allowed;
     }
   }
+  /* Add this to your SPFilterSystem.css file */
+
+/* --- MODIFIED: Panel-specific loading overlay --- */
+.panel-loading-overlay {
+  position: absolute; /* Position relative to the parent container */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent dark background */
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  z-index: 10; /* Lower z-index, just above panel content */
+  /* Add a smooth transition for appearance/disappearance */
+  transition: opacity 0.3s ease;
+  opacity: 1; /* Start with full opacity when visible */
+}
+
+
+/* Reuse your existing loading spinner styles */
+.loading-spinner {
+  border: 4px solid #f3f3f3; /* Light grey */
+  border-top: 4px solid #800000; /* UP Maroon */
+  border-radius: 50%;
+  width: 40px; /* Make spinner a bit larger */
+  height: 40px;
+  animation: spin 1s linear infinite; /* Animation */
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Existing styles for SPFilterSystem.css would go below here */
+
+.sp-filter-panel-container {
+    /* Your container styles */
+    /* ADDED: position: relative; to contain the absolute overlay */
+    /* ADDED: Ensure the container itself doesn't exceed its parent's width */
+    width: 100%;
+    /* ADDED: Handle horizontal overflow if content is too wide */
+    overflow-x: auto;
+    /* Optional: Add padding if needed */
+    /* padding: 20px; */
+}
+
+/* Style for the main content area within the panel */
+.sp-filter-panel-content {
+    display: flex; /* Keep this for the internal layout of results and sidebar */
+    /* Ensure this content doesn't force the container wider than its parent */
+    width: 100%;
+    /* Prevent content from shrinking below its minimum size */
+    min-width: 0;
+}
+
+/* Style for the central results section */
+.sp-results-section {
+    flex: 1; /* Allow this section to grow and shrink */
+    min-width: 0; /* Allow content to shrink */
+    padding: 1rem; /* Adjust padding as needed */
+    background-color: white; /* Ensure background color */
+}
+
+/* Style for the right filter sidebar */
+.sp-filter-sidebar {
+    width: 14rem; /* Use a fixed width for the sidebar */
+    flex-shrink: 0; /* Prevent the sidebar from shrinking */
+    padding: 1rem; /* Adjust padding as needed */
+    border-left: 1px solid #e5e7eb; /* Keep the border */
+    background-color: white; /* Ensure background color */
+}
+
+
+.sp-divider {
+    height: 1px;
+    background-color: #e5e7eb; /* Example divider color */
+    margin: 1rem 0;
+}
+
+.top-divider {
+    margin-top: 0;
+}
+
+/* Add other styles from your existing SPFilterSystem.css */

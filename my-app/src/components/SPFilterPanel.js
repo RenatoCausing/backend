@@ -89,15 +89,24 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
   // --- New state to track list refreshing after deletion ---
   const [isRefreshingList, setIsRefreshingList] = useState(false);
 
+  // --- NEW: Combined loading state for disabling controls ---
+  const isAnyLoading = initialLoading || filterLoading || isRefreshingList;
+
 
   // --- Pagination Handlers ---
   const handlePageChange = (event, value) => {
-    setCurrentPage(value); // value is the 1-indexed page number from Pagination
+    // Only allow page change if not loading
+    if (!isAnyLoading) {
+        setCurrentPage(value); // value is the 1-indexed page number from Pagination
+    }
   };
 
   const handleItemsPerPageChange = (event) => {
-    setItemsPerPage(parseInt(event.target.value, 10));
-    setCurrentPage(1); // Reset to the first page when rows per page changes
+    // Only allow items per page change if not loading
+    if (!isAnyLoading) {
+        setItemsPerPage(parseInt(event.target.value, 10));
+        setCurrentPage(1); // Reset to the first page when rows per page changes
+    }
   };
 
 
@@ -503,11 +512,13 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       // Close adviser dropdown if click is outside
-      if (adviserDropdownRef.current && !adviserDropdownRef.current.contains(event.target)) {
+      // --- NEW: Only close if not loading ---
+      if (!isAnyLoading && adviserDropdownRef.current && !adviserDropdownRef.current.contains(event.target)) {
         setShowAdviserDropdown(false);
       }
       // Close tag dropdown if click is outside
-      if (tagDropdownRef.current && !tagDropdownRef.current.contains(event.target)) {
+      // --- NEW: Only close if not loading ---
+      if (!isAnyLoading && tagDropdownRef.current && !tagDropdownRef.current.contains(event.target)) {
         setShowTagDropdown(false);
       }
     };
@@ -519,7 +530,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []); // Empty dependency array means this effect runs only once after the initial render
+  }, [isAnyLoading]); // --- NEW: Add isAnyLoading to dependencies ---
 
 
  // Effect to apply filters whenever filter states change
@@ -627,43 +638,55 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
 
   // Handle adviser selection from dropdown
   const handleSelectAdviser = (adviser) => {
-    // Add adviser to selectedAdvisers if not already included
-    if (!selectedAdvisers.some(a => a.adminId === adviser.adminId)) {
-      setSelectedAdvisers([...selectedAdvisers, adviser]);
+    // Only allow selection if not loading
+    if (!isAnyLoading) {
+        // Add adviser to selectedAdvisers if not already included
+        if (!selectedAdvisers.some(a => a.adminId === adviser.adminId)) {
+          setSelectedAdvisers([...selectedAdvisers, adviser]);
+        }
+        // Clear the input and hide the dropdown
+        setAdviserInput('');
+        setShowAdviserDropdown(false);
     }
-    // Clear the input and hide the dropdown
-    setAdviserInput('');
-    setShowAdviserDropdown(false);
   };
 
   // Handle tag selection from dropdown
   const handleSelectTag = (tag) => {
-    // Add tag to selectedTags if not already included
-    if (!selectedTags.some(t => t.tagId === tag.tagId)) {
-      setSelectedTags([...selectedTags, tag]);
+    // Only allow selection if not loading
+    if (!isAnyLoading) {
+        // Add tag to selectedTags if not already included
+        if (!selectedTags.some(t => t.tagId === tag.tagId)) {
+          setSelectedTags([...selectedTags, tag]);
+        }
+        // Clear the input and hide the dropdown
+        setTagInput('');
+        setShowTagDropdown(false);
     }
-    // Clear the input and hide the dropdown
-    setTagInput('');
-    setShowTagDropdown(false);
   };
 
   // Remove adviser from selected filters
   const removeAdviser = (adviserId) => {
-    setSelectedAdvisers(selectedAdvisers.filter(a => a.adminId !== adviserId));
+    // Only allow removal if not loading
+    if (!isAnyLoading) {
+        setSelectedAdvisers(selectedAdvisers.filter(a => a.adminId !== adviserId));
+    }
   };
 
   // Remove tag from selected filters
   const removeTag = (tagId) => {
-    setSelectedTags(selectedTags.filter(t => t.tagId !== tagId));
-    // Optional: Update URL to remove the tag parameter if needed
-    const url = new URL(window.location);
-    const currentTag = selectedTags.find(t => t.tagId === tagId);
-    if (currentTag) {
-      const tagParam = url.searchParams.get('tag');
-      if (tagParam && tagParam.toLowerCase() === encodeURIComponent(currentTag.tagName).toLowerCase()) {
-        url.searchParams.delete('tag');
-        window.history.pushState({}, '', url);
-      }
+    // Only allow removal if not loading
+    if (!isAnyLoading) {
+        setSelectedTags(selectedTags.filter(t => t.tagId !== tagId));
+        // Optional: Update URL to remove the tag parameter if needed
+        const url = new URL(window.location);
+        const currentTag = selectedTags.find(t => t.tagId === tagId);
+        if (currentTag) {
+          const tagParam = url.searchParams.get('tag');
+          if (tagParam && tagParam.toLowerCase() === encodeURIComponent(currentTag.tagName).toLowerCase()) {
+            url.searchParams.delete('tag');
+            window.history.pushState({}, '', url);
+          }
+        }
     }
   };
   const handleViewCountIncrement = async (spId) => {
@@ -678,57 +701,77 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
   };
   // Handle tag clicks on SP cards
   const handleTagClick = (tagName) => {
-    // Find the tag object by name in the tags list
-    const tag = tags.find(t => t.tagName === tagName);
-    // If tag found and not already selected, add it to selectedTags
-    if (tag && !selectedTags.some(t => t.tagId === tag.tagId)) {
-      setSelectedTags([...selectedTags, tag]);
-      // Optional: Update URL to reflect the tag selection
-      const url = new URL(window.location);
-      url.searchParams.set('tag', encodeURIComponent(tagName));
-      window.history.pushState({}, '', url);
+    // Only allow tag click for filtering if not loading
+    if (!isAnyLoading) {
+        // Find the tag object by name in the tags list
+        const tag = tags.find(t => t.tagName === tagName);
+        // If tag found and not already selected, add it to selectedTags
+        if (tag && !selectedTags.some(t => t.tagId === tag.tagId)) {
+          setSelectedTags([...selectedTags, tag]);
+          // Optional: Update URL to reflect the tag selection
+          const url = new URL(window.location);
+          url.searchParams.set('tag', encodeURIComponent(tagName));
+          window.history.pushState({}, '', url);
+        }
     }
   };
 
   // Clear all selected advisers
   const clearAllAdvisers = () => {
-    setSelectedAdvisers([]);
-    setAdviserInput(''); // Clear input field as well
+    // Only allow clearing if not loading
+    if (!isAnyLoading) {
+        setSelectedAdvisers([]);
+        setAdviserInput(''); // Clear input field as well
+    }
   };
 
   // Clear all selected tags
   const clearAllTags = () => {
-    setSelectedTags([]);
-    setTagInput(''); // Clear input field as well
-    // Optional: Remove tag parameter from URL
-    const url = new URL(window.location);
-    url.searchParams.delete('tag');
-    window.history.pushState({}, '', url);
+    // Only allow clearing if not loading
+    if (!isAnyLoading) {
+        setSelectedTags([]);
+        setTagInput(''); // Clear input field as well
+        // Optional: Remove tag parameter from URL
+        const url = new URL(window.location);
+        url.searchParams.delete('tag');
+        window.history.pushState({}, '', url);
+    }
   };
 
 
   // Handle department filter change
   const handleDepartmentChange = (e) => {
-    setSelectedDepartment(e.target.value);
+    // Only allow change if not loading
+    if (!isAnyLoading) {
+        setSelectedDepartment(e.target.value);
+    }
   };
 
   // Handle field filter change (assuming 'Field' is distinct from 'Department')
   const handleFieldChange = (e) => {
-    setSelectedField(e.target.value);
+    // Only allow change if not loading
+    if (!isAnyLoading) {
+        setSelectedField(e.target.value);
+    }
   };
 
   // Handle tab selection for a specific SP details display
   const handleTabChange = (spId, tabName) => {
-    setActiveTabs(prev => ({
-      ...prev,
-      [spId]: tabName
-    }));
+    // Only allow tab change if not loading
+     if (!isAnyLoading) {
+        setActiveTabs(prev => ({
+          ...prev,
+          [spId]: tabName
+        }));
+     }
   };
 
   // Handle search form submission (actual filtering is handled by useEffect with debounce)
   const handleSearch = (e) => {
     e.preventDefault();
     // The debounce effect will handle the search when the input changes
+    // No need to explicitly check isAnyLoading here as the useEffect dependency
+    // will prevent the fetch if loading is true.
   };
 
   // Filter advisers based on input for dropdown display
@@ -766,38 +809,50 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
 
   // Handle clicking on an SP card to select it (e.g., for editing)
   const handleSPSelect = (project) => {
-    // Check if the onSPSelect prop is a function
-    if (typeof onSPSelect === 'function') {
-      console.log("Calling onSPSelect with project:", project);
-      // Prepare the project data to be sent to the parent component,
-      // including necessary details like adviser name, authors, student IDs, and tag names.
-      const projectForEdit = {
-        ...project,
-        editMode: true, // Flag to indicate editing mode
-        adviserName: project.adviserId ? getAdviserName(project.adviserId) : 'Unknown Adviser', // Get adviser name
-        authors: project.authors || [], // Ensure authors array is included
-        studentIds: project.studentIds || [], // Ensure studentIds array is included
-        tags: getTagsForSp(project) // Get tag names for the project
-      };
-      console.log("Sending project with editMode=true:", projectForEdit);
-      onSPSelect(projectForEdit); // Call the parent's handler
-    } else {
-      console.error("onSPSelect is not a function. Check your component props.");
+    // Only allow selection if not loading
+    if (!isAnyLoading) {
+        // Check if the onSPSelect prop is a function
+        if (typeof onSPSelect === 'function') {
+          console.log("Calling onSPSelect with project:", project);
+          // Prepare the project data to be sent to the parent component,
+          // including necessary details like adviser name, authors, student IDs, and tag names.
+          const projectForEdit = {
+            ...project,
+            editMode: true, // Flag to indicate editing mode
+            adviserName: project.adviserId ? getAdviserName(project.adviserId) : 'Unknown Adviser', // Get adviser name
+            authors: project.authors || [], // Ensure authors array is included
+            studentIds: project.studentIds || [], // Ensure studentIds array is included
+            tags: getTagsForSp(project) // Get tag names for the project
+          };
+          console.log("Sending project with editMode=true:", projectForEdit);
+          onSPSelect(projectForEdit); // Call the parent's handler
+        } else {
+          console.error("onSPSelect is not a function. Check your component props.");
+        }
     }
   };
 
 
   // Handle file upload (placeholder function)
   const handleUpload = () => {
-    console.log("Upload button clicked - functionality to be implemented");
-    // You would typically open a modal or navigate to an upload form here
+    // Only allow upload click if not loading
+    if (!isAnyLoading) {
+        console.log("Upload button clicked - functionality to be implemented");
+        // You would typically open a modal or navigate to an upload form here
+        if (typeof onUploadClick === 'function') {
+            onUploadClick();
+        }
+    }
   };
 
   // --- Delete Modal Handlers ---
   const handleDeleteClick = (sp) => {
-      console.log("Delete button clicked for SP:", sp);
-      setSpToDelete({ spId: sp.spId, spTitle: sp.title }); // Set the SP to be deleted
-      setShowDeleteModal(true); // Show the modal
+      // Only allow delete click if not loading
+      if (!isAnyLoading) {
+          console.log("Delete button clicked for SP:", sp);
+          setSpToDelete({ spId: sp.spId, spTitle: sp.title }); // Set the SP to be deleted
+          setShowDeleteModal(true); // Show the modal
+      }
   };
 
   const handleDeleteConfirm = async () => {
@@ -851,8 +906,8 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
       // You can simplify this now, as the button is only rendered if isStaff is true
       'bg-red-800 hover:bg-red-900'
     }`}
-    onClick={onUploadClick}
-    // Remove the disabled attribute
+    onClick={handleUpload} // --- NEW: Call handleUpload ---
+    disabled={isAnyLoading} // --- NEW: Disable while loading ---
   >
     <i className="fa fa-upload"></i> UPLOAD
   </button>
@@ -863,8 +918,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                 className="border border-gray-300 rounded p-2 w-40"
                 onChange={handleDepartmentChange}
                 value={selectedDepartment}
-
-                disabled={filterLoading}
+                disabled={isAnyLoading} // --- NEW: Disable while loading ---
               >
                 <option value="">Department</option>
                 <option value="1">BSBC</option>
@@ -881,10 +935,12 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                   className="flex-1 border border-gray-300 rounded-l p-2"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  disabled={isAnyLoading} // --- NEW: Disable while loading ---
                 />
                 <button
                   type="submit"
                   className="bg-red-800 text-white px-4 rounded-r"
+                  disabled={isAnyLoading} // --- NEW: Disable while loading ---
                 >
                   <i className="fa fa-search"></i>
                 </button>
@@ -896,6 +952,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                   className="border border-gray-300 p-2 mr-2"
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
+                  disabled={isAnyLoading} // --- NEW: Disable while loading ---
                 >
                   <option value="" disabled>Sort By</option>
                   <option value="yearSemester">Year/Semester</option>
@@ -906,6 +963,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                   className="bg-red-800 hover:bg-red-900 px-4 rounded justify-center text-white" style={{ height: '100%'}}
                   onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
                   title={sortDirection === 'asc' ? 'Ascending' : 'Descending'}
+                  disabled={isAnyLoading} // --- NEW: Disable while loading ---
                 >
                   {sortDirection === 'asc' ? ' ↑ ' : ' ↓ '}
                 </button>
@@ -921,7 +979,8 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
           </div>
 
          {/* --- Custom Pagination using MUI Pagination and Select --- */}
-         <div style={{ isplay: 'flex', md: 'row', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', width: '100%', margin: '20px 0' }}>
+         {/* --- NEW: Disable Pagination controls while loading --- */}
+         <div style={{ isplay: 'flex', md: 'row', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', width: '100%', margin: '20px 0', pointerEvents: isAnyLoading ? 'none' : 'auto' }}> {/* Disable pointer events */}
     {/* Left spacer or content (can be empty - adjust width if needed) */}
     {/* This div helps push the pagination to the center when justifyContent is space-between */}
     <div style={{ width: '33%', flexShrink: 0, display: 'flex', md: 'block' }}></div> {/* Hide on small screens */}
@@ -947,6 +1006,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
       size="medium"
       shape="rounded"
       color="primary"
+      disabled={isAnyLoading} // --- NEW: Disable while loading ---
       sx={{
         '& .MuiPaginationItem-root': {
           color: '#333',
@@ -955,13 +1015,18 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
         '& .Mui-selected': {
           backgroundColor: '#800000 !important',
           color: '#fff',
+        },
+        // --- NEW: Style for disabled pagination items ---
+        '& .Mui-disabled': {
+            opacity: 0.5,
+            pointerEvents: 'none',
         }
       }}
     />
   )}
 
   {/* Rows per page control with label (Right) */}
-  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
     <Typography variant="body2" style={{ whiteSpace: 'nowrap' }}>
       Show rows:
     </Typography>
@@ -970,6 +1035,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
         id="rows-per-page-select"
         value={itemsPerPage}
         onChange={handleItemsPerPageChange}
+        disabled={isAnyLoading} // --- NEW: Disable while loading ---
       >
         <MenuItem value={5}>5</MenuItem>
         <MenuItem value={10}>10</MenuItem>
@@ -1003,13 +1069,15 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
 
             {/* Map through current items for the current page */}
             {currentItems.map((sp, index) => (
-              <div key={sp.spId} className="relative">
+              // --- NEW: Add pointer-events: none while loading to SP cards ---
+              <div key={sp.spId} className="relative" style={{ pointerEvents: isAnyLoading ? 'none' : 'auto' }}>
                 <div className="mb-6">
                   {/* SP Title and Action Buttons */}
                   <div className="flex mb-2">
                     <h3 className="text-lg font-semibold flex-1">
                       {/* Link to the project detail page */}
-                      <a href={`/project/${sp.spId}`} className="text-blue-600 hover:underline"  onClick={() => handleViewCountIncrement(sp.spId)}>{sp.title || 'Untitled Project'}</a>
+                      {/* --- NEW: Disable link while loading --- */}
+                      <a href={isAnyLoading ? '#' : `/project/${sp.spId}`} className={`text-blue-600 hover:underline ${isAnyLoading ? 'cursor-not-allowed' : ''}`} onClick={isAnyLoading ? (e) => e.preventDefault() : () => handleViewCountIncrement(sp.spId)}>{sp.title || 'Untitled Project'}</a>
                     </h3>
 
                     {/* Action buttons (Edit, Delete) */}
@@ -1025,6 +1093,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                         }}
                         className="text-gray-500 hover:text-gray-700 p-2"
                         aria-label="Edit project"
+                        disabled={isAnyLoading} // --- NEW: Disable while loading ---
                       >
                         <i className="fa-solid fa-pen"></i>
                       </button>
@@ -1038,6 +1107,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                                 e.stopPropagation(); // Stop event propagation
                                 handleDeleteClick(sp); // Call the new delete handler
                             }}
+                            disabled={isAnyLoading} // --- NEW: Disable while loading ---
                           >
                             <i className="fa fa-trash"></i>
                           </button>
@@ -1068,11 +1138,12 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                   <div className="text-sm mb-3">{sp.abstractText || 'No abstract available.'}</div>
 
                   {/* SP Tags */}
-                  <div className="flex flex-wrap gap-1 mb-2">
+                  {/* --- NEW: Disable tag clicks while loading --- */}
+                  <div className="flex flex-wrap gap-1 mb-2" style={{ pointerEvents: isAnyLoading ? 'none' : 'auto' }}>
                     {getTagsForSp(sp).map((tagName, index) => (
                       <span
                         key={index}
-                        className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs cursor-pointer hover:bg-gray-300"
+                        className={`bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs cursor-pointer hover:bg-gray-300 ${isAnyLoading ? 'cursor-not-allowed' : ''}`}
                         onClick={() => handleTagClick(tagName)} // Handle tag click for filtering
                       >
                         {tagName}
@@ -1094,14 +1165,16 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
         </div>
 
         {/* Right Sidebar - Filter Section */}
-        <div className="w-14 p-4 border-l border-gray-200" style={{backgroundColor: 'white'}}>
+        {/* --- NEW: Disable the entire filter sidebar while loading --- */}
+        <div className="w-14 p-4 border-l border-gray-200" style={{backgroundColor: 'white', pointerEvents: isAnyLoading ? 'none' : 'auto', opacity: isAnyLoading ? 0.7 : 1}}> {/* Add opacity for visual feedback */}
           {/* Logo */}
           <div className="mb-8">
             <img src="https://upload.wikimedia.org/wikipedia/commons/4/45/White_box_55x90.png" alt="University Logo" className="w-48 mx-auto" />
           </div>
 
           {/* Adviser Filter Section */}
-          <div className="mb-8">
+          {/* --- NEW: Disable this section while loading --- */}
+          <div className="mb-8" style={{ pointerEvents: isAnyLoading ? 'none' : 'auto' }}>
             <h3 className="text-lg font-bold mb-2">Advisers</h3>
             <div className="relative mb-2" ref={adviserDropdownRef}>
               {/* Adviser Search Input */}
@@ -1114,26 +1187,28 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                   onChange={(e) => setAdviserInput(e.target.value)}
                   onClick={() => setShowAdviserDropdown(true)} // Show dropdown on input click
                    onFocus={() => setShowAdviserDropdown(true)} // Show dropdown on focus
+                   disabled={isAnyLoading} // --- NEW: Disable while loading ---
                 />
                  {/* Clear Advisers Button */}
                 <button
                   className="bg-red-700 text-white px-2 rounded-r"
                   onClick={clearAllAdvisers}
                   aria-label="Clear selected advisers"
+                  disabled={isAnyLoading} // --- NEW: Disable while loading ---
                 >
                   ×
                 </button>
               </div>
               {/* Adviser Dropdown */}
               {showAdviserDropdown && filteredAdvisers.length > 0 && (
-                <div
-                  className="absolute z-10 w-full bg-white border border-gray-300 rounded-b mt-1 max-h-40 overflow-y-auto shadow-lg">
+                // --- NEW: Disable dropdown interactions while loading ---
+                <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-b mt-1 max-h-40 overflow-y-auto shadow-lg" style={{ pointerEvents: isAnyLoading ? 'none' : 'auto' }}>
                   {/* Corrected conditional rendering syntax */}
                   {filteredAdvisers.length > 0 ? (
                     filteredAdvisers.map(adviser => (
                       <div
                         key={adviser.adminId}
-                        className="p-2 hover:bg-gray-100 cursor-pointer text-dm"
+                        className={`p-2 hover:bg-gray-100 cursor-pointer text-dm ${isAnyLoading ? 'cursor-not-allowed' : ''}`}
                         onClick={() => handleSelectAdviser(adviser)} // Handle adviser selection
                       >
                         {formatName(adviser)}
@@ -1146,6 +1221,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
               )}
             </div>
             {/* Selected Advisers Display */}
+            {/* --- NEW: Disable remove buttons for selected advisers while loading --- */}
             <div className="flex flex-wrap gap-1 max-h-40 overflow-y-auto">
               {selectedAdvisers.map(adviser => (
                 <div key={adviser.adminId} className="bg-red-800 text-white text-dm rounded px-2 py-1 flex items-center mb-1 mr-1">
@@ -1157,6 +1233,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                     className="ml-2 text-white font-bold leading-none"
                     onClick={() => removeAdviser(adviser.adminId)}
                     aria-label="Remove adviser"
+                    disabled={isAnyLoading} // --- NEW: Disable while loading ---
                   >
                     ×
                   </button>
@@ -1165,7 +1242,8 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
           </div>
 
           {/* Tags Filter Section */}
-          <div>
+          {/* --- NEW: Disable this section while loading --- */}
+          <div style={{ pointerEvents: isAnyLoading ? 'none' : 'auto' }}>
             <h3 className="text-lg font-bold mb-2">Tags</h3>
             <div className="relative mb-2" ref={tagDropdownRef}>
               {/* Tag Search Input */}
@@ -1178,26 +1256,29 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                   onChange={(e) => setTagInput(e.target.value)}
                   onClick={() => setShowTagDropdown(true)} // Show dropdown on input click
                    onFocus={() => setShowTagDropdown(true)} // Show dropdown on focus
+                   disabled={isAnyLoading} // --- NEW: Disable while loading ---
                 />
                  {/* Clear Tags Button */}
                 <button
                   className="bg-red-700 text-white px-2 rounded-r"
                   onClick={clearAllTags}
                    aria-label="Clear selected tags"
+                   disabled={isAnyLoading} // --- NEW: Disable while loading ---
                 >
                   ×
                 </button>
               </div>
               {/* Tag Dropdown */}
               {showTagDropdown && (
+                // --- NEW: Disable dropdown interactions while loading ---
                 <div
-                  className="absolute z-10 w-full bg-white border border-gray-300 rounded-b mt-1 max-h-40 overflow-y-auto shadow-lg">
+                  className="absolute z-10 w-full bg-white border border-gray-300 rounded-b mt-1 max-h-40 overflow-y-auto shadow-lg" style={{ pointerEvents: isAnyLoading ? 'none' : 'auto' }}>
                   {/* Corrected conditional rendering syntax */}
                   {filteredTags.length > 0 ? (
                     filteredTags.map(tag => (
                       <div
                         key={tag.tagId}
-                        className="p-2 hover:bg-gray-100 cursor-pointer text-dm"
+                        className={`p-2 hover:bg-gray-100 cursor-pointer text-dm ${isAnyLoading ? 'cursor-not-allowed' : ''}`}
                         onClick={() => handleSelectTag(tag)}
                       >
                         {tag.tagName}
@@ -1210,6 +1291,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
               )}
             </div>
             {/* Selected Tags Display */}
+            {/* --- NEW: Disable remove buttons for selected tags while loading --- */}
             <div className="flex flex-wrap gap-1 max-h-60 overflow-y-auto">
               {selectedTags.map(tag => (
                 <div key={tag.tagId} className="bg-red-800 text-white text-dm rounded px-2 py-1 flex items-center mb-1 mr-1">
@@ -1221,6 +1303,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                     className="ml-2 text-white font-bold leading-none"
                     onClick={() => removeTag(tag.tagId)}
                      aria-label="Remove tag"
+                     disabled={isAnyLoading} // --- NEW: Disable while loading ---
                   >
                     ×
                   </button>
