@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/AdviserNavbar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -10,7 +10,9 @@ import {
   faMinus,
   faPlus,
   faEdit,
-  faUser
+  faUser,
+  faUniversity,
+  faFilePdf
 } from '@fortawesome/free-solid-svg-icons';
 import '../styles/SPDetails.css';
 
@@ -18,8 +20,6 @@ function SPDetails() {
   const { spId } = useParams();
   const navigate = useNavigate();
   const [spData, setSpData] = useState(null);
-  // Removed the separate students state
-  // const [students, setStudents] = useState([]);
   const [adviser, setAdviser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,7 +27,9 @@ function SPDetails() {
 
   // Backend URL
   const BACKEND_URL = 'http://localhost:8080';
-  const [thumbnailFailed, setThumbnailFailed] = useState(false);
+  
+  // Default journal image path
+  const defaultJournalImage = '/images/journal.jpg';
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,36 +51,21 @@ function SPDetails() {
         console.log('SP data:', spDataResponse);
         setSpData(spDataResponse);
 
-
-        // Fetch adviser data (still needed as SPDTO only contains adviserId)
-        // Check if adviserId is present in the fetched SP data
+        // Fetch adviser data if available
         if (spDataResponse.adviserId) {
-             const adviserResponse = await fetch(`${BACKEND_URL}/api/advisers/${spDataResponse.adviserId}`); // Fetch adviser by ID
+          const adviserResponse = await fetch(`${BACKEND_URL}/api/advisers/${spDataResponse.adviserId}`);
 
-             if (!adviserResponse.ok) {
-               console.error(`Adviser API responded with ${adviserResponse.status}: ${adviserResponse.statusText}`);
-             } else {
-               const adviserData = await adviserResponse.json();
-               console.log('Adviser data:', adviserData);
-               setAdviser(adviserData);
-             }
+          if (!adviserResponse.ok) {
+            console.error(`Adviser API responded with ${adviserResponse.status}: ${adviserResponse.statusText}`);
+          } else {
+            const adviserData = await adviserResponse.json();
+            console.log('Adviser data:', adviserData);
+            setAdviser(adviserData);
+          }
         } else {
-             console.log('No adviserId found in SP data.');
-             setAdviser(null); // Ensure adviser state is null if no adviserId
+          console.log('No adviserId found in SP data.');
+          setAdviser(null);
         }
-
-        // Removed fetching students by group_id
-        // if (spDataResponse.groupId) {
-        //   const studentsResponse = await fetch(`${BACKEND_URL}/api/students/group/${spDataResponse.groupId}`);
-        //   if (studentsResponse.ok) {
-        //     const studentsData = await studentsResponse.json();
-        //     console.log('Students data:', studentsData);
-        //     setStudents(studentsData || []);
-        //   } else {
-        //     console.error(`Students API responded with ${studentsResponse.status}: ${studentsResponse.statusText}`);
-        //   }
-        // }
-
 
         // Fetch all tags
         try {
@@ -103,40 +90,16 @@ function SPDetails() {
     };
 
     fetchData();
-    // Add spData.adviserId to dependencies to re-fetch adviser if SP data changes and adviserId changes
-  }, [spId, BACKEND_URL]); // Added BACKEND_URL as a dependency
-
-
-  // Removed the formatStudentName function as authors are now provided as formatted strings
-  // const formatStudentName = (student) => {
-  //   if (!student) return '';
-
-  //   let formattedName = `${student.lastName || ''}`;
-
-  //   if (student.firstName) {
-  //     formattedName += `, ${student.firstName}`;
-  //   }
-
-  //   if (student.middleName) {
-  //     formattedName += ` ${student.middleName}`;
-  //   }
-
-  //   return formattedName;
-  // };
-
+  }, [spId, BACKEND_URL]); 
 
   // Get tags for this SP
   const getTagsForSp = () => {
-    // Use spData.tagIds directly which is already populated by the backend DTO
     if (!tags || !Array.isArray(tags) || !spData || !spData.tagIds || !Array.isArray(spData.tagIds)) return [];
-    return tags.filter(tag =>
-      spData.tagIds.includes(tag.tagId)
-    );
+    return tags.filter(tag => spData.tagIds.includes(tag.tagId));
   };
 
   // Handle tag click to redirect to search page with selected tag
   const handleTagClick = (tagName) => {
-    // Redirect to search page with tag name in query params
     navigate(`/search?tag=${encodeURIComponent(tagName)}`);
   };
 
@@ -151,8 +114,8 @@ function SPDetails() {
 
     // Extract from standard Drive URLs
     const fileIdMatch = url.match(/\/d\/([^\/]+)/) ||
-                          url.match(/id=([^&]+)/) ||
-                          url.match(/file\/d\/([^\/]+)/);
+                         url.match(/id=([^&]+)/) ||
+                         url.match(/file\/d\/([^\/]+)/);
 
     if (fileIdMatch && fileIdMatch[1]) {
       return fileIdMatch[1];
@@ -161,12 +124,11 @@ function SPDetails() {
     return null;
   };
 
-  // Get Google Drive thumbnail URL (uses Google's thumbnail service)
-  const getGoogleDriveThumbnailUrl = (driveUrl) => {
-    const fileId = extractGoogleDriveFileId(driveUrl);
+  // Instead of directly using Google Drive URLs, create a backend proxy endpoint
+  // This will avoid CSP issues by having your backend fetch the content
+  const getFileProxyUrl = (type, fileId) => {
     if (!fileId) return null;
-
-    return `https://drive.google.com/thumbnail?id=${fileId}&sz=w480`;
+    return `${BACKEND_URL}/api/files/proxy/${type}/${fileId}`;
   };
 
   // Get the Google Drive PDF URL for direct download
@@ -204,6 +166,23 @@ function SPDetails() {
     return tagColors[tagName] || '#6c757d';
   };
 
+  // Build URLs for resources
+  const getResourceUrls = () => {
+    if (!spData?.documentPath) return { thumbnail: null, download: null, viewerUrl: null };
+    
+    const fileId = extractGoogleDriveFileId(spData.documentPath);
+    if (!fileId) return { thumbnail: null, download: null, viewerUrl: null };
+
+    return {
+      // Use proxy for thumbnail
+      thumbnail: getFileProxyUrl('thumbnail', fileId),
+      // Use direct Google Drive URL for download
+      download: getGoogleDriveDownloadUrl(spData.documentPath),
+      // Use direct Google Drive URL for preview
+      viewerUrl: getGoogleDrivePdfViewerUrl(spData.documentPath),
+    };
+  };
+
   if (loading) return (
     <div>
       <Navbar />
@@ -225,9 +204,8 @@ function SPDetails() {
     </div>
   );
 
-  const thumbnailUrl = getGoogleDriveThumbnailUrl(spData.documentPath);
-  const downloadUrl = getGoogleDriveDownloadUrl(spData.documentPath);
-  const pdfViewerUrl = getGoogleDrivePdfViewerUrl(spData.documentPath);
+  // Get resource URLs
+  const { thumbnail, download, viewerUrl } = getResourceUrls();
 
   return (
     <div className="sp-details-container">
@@ -260,8 +238,8 @@ function SPDetails() {
               }
             </div>
 
-            {downloadUrl && (
-              <a href={downloadUrl} className="download-button" target="_blank" rel="noopener noreferrer">
+            {download && (
+              <a href={download} className="download-button" target="_blank" rel="noopener noreferrer">
                 <FontAwesomeIcon icon={faDownload} /> Download PDF
               </a>
             )}
@@ -276,20 +254,38 @@ function SPDetails() {
             </div>
           </div>
 
-          {/* PDF thumbnail only - no default journal image */}
+          {/* PDF thumbnail with fallback to default image */}
           <div className="journal-image">
-            {thumbnailUrl && !thumbnailFailed ? (
+            {thumbnail ? (
               <img
-                src={thumbnailUrl}
+                src={thumbnail}
                 alt="PDF Preview"
                 className="pdf-thumbnail"
-                onError={() => {
-                  console.log(thumbnailUrl);
-                  console.log("Thumbnail failed to load, removing image.");
-                  setThumbnailFailed(true);
+                style={{
+                  width: '180px', 
+                  height: 'auto',
+                  minHeight: '180px',
+                  objectFit: 'contain',
+                  border: '1px solid #ddd'
+                }}
+                onError={(e) => {
+                  console.log('Thumbnail failed to load, using default image');
+                  e.target.src = defaultJournalImage;
                 }}
               />
-            ) : null}
+            ) : (
+              <div className="default-document-icon" style={{
+                width: '180px',
+                height: '180px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '1px solid #ddd',
+                backgroundColor: '#f8f9fa'
+              }}>
+                <FontAwesomeIcon icon={faFilePdf} size="5x" color="#c71f37" />
+              </div>
+            )}
           </div>
         </header>
 
@@ -322,25 +318,24 @@ function SPDetails() {
                 <h3>Adviser</h3>
               </div>
               <p>
-                <a href={`/adviser/${adviser.adminId}`}> {/* Use adviser.adminId */}
-                  {adviser.firstName} {adviser.lastName} {/* Use adviser.firstName and adviser.lastName */}
+                <a href={`/adviser/${adviser.adminId}`}>
+                  {adviser.firstName} {adviser.lastName}
                 </a>
               </p>
             </div>
           )}
            {/* Display Faculty */}
            {spData.facultyId && (
-             <div className="faculty-info" style={{ marginLeft: '1rem' }}>
-               <div className="faculty-header">
-                 <FontAwesomeIcon icon={faUser} className="faculty-icon" /> {/* You might want a different icon */}
+             <div className="adviser-info" style={{ marginLeft: '1rem' }}>
+               <div className="adviser-header">
+                 <FontAwesomeIcon icon={faUniversity} className="faculty-icon" />
                  <h3>Department</h3>
                </div>
                <p>
-                 {/* Map facultyId to name - assuming BSBC, BSCS, BSAP are 1, 2, 3 */}
+                 {/* Map facultyId to name */}
                  {spData.facultyId === 1 && 'BSBC'}
                  {spData.facultyId === 2 && 'BSCS'}
                  {spData.facultyId === 3 && 'BSAP'}
-                 {/* Add more cases if you have more faculties */}
                </p>
              </div>
            )}
@@ -350,19 +345,18 @@ function SPDetails() {
         <section className="abstract-section">
           <h2>Abstract</h2>
           <div className="abstract-content">
-            {/* Use spData.abstractText directly */}
             <p className='abstract-text'>{spData.abstractText || 'No abstract available.'}</p>
           </div>
         </section>
 
-        {/* Google Drive PDF Viewer section */}
-        {pdfViewerUrl && (
+        {/* PDF Viewer section using iframe with Google Drive viewer */}
+        {viewerUrl && (
           <section className="pdf-section">
             <h2>Article PDF</h2>
             <div className="pdf-container">
               <div className="google-drive-viewer">
                 <iframe
-                  src={pdfViewerUrl}
+                  src={viewerUrl}
                   width="100%"
                   height="600px"
                   frameBorder="0"
