@@ -513,7 +513,6 @@
   padding: 4rem 0;
   z-index: 2;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); /* Enhanced subtle shadow */
-  margin-bottom: 3rem; /* Space before the SP leaderboard */
 }
 
 .adviser-leaderboard-content {
@@ -759,9 +758,11 @@
 /* Popular Projects Section (now a standalone section) */
 .popular-projects-section {
   padding: 2.5rem;
+  background-color: #f5f5f5;
   border-radius: 8px; /* Slightly rounded corners */
-  margin-top: 3rem; /* Space above this section */
+  padding-top: 5%; /* Space above this section */
   text-align: center; /* Center content within this section */
+  padding-bottom: 5rem;
 }
 
 .popular-projects-section h5 {
@@ -775,6 +776,7 @@
 .popular-projects-section .section-description {
   color: #555;
   margin-bottom: 2rem;
+  font-size: 1rem;
   line-height: 1.7;
   text-align: left; /* Keep description left-aligned */
 }
@@ -980,6 +982,7 @@
   }
   .section-description {
     margin-bottom: 1.5rem;
+    
   }
 }
 
@@ -1020,6 +1023,7 @@ margin: 0 10px;
   }
 
   .leaderboard-section .container {
+    color: #333;
     padding: 1rem; /* Adjust container padding for mobile */
   }
 
@@ -1090,6 +1094,13 @@ margin: 0 10px;
     margin-bottom: 1.5rem;
   }
   .browse-header h2 {
-    font-size: 1.8rem;
+    font-size: 5rem;
   }
+}
+  .browse-header h2 {
+    font-size: 2rem;
+  }
+.browse-description{
+  font-size: 1rem;
+  color: #555;
 }

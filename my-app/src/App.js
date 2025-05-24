@@ -16,6 +16,7 @@ import UserManagementView from './pages/UserManagementView';
 import { UserManagementProvider } from './contexts/UserManagementContext';
 import LeaderboardPage from './pages/LeaderboardPage';
 import ProjectsLeaderboardPage from './pages/ProjectsLeaderboardPage';
+import SPDashboard from './pages/SPDashboard';
 
 // Component to check if user is authenticated (any logged-in user)
 const RequireAuth = ({ children }) => {
@@ -226,12 +227,10 @@ function App() {
 
         {/* General Dashboard route - Requires Faculty OR Staff */}
          <Route
-           path="/dashboard"
+           path="/dashboard/home"
            element={
              <RequireFacultyOrStaff>
-                {/* This route serves as a landing or redirect point */}
-                 {/* You might place a component here that redirects based on role */}
-               <SPProjectView/> {/* Or render a default dashboard view */}
+                 <SPDashboard/> 
              </RequireFacultyOrStaff>
            }
          />

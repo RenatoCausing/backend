@@ -2,9 +2,13 @@
 
 .leaderboard-page-container {
     background-color: white;
-    min-height: 100vh;
+    height: 100%;
 }
+/* Add this to your AdvisersLeaderboard.css or a global CSS file */
 
+body {
+    background-color: white;
+}
 .leaderboard-content-wrapper {
     padding-top: 100px; /* To fix navbar clipping */
     max-width: 1200px;
