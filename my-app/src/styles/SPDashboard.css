@@ -17,7 +17,7 @@ body{
 
 .dashboard-content h1 {
     font-size: 2.8rem;
-    color: #333;
+    color: #000000;
     margin-bottom: 30px;
     text-align: center;
 }
@@ -62,7 +62,7 @@ body{
     cursor: pointer;
     background-color: white;
     appearance: none; /* Remove default arrow in some browsers */
-    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M287%2C114.7L154.5%2C247.3c-1.3%2C1.3-3.4%2C1.3-4.7%2C0L0%2C114.7c-1.3-1.3-1.3-3.4%2C0-4.7s3.4-1.3%2C4.7%2C0l149.2%2C149.2L282.3%2C110c1.3-1.3%2C3.4-1.3%2C4.7%2C0C288.3%2C111.3%2C288.3%2C113.4%2C287%2C114.7z%22%2F%3E%3C%2Fsvg%3E'); /* Custom arrow */
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M287%2C114.7L154.5%2C247.3c-1.3%2C1.3-3.4%2C1.3-4.7%2C0L0%2C114.7c-1.3-1.3-1.3-3.4%2C0-4.7s3.4-1.3%2C4.7%2C0l149.2%2C149.2L282.3%2C110c1.3-1.3%2C3.4-1.3%2C4.7%2C0C288.3%2C111.3%2C288.3%2C113.4%2C287%2C114.7z%22%2F%3E%3C%2Fsvg%3E');
     background-repeat: no-repeat;
     background-position: right 10px center; /* Center arrow vertically */
     background-size: 10px auto; /* Slightly smaller arrow */
@@ -198,5 +198,86 @@ body{
     }
     .dashboard-content h1 {
         font-size: 2rem; /* Smaller title on mobile */
+    }
+}
+/* src/styles/SPDashboard.css */
+
+/* ... (existing styles) ... */
+
+/* Enhanced Stats Cards Styling */
+.stat-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Ensures responsiveness */
+    gap: 25px; /* Slightly increased space between cards */
+    margin-bottom: 50px; /* More margin at the bottom */
+}
+
+.stat-card {
+    background-color: #ffffff; /* White background */
+    border-radius: 15px; /* More rounded corners */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12); /* Richer, softer shadow */
+    padding: 30px; /* Increased padding */
+    text-align: center;
+    transition: transform 0.4s ease, box-shadow 0.4s ease, background-color 0.4s ease; /* Smooth transitions */
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around; /* Distribute space evenly */
+    align-items: center;
+    height: 160px; /* Slightly taller cards */
+    position: relative; /* For potential future enhancements like badges */
+}
+
+.stat-card:hover {
+    transform: translateY(-8px); /* Lifts the card on hover */
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2); /* Deeper shadow on hover */
+    background-color: #f9f9f9; /* Slight background change on hover */
+}
+
+.stat-card h3 {
+    font-size: 1.25rem; /* Slightly larger heading */
+    color: #4a5568; /* Darker gray for better readability */
+    margin-bottom: 15px; /* More space below heading */
+    font-weight: 600; /* Bolder heading */
+}
+
+.stat-card p {
+    font-size: 3.8rem; /* Larger number */
+    font-weight: 800; /* Extra bold for the count */
+    color: #800000; /* Keep the maroon color */
+    line-height: 1; /* Tighter line height for the number */
+}
+
+/* Optional: Add a subtle animation on load or update */
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.stat-card {
+    animation: fadeInScale 0.5s ease-out forwards;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    .stat-cards-container {
+        grid-template-columns: 1fr; /* Stacks cards vertically on small screens */
+        gap: 20px;
+    }
+    .stat-card {
+        padding: 25px;
+        min-height: 140px;
+    }
+    .stat-card h3 {
+        font-size: 1.1rem;
+    }
+    .stat-card p {
+        font-size: 3rem;
     }
 }
