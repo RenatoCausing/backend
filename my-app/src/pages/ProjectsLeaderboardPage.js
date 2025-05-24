@@ -1,4 +1,3 @@
-
 import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
@@ -8,18 +7,19 @@ import Typography from '@mui/material/Typography';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
-import '../styles/SPFilterSystem.css';
+import '../styles/SPFilterSystem.css'; // Keep this if other components on this page use it
+import '../styles/ProjectsLeaderboard.css'; // New and REVISED CSS file for leaderboard specific styles
 
 function ProjectsLeaderboardPage() {
   // State for special projects data
   const [specialProjects, setSpecialProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [tags, setTags] = useState([]);
-  
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  
+
   // Backend URL
   const BACKEND_URL = 'http://localhost:8080';
 
@@ -35,24 +35,21 @@ function ProjectsLeaderboardPage() {
       .then(data => {
         console.log('Top SPs data:', data);
         // Sort by view count (highest first) before setting state
-        const sortedData = Array.isArray(data) ? 
-          [...data].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0)) : 
+        const sortedData = Array.isArray(data) ?
+          [...data].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0)) :
           [];
         setSpecialProjects(sortedData);
       })
       .catch(error => {
         console.error('Error fetching top SPs:', error);
-        // Default SPs data
-        const defaultSPs = [
-];
-        // Sort by view count (highest first)
+        const defaultSPs = [];
         const sortedDefaultSPs = [...defaultSPs].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
         setSpecialProjects(sortedDefaultSPs);
       })
       .finally(() => {
         setIsLoading(false);
       });
-      
+
     // Fetch tags
     fetch(`${BACKEND_URL}/api/tags`)
       .then(response => {
@@ -65,10 +62,7 @@ function ProjectsLeaderboardPage() {
       })
       .catch(error => {
         console.error('Error fetching tags:', error);
-        // Default tags if API fails
-        setTags([
-
-        ]);
+        setTags([]);
       });
   }, []);
 
@@ -79,17 +73,13 @@ function ProjectsLeaderboardPage() {
       .filter(tag => sp.tagIds.includes(tag.tagId))
       .map(tag => tag.tagName || 'Unknown Tag');
   };
+
   const handleViewCountIncrement = async (spId) => {
     try {
-      // Make the POST request to your backend endpoint
       await axios.post(`http://localhost:8080/api/sp/${spId}/view`);
       console.log(`View count incremented for SP ID: ${spId}`);
-      // You might want to update the view count displayed on the card locally here,
-      // but keep in mind this local update won't persist on refresh unless data is re-fetched.
-      // The backend is the source of truth for the view count.
     } catch (error) {
       console.error(`Error incrementing view count for SP ID: ${spId}`, error);
-      // Handle errors if the API call fails
     }
   }
 
@@ -115,26 +105,20 @@ function ProjectsLeaderboardPage() {
   };
 
   return (
-    <div className="leaderboard-page">
+    <div className="leaderboard-page-container">
       <Navbar />
-      
-      {/* Added padding-top to fix navbar clipping */}
-      <div className="container" style={{ paddingTop: '100px' }}>
-        <div className="leaderboard-header" style={{
-    display: 'flex',
-    justifyContent: 'space-between', // This will push items to the left and right
-    alignItems: 'center' // Vertically align items in the center
-}}>
+
+      <div className="container leaderboard-content-wrapper">
+        <div className="leaderboard-header-section">
           <h1>Most Popular Special Projects</h1>
-          
-          {/* Added navigation button to Advisers leaderboard */}
+
           <div style={{ display: 'flex', justifyContent: 'flex-end'}}>
             <Link to="/leaderboard/adviser" style={{ textDecoration: 'none' }}>
-              <button 
-                style={{ 
-                  backgroundColor: '#800000', 
-                  color: 'white', 
-                  padding: '0.5rem 1rem', 
+              <button
+                style={{
+                  backgroundColor: '#800000',
+                  color: 'white',
+                  padding: '0.5rem 1rem',
                   borderRadius: '0.25rem',
                   border: 'none',
                   cursor: 'pointer',
@@ -150,26 +134,19 @@ function ProjectsLeaderboardPage() {
             </Link>
           </div>
         </div>
-        <div><p style={{ marginTop: '2rem', marginBottom: '3rem', color: '#555', fontSize: '.9rem', lineHeight: '1.5rem'}}>
-        Explore the forefront of student research and innovation by browsing our Most Popular Special Projects. <br />
-         This curated list features the projects that have received the highest view counts across the platform, indicating <br />
-         their relevance and impact within the community. Each project is a testament to student dedication and faculty 
-         guidance.<br /> Simply click on a project to reveal comprehensive details and learn more about the work behind the views.
-                </p>
-                </div>
+        <div>
+          <p className="leaderboard-description">
+            Explore the forefront of student research and innovation by Browse our Most Popular Special Projects. <br />
+            This curated list features the projects that have received the highest view counts across the platform, indicating <br />
+            their relevance and impact within the community. Each project is a testament to student dedication and faculty
+            guidance.<br /> Simply click on a project to reveal comprehensive details and learn more about the work behind the views.
+          </p>
+        </div>
 
         <div className="leaderboard-content">
           {/* Top Pagination */}
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
-            padding: '0 16px', 
-            width: '100%',
-            margin: '10px 0',
-          }}>
-            <div style={{ width: '150px' }}></div>
-            {/* Pagination Numbers */}
+          <div className="leaderboard-pagination-top">
+            <div style={{ width: '150px' }}></div> {/* Spacer for pagination alignment */}
             {totalPages > 1 && (
               <Pagination
                 count={totalPages}
@@ -192,7 +169,7 @@ function ProjectsLeaderboardPage() {
             )}
 
             {/* Rows per page control with label */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+            <div className="rows-per-page-control">
               <Typography variant="body2" style={{ whiteSpace: 'nowrap' }}>
                 Show rows:
               </Typography>
@@ -210,12 +187,9 @@ function ProjectsLeaderboardPage() {
               </FormControl>
             </div>
           </div>
-          
-          {/* Special Projects List */}
-          <div style={{width: '100%'}}>
-            {/* Top divider */}
-            <div className="sp-divider top-divider" style={{backgroundColor: 'rgba(229, 231, 235, 0.7)'}}></div>
 
+          {/* Special Projects List */}
+          <div className="sp-list-section">
             {/* Loading State */}
             {isLoading && (
               <div className="bg-blue-50 p-4 text-center text-blue-700 rounded">Loading special projects...</div>
@@ -228,83 +202,58 @@ function ProjectsLeaderboardPage() {
               </div>
             )}
 
-            {/* Special Projects List Items - Updated to match HomePage.js style */}
+            {/* Special Projects List Items */}
             {!isLoading && currentItems.map((project, index) => {
-              // Calculate the global ranking based on current page and index
               const rankNumber = (currentPage - 1) * itemsPerPage + index + 1;
-              
+
               return (
-                <div key={project.spId} className="relative">
-                  <Link to={`/project/${project.spId}`} style={{ textDecoration: 'none', color: 'inherit' }} onClick={() => handleViewCountIncrement(project.spId)}>
-                    <div className="mb-6">
-                      {/* Ranking number - Added above the title */}
-                      <div style={{ 
-                        position: 'absolute',
-                        top: '0',
-                        left: '0',
-                        fontSize: '10px',
-                        fontWeight: 'bold',
-                        color: '#800000',
-                        backgroundColor: 'rgba(128, 0, 0, 0.1)',
-                        padding: '2px 6px',
-                        borderRadius: '3px'
-                      }}>
-                        #{rankNumber}
-                      </div>
-                      
-                      {/* Updated header with project title and view count */}
-                      <div className="flex mb-2"style={{ marginRight: '3rem'}}>
-                        <h3 className="text-lg font-semibold flex-1">
+                <div key={project.spId}>
+                  {/* Divider between projects (except the first one) */}
+                  {index > 0 && (
+                    <div className="sp-item-divider"></div>
+                  )}
+
+                  <Link to={`/project/${project.spId}`} className="leaderboard-project-item" onClick={() => handleViewCountIncrement(project.spId)}>
+                    <div className="project-rank">
+                      #{rankNumber}
+                    </div>
+
+                    <div className="project-content">
+                      <div className="project-header">
+                        <h3 className="project-title">
                           {project.title || 'Untitled Project'}
-                        </h3>
-                        <div className="flex items-center">
-                          <span className="view-count text-gray-500" style={{ height: 'auto', width: 'auto', display: 'flex', alignItems: 'center' }}>
-                            <i className="fas fa-eye" style={{ marginRight: '0.5rem' }}></i> {project.viewCount || 0}
-                          </span>
-                        </div>
+                        </h3><div className="project-view-count">
+  {project.viewCount || 0} <i className="fa-solid fa-chart-simple"></i>
+</div>
                       </div>
-                      
+
                       {/* Add year and semester info */}
-                      <div className="text-sm text-gray-600" style={{ marginTop: '0.5rem', display: 'flex', gap: '1.5rem' }}>
+                      <div className="project-meta">
                         {project.year && project.semester && (
                           <span>
-                            <i className="far fa-calendar-alt" style={{ marginRight: '0.5rem' }}></i> 
+                            <i className="far fa-calendar-alt"></i>
                             {project.year} - {project.semester} Semester
                           </span>
                         )}
+                        {/* You can add more meta info here if available, e.g., Advisers, Authors */}
                       </div>
-                      
-                      {/* Project abstract/description if available */}
-                      {project.description && (
-                        <div className="text-sm text-gray-600" style={{ marginTop: '0.5rem' }}>
-                          <p>{project.description}</p>
-                        </div>
-                      )}
-                      
+
+                      {/* Project abstract/description */}
+                      <div className="project-description">
+                        <p>{project.description || project.abstractText || 'No description available.'}</p>
+                      </div>
+
                       {/* Tags */}
-                      <div className="card-tags" style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        {project.tagIds && Array.isArray(project.tagIds) ? 
+                      <div className="project-tags">
+                        {project.tagIds && Array.isArray(project.tagIds) ?
                           getTagsForSp(project).map((tagName, i) => (
-                            <span key={i} style={{ 
-                              backgroundColor: '#e5e7eb', 
-                              color: '#4b5563',
-                              padding: '0.25rem 0.5rem',
-                              borderRadius: '9999px',
-                              fontSize: '0.75rem'
-                            }}>
+                            <span key={i} className="project-tag">
                               {tagName}
                             </span>
                           )) : (
-                            // Fallback if project.tags is available as direct strings
-                            Array.isArray(project.tags) ? 
+                            Array.isArray(project.tags) ?
                               project.tags.map((tag, i) => (
-                                <span key={i} style={{ 
-                                  backgroundColor: '#e5e7eb', 
-                                  color: '#4b5563',
-                                  padding: '0.25rem 0.5rem',
-                                  borderRadius: '9999px',
-                                  fontSize: '0.75rem'
-                                }}>
+                                <span key={i} className="project-tag">
                                   {tag}
                                 </span>
                               )) : null
@@ -313,30 +262,14 @@ function ProjectsLeaderboardPage() {
                       </div>
                     </div>
                   </Link>
-
-                  {/* Divider between projects (except the last one) */}
-                  {index < currentItems.length - 1 && (
-                    <div
-                      className="sp-divider"
-                      style={{backgroundColor: 'rgba(229, 231, 235, 0.7)'}}
-                    ></div>
-                  )}
                 </div>
               );
             })}
           </div>
-          
+
           {/* Bottom Pagination */}
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
-            padding: '0 16px', 
-            width: '100%',
-            margin: '20px 0',
-          }}>
+          <div className="leaderboard-pagination-bottom">
             <div style={{ width: '150px' }}></div>
-            {/* Pagination Numbers */}
             {totalPages > 1 && (
               <Pagination
                 count={totalPages}
@@ -357,9 +290,9 @@ function ProjectsLeaderboardPage() {
                 }}
               />
             )}
-            
+
             {/* Rows per page control */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+            <div className="rows-per-page-control">
               <Typography variant="body2" style={{ whiteSpace: 'nowrap' }}>
                 Show rows:
               </Typography>

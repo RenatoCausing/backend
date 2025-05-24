@@ -1,0 +1,250 @@
+/* ProjectsLeaderboard.css - Final Adjustments */
+
+.leaderboard-page-container {
+    background-color: white;
+    min-height: 100vh; /* Ensure it takes full height */
+}
+
+.leaderboard-content-wrapper {
+    padding-top: 100px; /* To fix navbar clipping */
+    max-width: 1200px; /* Consistent with other sections */
+    margin: 0 auto;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.leaderboard-header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px; /* Space below header */
+}
+
+.leaderboard-header-section h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: black; /* Changed to black */
+    margin: 0;
+}
+
+.leaderboard-description {
+    margin-top: 1rem;
+    margin-bottom: 2.5rem;
+    color: #555;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* Pagination and rows per page controls */
+.leaderboard-pagination-top,
+.leaderboard-pagination-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0; /* No horizontal padding within this container */
+    width: 100%;
+    margin-bottom: 20px;
+    margin-top: 10px;
+}
+
+.leaderboard-pagination-bottom {
+    margin-top: 30px;
+    margin-bottom: 50px;
+}
+
+.rows-per-page-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* --- Special Projects List Styling (The Ranking List Items) --- */
+.sp-list-section {
+    width: 100%;
+    background-color: #f8f9fa; /* Light background for the list area */
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); /* Subtle shadow for the whole list block */
+    overflow: hidden; /* Ensures rounded corners apply to children borders */
+}
+
+.sp-item-divider {
+    background-color: #e0e0e0; /* Lighter divider color */
+    height: 1px;
+    width: calc(100% - 40px); /* Adjust width for padding on each side */
+    margin: 0 auto; /* Center the divider */
+}
+
+/* Individual project item container */
+.leaderboard-project-item {
+    display: flex;
+    padding: 20px; /* Ample padding for each item */
+    align-items: center; /* Vertically center the rank and content */
+    transition: background-color 0.3s ease;
+    text-decoration: none; /* Remove underline from Link */
+    color: inherit; /* Inherit text color */
+}
+
+.leaderboard-project-item:hover {
+    background-color: #f0f2f5; /* Light hover effect */
+}
+
+/* Rank Number */
+.project-rank {
+    font-size: 2rem; /* Larger and bolder rank */
+    font-weight: 800;
+    color: #800000; /* Maroon color */
+    margin-right: 25px; /* Space between rank and content */
+    flex-shrink: 0; /* Prevent shrinking */
+    width: 60px; /* Fixed width for alignment */
+    text-align: right; /* Align rank number to the right */
+    padding-bottom: 5px; /* Slight padding to push text up a bit */
+    line-height: 1; /* Ensure line height doesn't add extra space */
+    position: relative;
+    top: -5px; /* Fine-tune vertical alignment with content */
+}
+
+/* Project Content (Title, Meta, Description, Tags) */
+.project-content {
+    flex-grow: 1; /* Take up remaining space */
+}
+
+.project-header {
+    display: flex;
+    justify-content: space-between; /* Pushes title left, view count right */
+    align-items: center;
+    margin-bottom: 8px; /* Space below header */
+}
+
+.project-title {
+    font-size: 1.2rem; /* Prominent title size, slightly larger */
+    font-weight: 600;
+    color: #000000;
+    line-height: 1.3;
+    flex: 1; /* Allow title to take most space */
+    margin-right: 15px; /* Space before view count if title is long */
+}
+
+.project-view-count {
+    display: flex;
+    align-items: center;
+    color: #800000; /* Maroon color for the entire view count text and icon */
+    font-size: .8rem; /* Adjust this to control the size of both text and icon */
+    font-weight: 500;
+    flex-shrink: 0; /* Prevent shrinking when title is long */
+}
+
+.project-view-count i {
+    margin-left: 0.3rem; /* Space between the number and the icon */
+    /* Removed explicit font-size here to allow inheritance from .project-view-count */
+    /* Color inherited from .project-view-count */
+}
+
+.project-meta {
+    font-size: 0.9rem; /* Slightly larger meta info */
+    color: #777;
+    margin-bottom: 12px; /* Space below meta */
+    display: flex; /* Use flex for potential multiple meta items */
+    gap: 15px; /* Space between meta items if multiple */
+}
+
+.project-meta i {
+    margin-right: 5px;
+}
+
+.project-description {
+    font-size: 0.95rem;
+    color: #444;
+    line-height: 1.5;
+    margin-bottom: 15px; /* Space below description */
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* Limit description to 3 lines */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.project-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px; /* Space between tags */
+}
+
+.project-tag {
+    background-color: #e9ecef; /* Light background for tags */
+    color: #495057; /* Darker text for tags */
+    padding: 6px 12px;
+    border-radius: 20px; /* Pill shape */
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: capitalize;
+    border: 1px solid #dee2e6; /* Subtle border */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .leaderboard-header-section {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .leaderboard-header-section h1 {
+        font-size: 2rem;
+        margin-bottom: 15px;
+    }
+    .leaderboard-project-item {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 15px;
+    }
+    .project-rank {
+        width: auto;
+        text-align: left;
+        margin-bottom: 10px;
+        font-size: 1.8rem;
+        margin-right: 0;
+        top: 0; /* Reset top for mobile */
+    }
+    .project-content {
+        width: 100%; /* Take full width on smaller screens */
+    }
+    .project-header {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 5px;
+    }
+    .project-title {
+        font-size: 1.2rem;
+        margin-bottom: 5px;
+        margin-right: 0;
+    }
+    .project-view-count {
+        font-size: 0.9rem;
+    }
+    .project-meta,
+    .project-description {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .leaderboard-content-wrapper {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    .leaderboard-header-section h1 {
+        font-size: 1.8rem;
+    }
+    .leaderboard-description {
+        font-size: 0.85rem;
+    }
+    .leaderboard-pagination-top,
+    .leaderboard-pagination-bottom {
+        flex-direction: column;
+        gap: 15px;
+        align-items: center;
+    }
+    .rows-per-page-control {
+        width: 100%;
+        justify-content: center;
+    }
+}

@@ -6,17 +6,18 @@ import Typography from '@mui/material/Typography';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
-import '../styles/SPFilterSystem.css';
+// import '../styles/SPFilterSystem.css'; // Remove if not used elsewhere on this page
+import '../styles/AdvisersLeaderboard.css'; // Import the NEW CSS file for advisers
 
 function LeaderboardPage() {
   // State for advisers data
   const [advisers, setAdvisers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  
+
   // Backend URL
   const BACKEND_URL = 'http://localhost:8080';
 
@@ -37,100 +38,112 @@ function LeaderboardPage() {
         console.error('Error fetching top advisers:', error);
         // Set default data for testing
         const defaultAdvisers = [
-          { 
-            adminId: 1, 
-            firstName: 'John', 
-            lastName: 'Pork', 
-            viewCount: 245, 
-            description: 'Specializes in blockchain technologies and distributed systems with focus on security implications.',
+          {
+            adminId: 1,
+            firstName: 'John',
+            lastName: 'Pork',
+            viewCount: 245,
+            description: 'Specializes in blockchain technologies and distributed systems with focus on security implications. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+            email: 'john.pork@university.edu', // Added email
             imagePath: 'https://via.placeholder.com/150?text=JP'
           },
-          { 
-            adminId: 2, 
-            firstName: 'Bombardino', 
-            lastName: 'Crocodillo', 
+          {
+            adminId: 2,
+            firstName: 'Bombardino',
+            lastName: 'Crocodillo',
             viewCount: 198,
-            description: 'Expert in AI and neural networks with applications in natural language processing.',
+            description: 'Expert in AI and neural networks with applications in natural language processing. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
+            email: 'bombardino.c@university.edu', // Added email
             imagePath: 'https://via.placeholder.com/150?text=BC'
           },
-          { 
-            adminId: 3, 
-            firstName: 'Tim', 
-            lastName: 'Cheese', 
+          {
+            adminId: 3,
+            firstName: 'Tim',
+            lastName: 'Cheese',
             viewCount: 176,
-            description: 'Researches web technologies and cloud computing architectures for scalable applications.',
+            description: 'Researches web technologies and cloud computing architectures for scalable applications. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
+            email: 'tim.cheese@university.edu', // Added email
             imagePath: 'https://via.placeholder.com/150?text=TC'
           },
-          { 
-            adminId: 4, 
-            firstName: 'Maria', 
-            lastName: 'Rodriguez', 
+          {
+            adminId: 4,
+            firstName: 'Maria',
+            lastName: 'Rodriguez',
             viewCount: 154,
             description: 'Focuses on data mining and machine learning for predictive analytics in healthcare.',
+            email: 'maria.r@university.edu', // Added email
             imagePath: 'https://via.placeholder.com/150?text=MR'
           },
-          { 
-            adminId: 5, 
-            firstName: 'James', 
-            lastName: 'Wilson', 
+          {
+            adminId: 5,
+            firstName: 'James',
+            lastName: 'Wilson',
             viewCount: 143,
             description: 'Works on cybersecurity with emphasis on network protection and intrusion detection.',
+            email: 'james.w@university.edu', // Added email
             imagePath: 'https://via.placeholder.com/150?text=JW'
           },
-          { 
-            adminId: 6, 
-            firstName: 'Sarah', 
-            lastName: 'Johnson', 
+          {
+            adminId: 6,
+            firstName: 'Sarah',
+            lastName: 'Johnson',
             viewCount: 121,
             description: 'Specializes in human-computer interaction and user experience design methodologies.',
+            email: 'sarah.j@university.edu', // Added email
             imagePath: 'https://via.placeholder.com/150?text=SJ'
           },
-          { 
-            adminId: 7, 
-            firstName: 'Robert', 
-            lastName: 'Brown', 
+          {
+            adminId: 7,
+            firstName: 'Robert',
+            lastName: 'Brown',
             viewCount: 115,
             description: 'Expert in software engineering practices and agile development methodologies.',
+            email: 'robert.b@university.edu', // Added email
             imagePath: 'https://via.placeholder.com/150?text=RB'
           },
-          { 
-            adminId: 8, 
-            firstName: 'Emily', 
-            lastName: 'Davis', 
+          {
+            adminId: 8,
+            firstName: 'Emily',
+            lastName: 'Davis',
             viewCount: 102,
             description: 'Researches database systems with focus on NoSQL solutions for big data applications.',
+            email: 'emily.d@university.edu', // Added email
             imagePath: 'https://via.placeholder.com/150?text=ED'
           },
-          { 
-            adminId: 9, 
-            firstName: 'Michael', 
-            lastName: 'Miller', 
+          {
+            adminId: 9,
+            firstName: 'Michael',
+            lastName: 'Miller',
             viewCount: 97,
             description: 'Works on computer vision and image processing algorithms for autonomous systems.',
+            email: 'michael.m@university.edu', // Added email
             imagePath: 'https://via.placeholder.com/150?text=MM'
           },
-          { 
-            adminId: 10, 
-            firstName: 'Jennifer', 
-            lastName: 'Taylor', 
+          {
+            adminId: 10,
+            firstName: 'Jennifer',
+            lastName: 'Taylor',
             viewCount: 89,
             description: 'Specializes in game development and interactive entertainment technologies.',
+            email: 'jennifer.t@university.edu', // Added email
             imagePath: 'https://via.placeholder.com/150?text=JT'
           },
-          { 
-            adminId: 11, 
-            firstName: 'David', 
-            lastName: 'Anderson', 
+          {
+            adminId: 11,
+            firstName: 'David',
+            lastName: 'Anderson',
             viewCount: 84,
             description: 'Researches embedded systems and IoT architectures for smart environments.',
+            email: 'david.a@university.edu', // Added email
             imagePath: 'https://via.placeholder.com/150?text=DA'
           },
-          { 
-            adminId: 12, 
-            firstName: 'Lisa', 
-            lastName: 'Thomas', 
+          {
+            adminId: 12,
+            firstName: 'Lisa',
+            lastName: 'Thomas',
             viewCount: 78,
             description: 'Expert in information retrieval systems and search algorithm optimization.',
+            email: 'lisa.t@university.edu', // Added email
             imagePath: 'https://via.placeholder.com/150?text=LT'
           }
         ];
@@ -166,37 +179,25 @@ function LeaderboardPage() {
   };
 
   // Function to abbreviate description to a certain length
-  const abbreviateDescription = (description, maxLength = 120) => {
-    if (!description) return '';
-    return description.length > maxLength 
-      ? `${description.substring(0, maxLength)}...` 
+  const abbreviateDescription = (description, maxLength = 160) => { // Increased max length slightly for advisers
+    if (!description) return 'No description available.';
+    return description.length > maxLength
+      ? `${description.substring(0, maxLength)}...`
       : description;
   };
 
-  // Function to calculate rank number based on page and position
-  const calculateRank = (index) => {
-    return indexOfFirstItem + index + 1;
-  };
-
   return (
-    
-    <div className="leaderboard-page">
+    <div className="leaderboard-page-container">
       <Navbar />
-      
-      {/* Added padding-top to fix navbar clipping */}
-      <div className="container" style={{ paddingTop: '100px' }}>
-      <div className="leaderboard-header" style={{
-    display: 'flex',
-    justifyContent: 'space-between', // This will push items to the left and right
-    alignItems: 'center' // Vertically align items in the center
-}}>
-    <h1>Most Popular Advisers</h1>
 
-    {/* Navigation button to SP leaderboard */}
-    {/* Removed the extra div with justifyContent: 'flex-end' */}
-    <Link to="/leaderboard/sp" style={{ textDecoration: 'none' }}>
-        <button
-            style={{
+      <div className="leaderboard-content-wrapper">
+        <div className="leaderboard-header-section">
+          <h1>Most Popular Advisers</h1>
+
+          {/* Navigation button to SP leaderboard */}
+          <Link to="/leaderboard/sp" style={{ textDecoration: 'none' }}>
+            <button
+              style={{
                 backgroundColor: '#800000',
                 color: 'white',
                 padding: '0.5rem 1rem',
@@ -207,32 +208,25 @@ function LeaderboardPage() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem'
-            }}
-        >
-            <span>View SP Leaderboard</span>
-            <i className="fas fa-arrow-right"></i>
-        </button>
-    </Link>
-</div>
-        <div><p style={{ marginTop: '2rem', marginBottom: '3rem', color: '#555', fontSize: '.9rem', lineHeight: '1.5rem'}}>
-              Discover the driving forces behind our top Special Projects. This section features the most popular advisers,<br /> 
-              recognized for their dedication to guiding innovative student research. Their ranking here is a testament to their impact <br />
-              and the engagement their mentored projects receive. You can delve deeper into each adviser's background and <br />
-              areas of expertise by viewing their profile, and easily see their standing among their peers on this leaderboard.
-                </p>
-                </div>
+              }}
+            >
+              <span>View SP Leaderboard</span>
+              <i className="fas fa-arrow-right"></i>
+            </button>
+          </Link>
+        </div>
+        <div>
+          <p className="leaderboard-description">
+            Discover the driving forces behind our top Special Projects. This section features the most popular advisers, <br />
+            recognized for their dedication to guiding innovative student research. Their ranking here is a testament to their impact <br />
+            and the engagement their mentored projects receive. You can delve deeper into each adviser's background and <br />
+            areas of expertise by viewing their profile, and easily see their standing among their peers on this leaderboard.
+          </p>
+        </div>
         <div className="leaderboard-content">
           {/* Top Pagination */}
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
-            padding: '0 16px', 
-            width: '100%',
-            margin: '10px 0',
-          }}>
-            <div style={{ width: '150px' }}></div>
-            {/* Pagination Numbers */}
+          <div className="leaderboard-pagination-top">
+            <div style={{ width: '150px' }}></div> {/* Spacer for pagination alignment */}
             {totalPages > 1 && (
               <Pagination
                 count={totalPages}
@@ -255,7 +249,7 @@ function LeaderboardPage() {
             )}
 
             {/* Rows per page control with label */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+            <div className="rows-per-page-control">
               <Typography variant="body2" style={{ whiteSpace: 'nowrap' }}>
                 Show rows:
               </Typography>
@@ -273,12 +267,9 @@ function LeaderboardPage() {
               </FormControl>
             </div>
           </div>
-          
-          {/* Advisers List */}
-          <div style={{width: '100%', alignItems: 'center'}}>
-            {/* Top divider */}
-            <div className="sp-divider top-divider" style={{backgroundColor: 'rgba(229, 231, 235, 0.7)'}}></div>
 
+          {/* Advisers List */}
+          <div className="adviser-list-section"> {/* Changed class name here */}
             {/* Loading State */}
             {isLoading && (
               <div className="bg-blue-50 p-4 text-center text-blue-700 rounded">Loading advisers...</div>
@@ -291,99 +282,64 @@ function LeaderboardPage() {
               </div>
             )}
 
-            {/* Advisers List Items - Updated with profile picture, description and ranking number */}
-            {!isLoading && currentItems.map((adviser, index) => (
-              <div key={adviser.adminId} className="relative">
-                <Link to={`/adviser/${adviser.adminId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                  <div className="mb-6" style={{ position: 'relative', paddingTop: '12px', paddingLeft: '40px'}}>
-                    {/* Ranking Number - New Feature */}
-                    <div style={{ 
-                      position: 'absolute',
-                      top: '0',
-                      left: '0',
-                      fontSize: '10px',
-                      fontWeight: 'bold',
-                      color: '#800000',
-                      backgroundColor: 'rgba(128, 0, 0, 0.1)',
-                      padding: '2px 6px',
-                      borderRadius: '3px'
-                    }}>
-                      #{calculateRank(index)}
+            {/* Advisers List Items */}
+            {!isLoading && currentItems.map((adviser, index) => {
+              const rankNumber = (currentPage - 1) * itemsPerPage + index + 1;
+
+              return (
+                <div key={adviser.adminId}>
+                  {/* Divider between advisers (except the first one) */}
+                  {index > 0 && (
+                    <div className="adviser-item-divider"></div> 
+                  )}
+
+                  <Link to={`/adviser/${adviser.adminId}`} className="leaderboard-adviser-item"> {/* Changed class name here */}
+                    {/* Ranking Number */}
+                    <div className="adviser-rank"> {/* Changed class name here */}
+                      #{rankNumber}
                     </div>
-                    
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginTop: '8px' }}>
-                      {/* Profile Picture */}
-                      <div style={{ flexShrink: 0 }}>
-                        <img 
-                          src={adviser.imagePath || `https://media.istockphoto.com/id/2151669184/vector/vector-flat-illustration-in-grayscale-avatar-user-profile-person-icon-gender-neutral.jpg?s=612x612&w=0&k=20&c=UEa7oHoOL30ynvmJzSCIPrwwopJdfqzBs0q69ezQoM8=`}
-                          style={{ 
-                            width: '60px', 
-                            height: '60px', 
-                            borderRadius: '50%',
-                            objectFit: 'cover',
-                            border: '2px solid #800000'
-                          }}
-                        />
-                      </div>
-                      
-                      {/* Adviser Information */}
-                      <div style={{ flex: 1 }}>
-                        {/* Updated header with adviser name and view count */}
-                        <div className="flex mb-2">
-                          <h3 className="text-lg font-semibold flex-1">
-                            {adviser.firstName} {adviser.lastName}
-                          </h3>
-                          <div className="flex items-center">
-                            <span className="view-count text-gray-500" style={{ height: 'auto', width: 'auto', display: 'flex', alignItems: 'center' }}>
-                              <i className="fas fa-eye" style={{ marginRight: '0.5rem' }}></i> {adviser.viewCount || 0}
-                            </span>
-                          </div>
+
+                    {/* Profile Picture */}
+                    <img
+                      src={adviser.imagePath || `https://media.istockphoto.com/id/2151669184/vector/vector-flat-illustration-in-grayscale-avatar-user-profile-person-icon-gender-neutral.jpg?s=612x612&w=0&k=20&c=UEa7oHoOL30ynvmJzSCIPrwwopJdfqzBs0q69ezQoM8=`}
+                      alt={`${adviser.firstName} ${adviser.lastName}`}
+                      className="adviser-profile-picture"
+                    />
+
+                    {/* Adviser Information */}
+                    <div className="adviser-content"> {/* Changed class name here */}
+                      {/* Header with adviser name and view count */}
+                      <div className="adviser-header"> {/* Changed class name here */}
+                        <h3 className="adviser-name"> {/* Changed class name here */}
+                          {adviser.firstName} {adviser.lastName}
+                        </h3>
+                        <div className="adviser-view-count"> {/* Changed class name here */}
+                          {adviser.viewCount || 0} <i className="fa-solid fa-chart-simple"></i> {/* Changed icon */}
                         </div>
-                        
-                        {/* Description */}
-                        <p className="text-sm text-gray-600" style={{ marginTop: '0.25rem', lineHeight: '1.4' }}>
-                          {abbreviateDescription(adviser.description)}
-                        </p>
-                        
-                        {/* Add additional information if available */}
-                        {adviser.department && (
-                          <div className="text-sm text-gray-600" style={{ marginTop: '0.5rem' }}>
-                            <span>Department: {adviser.department}</span>
-                          </div>
-                        )}
-
-                        {adviser.specialization && (
-                          <div className="text-sm text-gray-600" style={{ marginTop: '0.25rem' }}>
-                            <span>Specialization: {adviser.specialization}</span>
-                          </div>
-                        )}
                       </div>
-                    </div>
-                  </div>
-                </Link>
 
-                {/* Divider between advisers (except the last one) */}
-                {index < currentItems.length - 1 && (
-                  <div
-                    className="sp-divider"
-                    style={{backgroundColor: 'rgba(229, 231, 235, 0.7)'}}
-                  ></div>
-                )}
-              </div>
-            ))}
+                      {/* Description */}
+                      <p className="adviser-description"> {/* Changed class name here */}
+                        {abbreviateDescription(adviser.description)}
+                      </p>
+
+                      {/* Email */}
+                      {adviser.email && (
+                        <div className="adviser-contact"> {/* New class for contact info */}
+                          <i className="fas fa-envelope"></i> {/* Email icon */}
+                          <span>{adviser.email}</span>
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                </div>
+              );
+            })}
           </div>
-          
+
           {/* Bottom Pagination */}
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
-            padding: '0 16px', 
-            width: '15%',
-            margin: '20px 0',
-          }}>
-            <div style={{ width: '150px' }}></div>
-            {/* Pagination Numbers */}
+          <div className="leaderboard-pagination-bottom">
+            <div style={{ width: '150px' }}></div> {/* Spacer */}
             {totalPages > 1 && (
               <Pagination
                 count={totalPages}
@@ -404,9 +360,9 @@ function LeaderboardPage() {
                 }}
               />
             )}
-            
+
             {/* Rows per page control */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+            <div className="rows-per-page-control">
               <Typography variant="body2" style={{ whiteSpace: 'nowrap' }}>
                 Show rows:
               </Typography>
