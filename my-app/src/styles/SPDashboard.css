@@ -1,0 +1,283 @@
+/* src/styles/SPDashboard.css */
+body{
+    background-color: white;
+}
+.dashboard-container {
+    background-color: #ffffff; /* Light background for the dashboard page */
+    min-height: 100vh;
+    padding-bottom: 50px; /* Add some padding at the bottom */
+}
+
+.dashboard-content {
+    max-width: 1400px; /* Wider content area for charts */
+    margin: 0 auto;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.dashboard-content h1 {
+    font-size: 2.8rem;
+    color: #000000;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.loading-state,
+.error-state {
+    text-align: center;
+    padding: 50px;
+    font-size: 1.2rem;
+    color: #555;
+}
+
+.error-state {
+    color: #d9534f; /* Red for error */
+}
+
+/* Updated filters section styling */
+.dashboard-filters {
+    display: flex;
+    flex-wrap: wrap; /* Allow filters to wrap */
+    align-items: center;
+    gap: 20px; /* Increased gap for better spacing */
+    margin-bottom: 40px;
+    justify-content: flex-start; /* Align filters to the start */
+    background-color: #f8f8f8; /* Slightly different background for filters */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-filters label {
+    font-weight: 600;
+    color: #555;
+    white-space: nowrap; /* Prevent label from wrapping */
+}
+
+.dashboard-filters select {
+    padding: 10px 14px; /* Increased padding for better touch targets */
+    border: 1px solid #dcdcdc; /* Lighter border */
+    border-radius: 6px; /* Slightly more rounded */
+    font-size: 1rem;
+    cursor: pointer;
+    background-color: white;
+    appearance: none; /* Remove default arrow in some browsers */
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M287%2C114.7L154.5%2C247.3c-1.3%2C1.3-3.4%2C1.3-4.7%2C0L0%2C114.7c-1.3-1.3-1.3-3.4%2C0-4.7s3.4-1.3%2C4.7%2C0l149.2%2C149.2L282.3%2C110c1.3-1.3%2C3.4-1.3%2C4.7%2C0C288.3%2C111.3%2C288.3%2C113.4%2C287%2C114.7z%22%2F%3E%3C%2Fsvg%3E');
+    background-repeat: no-repeat;
+    background-position: right 10px center; /* Center arrow vertically */
+    background-size: 10px auto; /* Slightly smaller arrow */
+}
+
+.dashboard-filters button {
+    padding: 10px 18px; /* Increased padding for fatter buttons */
+    border-radius: 25px; /* More rounded corners, pill shape */
+    font-size: 1rem;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for all buttons */
+}
+
+/* Style for the active/selected button (Maroon, white text) */
+.dashboard-filters button.bg-maroon-700 {
+    background-color: #800000; /* Solid Maroon */
+    color: white;
+    box-shadow: 0 4px 8px rgba(128, 0, 0, 0.3); /* Stronger shadow for active */
+}
+
+/* Style for inactive/unselected buttons (Gray, dark text) */
+.dashboard-filters button.bg-gray-200 {
+    background-color: #e2e8f0; /* Light gray */
+    color: #4a5568; /* Darker text */
+}
+
+.dashboard-filters button.bg-gray-200:hover {
+    background-color: #cbd5e0; /* Even darker gray on hover */
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15); /* Slightly stronger shadow on hover */
+}
+
+.dashboard-filters button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none; /* No shadow when disabled */
+}
+
+/* Charts Grid: Make charts take up more space and be larger */
+.charts-grid {
+    display: grid;
+    /* Use a larger minmax value to ensure charts are bigger */
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); /* Increased min-width for larger charts */
+    gap: 30px; /* Space between chart cards */
+    padding: 20px 0;
+}
+
+/* Chart Card: Ensure minimum height for individual charts */
+.chart-card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    padding: 25px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center; /* Center content horizontally */
+    min-height: 450px; /* Increased minimum height for larger charts */
+}
+
+.chart-card h2 {
+    font-size: 1.5rem;
+    color: #444;
+    margin-bottom: 20px;
+    text-align: center; /* Ensure title is centered */
+}
+
+/* Specific styling for pie chart to prevent squashing and ensure centering */
+.pie-chart-card {
+    /* flex-direction: column; is already on .chart-card */
+    justify-content: center;
+    align-items: center;
+}
+
+/* Ensure Chart.js canvas takes appropriate space within its parent container */
+.chart-card canvas {
+    max-width: 100%;
+    height: 100%; /* Make canvas fill the height of the chart card */
+    width: 100%; /* Make canvas fill the width of the chart card */
+}
+
+
+/* Responsive adjustments */
+@media (max-width: 1200px) { /* Adjust for larger tablets/smaller laptops */
+    .charts-grid {
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); /* Slightly reduce min-width */
+    }
+    .chart-card {
+        min-height: 400px; /* Adjust min-height for slightly smaller screens */
+    }
+}
+
+@media (max-width: 1024px) { /* Adjust for medium screens (typical tablets) */
+    .charts-grid {
+        grid-template-columns: 1fr; /* Stack charts on medium screens */
+    }
+    .chart-card {
+        min-height: 350px; /* Adjust min-height for stacked charts */
+    }
+}
+
+@media (max-width: 768px) { /* Adjust for small screens (mobile) */
+    .dashboard-content {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    .charts-grid {
+        grid-template-columns: 1fr; /* Ensure stacking on small screens */
+    }
+    .chart-card {
+        padding: 15px;
+        min-height: 300px; /* Further reduce min-height for mobile */
+    }
+    .dashboard-filters {
+      flex-direction: column; /* Stack filters vertically */
+      align-items: flex-start; /* Align filters to the left */
+      gap: 10px; /* Adjust gap for stacked elements */
+    }
+    .dashboard-filters > div { /* Target filter groups */
+        width: 100%; /* Make them take full width */
+    }
+    .dashboard-filters button {
+        width: auto; /* Buttons adjust their width */
+        padding: 8px 15px; /* Smaller padding for mobile buttons */
+        font-size: 0.9rem;
+    }
+    .dashboard-filters .ml-4 { /* Remove left margin on stacked elements */
+        margin-left: 0;
+        margin-top: 10px; /* Add some top margin instead */
+    }
+    .dashboard-content h1 {
+        font-size: 2rem; /* Smaller title on mobile */
+    }
+}
+/* src/styles/SPDashboard.css */
+
+/* ... (existing styles) ... */
+
+/* Enhanced Stats Cards Styling */
+.stat-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Ensures responsiveness */
+    gap: 25px; /* Slightly increased space between cards */
+    margin-bottom: 50px; /* More margin at the bottom */
+}
+
+.stat-card {
+    background-color: #ffffff; /* White background */
+    border-radius: 15px; /* More rounded corners */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12); /* Richer, softer shadow */
+    padding: 30px; /* Increased padding */
+    text-align: center;
+    transition: transform 0.4s ease, box-shadow 0.4s ease, background-color 0.4s ease; /* Smooth transitions */
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around; /* Distribute space evenly */
+    align-items: center;
+    height: 160px; /* Slightly taller cards */
+    position: relative; /* For potential future enhancements like badges */
+}
+
+.stat-card:hover {
+    transform: translateY(-8px); /* Lifts the card on hover */
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2); /* Deeper shadow on hover */
+    background-color: #f9f9f9; /* Slight background change on hover */
+}
+
+.stat-card h3 {
+    font-size: 1.25rem; /* Slightly larger heading */
+    color: #4a5568; /* Darker gray for better readability */
+    margin-bottom: 15px; /* More space below heading */
+    font-weight: 600; /* Bolder heading */
+}
+
+.stat-card p {
+    font-size: 3.8rem; /* Larger number */
+    font-weight: 800; /* Extra bold for the count */
+    color: #800000; /* Keep the maroon color */
+    line-height: 1; /* Tighter line height for the number */
+}
+
+/* Optional: Add a subtle animation on load or update */
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.stat-card {
+    animation: fadeInScale 0.5s ease-out forwards;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    .stat-cards-container {
+        grid-template-columns: 1fr; /* Stacks cards vertically on small screens */
+        gap: 20px;
+    }
+    .stat-card {
+        padding: 25px;
+        min-height: 140px;
+    }
+    .stat-card h3 {
+        font-size: 1.1rem;
+    }
+    .stat-card p {
+        font-size: 3rem;
+    }
+}

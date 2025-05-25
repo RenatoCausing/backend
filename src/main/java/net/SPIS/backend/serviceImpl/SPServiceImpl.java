@@ -88,7 +88,7 @@ public class SPServiceImpl implements SPService {
         sp.setAbstractText(spDTO.getAbstractText());
         sp.setUri(spDTO.getUri());
         sp.setDocumentPath(spDTO.getDocumentPath());
-        sp.setDateIssued(spDTO.getDateIssued());
+        sp.setDateIssued(LocalDate.now()); // Set dateIssued to the current date
         sp.setViewCount(0);
         Admin uploadedBy = adminRepository.findById(spDTO.getUploadedById())
                 .orElseThrow(() -> {
@@ -405,7 +405,7 @@ public class SPServiceImpl implements SPService {
             }
             logger.debug("CSV Headers: {}", Arrays.toString(headers));
 
-            final int EXPECTED_COLUMNS = 11; // Expected column count is 11
+            final int EXPECTED_COLUMNS = 10; // Expected column count is 11
 
             String[] line;
             while ((line = reader.readNext()) != null) {
@@ -424,7 +424,6 @@ public class SPServiceImpl implements SPService {
                 String title = null;
                 String authorsStr = null;
                 String adviserStr = null;
-                String dateIssuedStr = null;
                 String uri = null;
                 String abstractText = null;
                 String documentPath = null;
@@ -445,14 +444,13 @@ public class SPServiceImpl implements SPService {
                     title = line[0].trim();
                     authorsStr = line[1].trim();
                     adviserStr = line[2].trim();
-                    dateIssuedStr = line[3].trim();
-                    uri = line[4].trim();
-                    abstractText = line[5].trim();
-                    documentPath = line[6].trim();
-                    tagsStr = line[7].trim(); // Adjusted index
-                    yearStr = line[8].trim(); // Adjusted index
-                    semesterStr = line[9].trim(); // Adjusted index
-                    facultyStr = line[10].trim(); // Read faculty string from the last column
+                    uri = line[3].trim();
+                    abstractText = line[4].trim();
+                    documentPath = line[5].trim();
+                    tagsStr = line[6].trim(); // Adjusted index
+                    yearStr = line[7].trim(); // Adjusted index
+                    semesterStr = line[8].trim(); // Adjusted index
+                    facultyStr = line[9].trim(); // Read faculty string from the last column
 
                     if (title.isEmpty()) {
                         errors.add("Row " + currentRow + ": Title is missing. Skipping row.");
@@ -554,26 +552,6 @@ public class SPServiceImpl implements SPService {
                         }
                     } else {
                         logger.debug("Row {}: Tags column is empty, setting tags to empty set.", currentRow);
-                    }
-
-                    try {
-                        if (!dateIssuedStr.isEmpty()) {
-                            // *** MODIFIED: Parse to YearMonth and then to LocalDate ***
-
-                            YearMonth yearMonth = YearMonth.parse(dateIssuedStr, YEAR_MONTH_FORMATTER);
-                            dateIssued = yearMonth.atDay(1); // Assume the 1st day of the month
-                        } else {
-                            // Allow dateIssued to be null if the column is empty
-
-                            dateIssued = null;
-                            logger.debug("Row {}: Date Issued column is empty, setting dateIssued to null.",
-                                    currentRow);
-                        }
-                    } catch (DateTimeParseException e) {
-                        errors.add("Row " + currentRow + ": Invalid date format for '" + dateIssuedStr
-                                + "'. Use-MM. Skipping row.");
-                        logger.warn("Row {} skipped: Invalid date format '{}'.", currentRow, dateIssuedStr);
-                        continue;
                     }
 
                     try {

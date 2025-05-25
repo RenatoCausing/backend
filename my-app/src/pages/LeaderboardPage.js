@@ -7,7 +7,7 @@ import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 // import '../styles/SPFilterSystem.css'; // Remove if not used elsewhere on this page
-import '../styles/AdvisersLeaderboard.css'; // Import the NEW CSS file for advisers
+import '../styles/AdvisersLeaderboard.css'; // Keep this for component-specific styles
 
 function LeaderboardPage() {
   // State for advisers data
@@ -22,6 +22,16 @@ function LeaderboardPage() {
   const BACKEND_URL = 'http://localhost:8080';
 
   useEffect(() => {
+    // // === REMOVED: Logic to set body background white for THIS PAGE ONLY ===
+    // // This block is removed to avoid potential rendering issues.
+    // // The background will now be handled by .leaderboard-page-container in CSS.
+    // const originalBodyBackgroundColor = document.body.style.backgroundColor;
+    // document.body.style.backgroundColor = 'white';
+    // return () => {
+    //   document.body.style.backgroundColor = originalBodyBackgroundColor;
+    // };
+    // // === END OF REMOVED BLOCK ===
+
     // Fetch top advisers
     fetch(`${BACKEND_URL}/api/sp/top-advisers`)
       .then(response => {
@@ -36,7 +46,7 @@ function LeaderboardPage() {
       })
       .catch(error => {
         console.error('Error fetching top advisers:', error);
-        // Set default data for testing
+        // Set default data for testing if API fails
         const defaultAdvisers = [
           {
             adminId: 1,
@@ -44,7 +54,7 @@ function LeaderboardPage() {
             lastName: 'Pork',
             viewCount: 245,
             description: 'Specializes in blockchain technologies and distributed systems with focus on security implications. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-            email: 'john.pork@university.edu', // Added email
+            email: 'john.pork@university.edu',
             imagePath: 'https://via.placeholder.com/150?text=JP'
           },
           {
@@ -53,7 +63,7 @@ function LeaderboardPage() {
             lastName: 'Crocodillo',
             viewCount: 198,
             description: 'Expert in AI and neural networks with applications in natural language processing. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-            email: 'bombardino.c@university.edu', // Added email
+            email: 'bombardino.c@university.edu',
             imagePath: 'https://via.placeholder.com/150?text=BC'
           },
           {
@@ -62,7 +72,7 @@ function LeaderboardPage() {
             lastName: 'Cheese',
             viewCount: 176,
             description: 'Researches web technologies and cloud computing architectures for scalable applications. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
-            email: 'tim.cheese@university.edu', // Added email
+            email: 'tim.cheese@university.edu',
             imagePath: 'https://via.placeholder.com/150?text=TC'
           },
           {
@@ -71,7 +81,7 @@ function LeaderboardPage() {
             lastName: 'Rodriguez',
             viewCount: 154,
             description: 'Focuses on data mining and machine learning for predictive analytics in healthcare.',
-            email: 'maria.r@university.edu', // Added email
+            email: 'maria.r@university.edu',
             imagePath: 'https://via.placeholder.com/150?text=MR'
           },
           {
@@ -80,7 +90,7 @@ function LeaderboardPage() {
             lastName: 'Wilson',
             viewCount: 143,
             description: 'Works on cybersecurity with emphasis on network protection and intrusion detection.',
-            email: 'james.w@university.edu', // Added email
+            email: 'james.w@university.edu',
             imagePath: 'https://via.placeholder.com/150?text=JW'
           },
           {
@@ -89,7 +99,7 @@ function LeaderboardPage() {
             lastName: 'Johnson',
             viewCount: 121,
             description: 'Specializes in human-computer interaction and user experience design methodologies.',
-            email: 'sarah.j@university.edu', // Added email
+            email: 'sarah.j@university.edu',
             imagePath: 'https://via.placeholder.com/150?text=SJ'
           },
           {
@@ -98,7 +108,7 @@ function LeaderboardPage() {
             lastName: 'Brown',
             viewCount: 115,
             description: 'Expert in software engineering practices and agile development methodologies.',
-            email: 'robert.b@university.edu', // Added email
+            email: 'robert.b@university.edu',
             imagePath: 'https://via.placeholder.com/150?text=RB'
           },
           {
@@ -107,7 +117,7 @@ function LeaderboardPage() {
             lastName: 'Davis',
             viewCount: 102,
             description: 'Researches database systems with focus on NoSQL solutions for big data applications.',
-            email: 'emily.d@university.edu', // Added email
+            email: 'emily.d@university.edu',
             imagePath: 'https://via.placeholder.com/150?text=ED'
           },
           {
@@ -116,7 +126,7 @@ function LeaderboardPage() {
             lastName: 'Miller',
             viewCount: 97,
             description: 'Works on computer vision and image processing algorithms for autonomous systems.',
-            email: 'michael.m@university.edu', // Added email
+            email: 'michael.m@university.edu',
             imagePath: 'https://via.placeholder.com/150?text=MM'
           },
           {
@@ -125,7 +135,7 @@ function LeaderboardPage() {
             lastName: 'Taylor',
             viewCount: 89,
             description: 'Specializes in game development and interactive entertainment technologies.',
-            email: 'jennifer.t@university.edu', // Added email
+            email: 'jennifer.t@university.edu',
             imagePath: 'https://via.placeholder.com/150?text=JT'
           },
           {
@@ -134,7 +144,7 @@ function LeaderboardPage() {
             lastName: 'Anderson',
             viewCount: 84,
             description: 'Researches embedded systems and IoT architectures for smart environments.',
-            email: 'david.a@university.edu', // Added email
+            email: 'david.a@university.edu',
             imagePath: 'https://via.placeholder.com/150?text=DA'
           },
           {
@@ -143,7 +153,7 @@ function LeaderboardPage() {
             lastName: 'Thomas',
             viewCount: 78,
             description: 'Expert in information retrieval systems and search algorithm optimization.',
-            email: 'lisa.t@university.edu', // Added email
+            email: 'lisa.t@university.edu',
             imagePath: 'https://via.placeholder.com/150?text=LT'
           }
         ];
@@ -152,7 +162,7 @@ function LeaderboardPage() {
       .finally(() => {
         setIsLoading(false);
       });
-  }, []);
+  }, []); // Empty dependency array means this effect runs once on mount
 
   // Sort advisers by view count (descending) to ensure proper ranking
   const sortedAdvisers = [...advisers].sort((a, b) => b.viewCount - a.viewCount);
@@ -179,7 +189,7 @@ function LeaderboardPage() {
   };
 
   // Function to abbreviate description to a certain length
-  const abbreviateDescription = (description, maxLength = 160) => { // Increased max length slightly for advisers
+  const abbreviateDescription = (description, maxLength = 160) => {
     if (!description) return 'No description available.';
     return description.length > maxLength
       ? `${description.substring(0, maxLength)}...`
@@ -269,7 +279,7 @@ function LeaderboardPage() {
           </div>
 
           {/* Advisers List */}
-          <div className="adviser-list-section"> {/* Changed class name here */}
+          <div className="adviser-list-section">
             {/* Loading State */}
             {isLoading && (
               <div className="bg-blue-50 p-4 text-center text-blue-700 rounded">Loading advisers...</div>
@@ -290,12 +300,12 @@ function LeaderboardPage() {
                 <div key={adviser.adminId}>
                   {/* Divider between advisers (except the first one) */}
                   {index > 0 && (
-                    <div className="adviser-item-divider"></div> 
+                    <div className="adviser-item-divider"></div>
                   )}
 
-                  <Link to={`/adviser/${adviser.adminId}`} className="leaderboard-adviser-item"> {/* Changed class name here */}
+                  <Link to={`/adviser/${adviser.adminId}`} className="leaderboard-adviser-item">
                     {/* Ranking Number */}
-                    <div className="adviser-rank"> {/* Changed class name here */}
+                    <div className="adviser-rank">
                       #{rankNumber}
                     </div>
 
@@ -307,26 +317,26 @@ function LeaderboardPage() {
                     />
 
                     {/* Adviser Information */}
-                    <div className="adviser-content"> {/* Changed class name here */}
+                    <div className="adviser-content">
                       {/* Header with adviser name and view count */}
-                      <div className="adviser-header"> {/* Changed class name here */}
-                        <h3 className="adviser-name"> {/* Changed class name here */}
+                      <div className="adviser-header">
+                        <h3 className="adviser-name">
                           {adviser.firstName} {adviser.lastName}
                         </h3>
-                        <div className="adviser-view-count"> {/* Changed class name here */}
-                          {adviser.viewCount || 0} <i className="fa-solid fa-chart-simple"></i> {/* Changed icon */}
+                        <div className="adviser-view-count">
+                          {adviser.viewCount || 0} <i className="fa-solid fa-chart-simple"></i>
                         </div>
                       </div>
 
                       {/* Description */}
-                      <p className="adviser-description"> {/* Changed class name here */}
+                      <p className="adviser-description">
                         {abbreviateDescription(adviser.description)}
                       </p>
 
                       {/* Email */}
                       {adviser.email && (
-                        <div className="adviser-contact"> {/* New class for contact info */}
-                          <i className="fas fa-envelope"></i> {/* Email icon */}
+                        <div className="adviser-contact">
+                          <i className="fas fa-envelope"></i>
                           <span>{adviser.email}</span>
                         </div>
                       )}

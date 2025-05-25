@@ -705,71 +705,71 @@ function HomePage() {
       </section>
 
       {/* Browse section with parallax effect and enhanced cards */}
-      <section className="browse-section"> {/* Removed inline style for background image */}
-<div className="bcontainer">
-          <div className="browse-header">
-            <h2>BROWSE SPECIAL PROJECTS</h2>
-            <button className="refresh-button" onClick={refreshRandomSPs}>
-              <i className="fas fa-sync-alt"></i> Refresh
-            </button>
-          </div>
-          
-          <div className="browse-carousel">
-            <button className="scroll-button left" onClick={scrollLeft} disabled={startIndex === 0}>
-              <i className="fas fa-chevron-left"></i>
-            </button>
-            <div className="browse-container" ref={browseContainerRef}>
-              {isLoading ? (
-                <p className="loading-message">Loading special projects...</p>
-              ) : visibleSPs.length === 0 ? (
-                <p className="no-projects-message">No special projects found.</p>
-              ) : (
-                visibleSPs.map((sp) => (
-                  <div key={sp.spId} className="browse-card">
-                    <div className="enhanced-sp-card">
-                      {/* Left Side: Document Preview (Placeholder for now) */}
+<section className="browse-section"> {/* Removed inline style for background image */}
+  <div className="bcontainer">
+    <div className="browse-header" >
+      <h2>BROWSE RANDOM PROJECTS</h2>
+      <button className="refresh-button" onClick={refreshRandomSPs}>
+        <i className="fas fa-sync-alt"></i> Refresh
+      </button>
+    </div>
 
+    
+    <div className="browse-carousel">
+      <button className="scroll-button left" onClick={scrollLeft} disabled={startIndex === 0}>
+        <i className="fas fa-chevron-left"></i>
+      </button>
+      <div className="browse-container" ref={browseContainerRef}>
+        {isLoading ? (
+          <p className="loading-message">Loading special projects...</p>
+        ) : visibleSPs.length === 0 ? (
+          <p className="no-projects-message">No special projects found.</p>
+        ) : (
+          visibleSPs.map((sp) => (
+            <div key={sp.spId} className="browse-card">
+              <div className="enhanced-sp-card">
+                {/* Left Side: Document Preview (Placeholder for now) */}
 
-                      {/* Right Side: Document Details */}
-                      <div className="document-details">
-                        <h3 className="card-title">{sp.title || 'Untitled Project'}</h3>
-                        <div className="card-meta">
-                          <span>{sp.year || 'N/A'} | {sp.semester || 'N/A'}</span>
-                          <span className="view-count">
-                            {sp.viewCount || 0} <i className="fa-solid fa-chart-simple"></i>
-                          </span>
-                        </div>
-                        <p className="card-description">{sp.description || sp.abstractText || 'No description available.'}</p>
-                        
-                        <div className="card-tags">
-                          {sp.tagIds && Array.isArray(sp.tagIds) ? 
-                            getTagsForSp(sp).map((tagName, i) => (
-                              <span key={i} className="tag">{tagName}</span>
-                            )) : (
-                              Array.isArray(sp.tags) ? 
-                                sp.tags.map((tag, i) => (
-                                  <span key={i} className="tag">{tag}</span>
-                                )) : null
-                            )
-                          }
-                        </div>
-                        
-                        <Link to={`/project/${sp.spId}`} className="view-details-button" onClick={() => handleViewCountIncrement(sp.spId)} >
-                          View Details
-                        </Link>
-                      </div>
-                    </div>
+                {/* Right Side: Document Details */}
+                <div className="document-details">
+                  <h3 className="card-title">{sp.title || 'Untitled Project'}</h3>
+                  <div className="card-meta">
+                    <span>{sp.year || 'N/A'} | {sp.semester || 'N/A'}</span>
+                    <span className="view-count">
+                      {sp.viewCount || 0} <i className="fa-solid fa-chart-simple"></i>
+                    </span>
                   </div>
-                ))
-              )}
+                  <p className="card-description">{sp.description || sp.abstractText || 'No description available.'}</p>
+                  
+                  <div className="card-tags">
+                    {sp.tagIds && Array.isArray(sp.tagIds) ? 
+                      getTagsForSp(sp).map((tagName, i) => (
+                        <span key={i} className="tag">{tagName}</span>
+                      )) : (
+                        Array.isArray(sp.tags) ? 
+                          sp.tags.map((tag, i) => (
+                            <span key={i} className="tag">{tag}</span>
+                          )) : null
+                      )
+                    }
+                  </div>
+                  
+                  <Link to={`/project/${sp.spId}`} className="view-details-button" onClick={() => handleViewCountIncrement(sp.spId)} >
+                    View Details
+                  </Link>
+                </div>
+              </div>
             </div>
-            
-            <button className="scroll-button right" onClick={scrollRight} disabled={startIndex >= randomSPs.length -2}>
-              <i className="fas fa-chevron-right"></i>
-            </button>
-          </div>
-        </div>
-      </section>
+          ))
+        )}
+      </div>
+      
+      <button className="scroll-button right" onClick={scrollRight} disabled={startIndex >= randomSPs.length -2}>
+        <i className="fas fa-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+</section>
     </div>
   );
 }
