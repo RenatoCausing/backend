@@ -21,9 +21,9 @@ const OAuthCallback = () => {
                     const userDataFromBackend = await response.json();
                     console.log("OAuth callback: User data received from backend:", userDataFromBackend);
 
-                    // Check if email is from the allowed domain
+                    // Only up emails accepted
                     const email = userDataFromBackend.email;
-                    if (!email || !email.endsWith('@up.edu.ph')) {
+                    if (!email || !email.endsWith('@up.edu.ph')) { 
                         console.error('Authentication failed: Email domain not allowed:', email);
                         setError('Authentication failed: Only @up.edu.ph email addresses are allowed.');
                         return;
