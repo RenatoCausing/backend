@@ -122,7 +122,6 @@ const UserManagementPanel = () => {
                 value={selectedRole}
               >
                 <option value="">All Roles</option>
-                <option value="student">Student</option>
                 <option value="faculty">Faculty</option>
                 <option value="staff">Staff</option>
               </select>

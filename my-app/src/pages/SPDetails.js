@@ -313,7 +313,7 @@ function SPDetails() {
           {/* Display adviser with icon */}
           {adviser && (
             <div className="adviser-info" style = {{marginLeft: '1rem'}}>
-              <div className="adviser-header">
+              <div className="author-header">
                 <FontAwesomeIcon icon={faUser} className="adviser-icon" />
                 <h3>Adviser</h3>
               </div>
@@ -327,7 +327,7 @@ function SPDetails() {
            {/* Display Faculty */}
            {spData.facultyId && (
              <div className="adviser-info" style={{ marginLeft: '1rem' }}>
-               <div className="adviser-header">
+               <div className="author-header">
                  <FontAwesomeIcon icon={faUniversity} className="faculty-icon" />
                  <h3>Department</h3>
                </div>

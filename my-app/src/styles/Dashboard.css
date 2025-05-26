@@ -132,6 +132,13 @@ position: fixed;
     position: relative;
   }
   
+  .dashboard-content-wrapper {
+  max-width: 1200px; /* Adjust this value as needed, e.g., 1000px, 1400px */
+  margin: 0 auto; /* This is the magic for horizontal centering */
+  padding-left: 20px; /* Add some left and right padding for spacing */
+  padding-right: 20px;
+  /* You can add top/bottom padding here if needed, but the parent `p-8` provides initial padding */
+}
   /* Responsive adjustments */
   @media (max-width: 768px) {
     .dashboard-container {

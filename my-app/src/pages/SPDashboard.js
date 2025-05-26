@@ -957,6 +957,7 @@ const SPDashboard = () => {
     return (
       <div className="flex flex-col h-screen bg-gray-100 font-inter">
         <Navbar />
+        <Dashboard /> 
         <div className="flex-1 flex items-center justify-center text-gray-700">
           Loading dashboard data...
         </div>
@@ -968,6 +969,7 @@ const SPDashboard = () => {
     return (
       <div className="flex flex-col h-screen bg-gray-100 font-inter">
         <Navbar />
+        <Dashboard />
         <div className="flex-1 flex items-center justify-center text-red-600">
           Error: {error}
         </div>
@@ -985,7 +987,7 @@ const SPDashboard = () => {
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 p-8 overflow-y-auto" style={{ marginLeft: '20%', marginTop: '10%', paddingRight: '10%' }}>
+        <div className="flex-1 p-8 overflow-y-auto dashboard-content">
           {/* Removed border-l-4 border-maroon-700 from here */}
           <h1 className="text-3xl font-bold text-gray-800 text-center" style = {{marginBottom: '3rem'}}>Admin Dashboard</h1>
 
@@ -1108,14 +1110,14 @@ const SPDashboard = () => {
             <div
               className="bg-white p-6 rounded-lg shadow-md chart-card"
               onClick={() => handleGraphClick(
-                `Number of Projects Published by Faculty Over Time (${timeGranularity.charAt(0).toUpperCase() + timeGranularity.slice(1)})`,
+                `Number of Projects Published by Course Over Time (${timeGranularity.charAt(0).toUpperCase() + timeGranularity.slice(1)})`,
                 'Bar',
                 projectsByFacultyOverTimeData(),
                 projectsByFacultyOverTimeOptions()
               )}
             >
               <h2 className="text-xl font-semibold text-gray-700 mb-4">
-                Projects by Faculty Over Time
+                Projects by Course Over Time
               </h2>
               <div className="h-full w-full">
                 <Bar

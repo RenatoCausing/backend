@@ -475,6 +475,13 @@ function HomePage() {
     setStartIndex(prevIndex => Math.min(randomSPs.length - 2, prevIndex + 2)); // Scroll forward by 3 cards
   };
   
+  // Inside HomePage.jsx, within the HomePage component
+const handleDiscoverClick = () => {
+  if (browseContainerRef.current) {
+    browseContainerRef.current.scrollIntoView({ behavior: 'smooth' });
+  }
+};
+
   // Function to refresh random SPs
   const refreshRandomSPs = () => {
     // Add animation class to trigger fade-out effect
@@ -507,7 +514,7 @@ function HomePage() {
       <section className="hero-section" style={{ 
         backgroundImage: `url(${heroBackgroundImg})` 
       }}>
-        <HeroSection />
+      <HeroSection onDiscoverClick={handleDiscoverClick} />
       </section>
       
       {/* New Feature Section with Background Image */}

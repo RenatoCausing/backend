@@ -920,7 +920,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                 value={selectedDepartment}
                 disabled={isAnyLoading} // --- NEW: Disable while loading ---
               >
-                <option value="">Department</option>
+                <option value="">Course</option>
                 <option value="1">BSBC</option>
                 <option value="2">BSCS</option>
                 <option value="3">BSAP</option>
