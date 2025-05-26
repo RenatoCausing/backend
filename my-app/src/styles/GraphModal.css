@@ -14,7 +14,7 @@
   z-index: 1000; /* Ensure it's above other content */
 }
 
-.modal-content {
+.bmodal-content {
   background: white;
   padding: 20px;
   border-radius: 8px;
