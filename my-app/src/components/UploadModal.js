@@ -10,25 +10,25 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef(null);
 
-    // Removed state for selected Faculty ID
-    // const [selectedFacultyId, setSelectedFacultyId] = useState('');
+     
+     
 
-    // Get user object and loading state from UserContext
+     
     const { currentUser: user, loading: userContextLoading } = useUser();
 
-    // Log the user object and loading state whenever they change
+     
     useEffect(() => {
         console.log("UploadModal: User context loading state:", userContextLoading);
         console.log("UploadModal: Current user from context:", user);
-        // Check if user is loaded and has adminId when the modal becomes visible
+         
         if (show && !userContextLoading && (!user || user.adminId === null || user.adminId === undefined)) {
             console.warn("UploadModal: Modal is shown, user context finished loading, but user or adminId is missing.", { user, userContextLoading });
-            // Optionally display a message to the user or disable upload button
+             
         }
     }, [user, userContextLoading, show]);
 
-    // Ensure user is available and has an adminId (for uploadedBy)
-    // Access user?.adminId only after context is not loading
+     
+     
     const uploadedById = (!userContextLoading && user) ? user.adminId : undefined;
 
     const handleFileChange = (event) => {
@@ -38,7 +38,7 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
             setUploadError(null);
             setUploadResult(null);
         } else {
-            setSelectedFile(null); // Clear selected file if invalid
+            setSelectedFile(null);  
             setUploadError('Please select a valid CSV file.');
             setUploadResult(null);
         }
@@ -56,7 +56,7 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
                 setUploadError(null);
                 setUploadResult(null);
             } else {
-                setSelectedFile(null); // Clear selected file if invalid
+                setSelectedFile(null);  
                 setUploadError('Please select a valid CSV file.');
                 setUploadResult(null);
             }
@@ -75,10 +75,10 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
         setIsDragging(false);
     };
 
-    // Removed handleFacultyChange as faculty is now in CSV
-    // const handleFacultyChange = (event) => {
-    //     setSelectedFacultyId(event.target.value);
-    // };
+     
+     
+     
+     
 
 
     const handleUpload = async () => {
@@ -87,7 +87,7 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
             return;
         }
 
-        // Add check for user context loading and valid user/adminId before proceeding
+         
         if (userContextLoading) {
             setUploadError('User data is still loading. Please wait.');
             console.warn("UploadModal: Upload attempted while user context is loading.");
@@ -100,11 +100,11 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
             return;
         }
 
-        // Removed check for selected faculty as it's now in CSV
-        //  if (!selectedFacultyId) {
-        //      setUploadError('Please select the Department (Faculty).');
-        //      return;
-        //  }
+         
+         
+         
+         
+         
 
 
         setUploading(true);
@@ -114,8 +114,8 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
         const formData = new FormData();
         formData.append('file', selectedFile);
         formData.append('uploadedById', uploadedById);
-        // Removed including selected Faculty ID in the form data
-        //  formData.append('facultyId', selectedFacultyId);
+         
+         
 
 
         try {
@@ -125,20 +125,20 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
                 credentials: 'include'
             });
 
-            // Always attempt to read the response body for more details
+             
             const result = await response.json();
 
             if (response.ok) {
                 setUploadResult(result);
-                // Optionally trigger a data refresh in the parent component
+                 
                 if (onUploadSuccess) {
                     onUploadSuccess();
                 }
             } else {
-                // Handle backend errors (e.g., validation errors from CSV processing)
+                 
                 console.error('Upload failed response:', response.status, result);
                 setUploadError(result.error || `Upload failed with status: ${response.status}`);
-                setUploadResult(result); // Show partial results or backend error details if available
+                setUploadResult(result);  
             }
         } catch (error) {
             console.error('Upload error:', error);
@@ -148,7 +148,7 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
         }
     };
 
-    // Render null if not shown
+     
     if (!show) {
         return null;
     }
@@ -272,7 +272,7 @@ const UploadModal = ({ show, onClose, onUploadSuccess }) => {
 
                     <button
                         onClick={handleUpload}
-                        disabled={!selectedFile || uploading || userContextLoading || !user || uploadedById === undefined} // No longer checking for selectedFacultyId
+                        disabled={!selectedFile || uploading || userContextLoading || !user || uploadedById === undefined}  
                         className="upload-button"
                     >
                         {uploading ? 'Uploading...' : 'Upload'}

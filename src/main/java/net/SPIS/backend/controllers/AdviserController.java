@@ -114,26 +114,26 @@ public class AdviserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    // In net.SPIS.backend.controllers.AdviserController
+     
 
     @CrossOrigin(origins = "http://localhost:3000")
     @PutMapping("/admin/{adminId}/update")
     public ResponseEntity<AdviserDTO> updateAdminUser(
             @PathVariable Integer adminId,
-            @RequestBody AdviserDTO adviserDTO) { // <-- Change the parameter type to AdviserDTO
+            @RequestBody AdviserDTO adviserDTO) {  
         try {
-            // Remove the manual creation of the Admin entity and mapping from the Map.
-            // Spring handles mapping the request body JSON to the AdviserDTO object.
+             
+             
 
-            AdviserDTO updatedUser = adviserService.updateUser(adminId, adviserDTO); // <-- Pass the received DTO to the
-                                                                                     // service
+            AdviserDTO updatedUser = adviserService.updateUser(adminId, adviserDTO);  
+                                                                                      
             return ResponseEntity.ok(updatedUser);
-        } catch (RuntimeException e) { // Catch specific exceptions thrown by the service, like "Faculty not found"
+        } catch (RuntimeException e) {  
             logger.error("Error updating admin {}: {}", adminId, e.getMessage(), e);
             if (e.getMessage().equals("Faculty not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // Return 404 if Faculty not found
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);  
             }
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build(); // Catch other runtime exceptions
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();  
         } catch (Exception e) {
             logger.error("Unexpected error updating admin {}", adminId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

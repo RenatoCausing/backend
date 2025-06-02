@@ -4,15 +4,15 @@ import Navbar from '../components/AdviserNavbar';
 import HeroSection from '../components/HeroSection';
 import AdviserCard from '../components/AdviserCard';
 import SPCard from '../components/SPCard';
-import '../styles/HomePage.css'; // Ensure this path is correct
+import '../styles/HomePage.css';  
 import { Link } from 'react-router-dom';
 
-// Import images directly
+ 
 import heroBackgroundImg from '../images/hero-background.jpg';
 import leaderboardBackgroundImg from '../images/leaderboard-background.jpg';
 import featureBackgroundImg from '../images/feature-background.jpg';
 
-// New component for individual SP list items (Ranks 2-5) to manage hover state
+ 
 const PopularSPListItem = ({ sp, index, handleViewCountIncrement }) => {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -59,7 +59,7 @@ const PopularSPListItem = ({ sp, index, handleViewCountIncrement }) => {
             objectFit: 'cover',
             marginRight: '1rem',
             flexShrink: 0,
-            border: 'none', outline: 'none' // Remove underlines
+            border: 'none', outline: 'none'  
           }}
         />
         {/* Text Content */}
@@ -79,9 +79,9 @@ const PopularSPListItem = ({ sp, index, handleViewCountIncrement }) => {
 
 
 function HomePage() {
-  const [startIndex, setStartIndex] = useState(0); // New state for carousel start index
+  const [startIndex, setStartIndex] = useState(0);  
   
-  // Initialize state with empty arrays to prevent mapping errors
+   
   const [topAdvisers, setTopAdvisers] = useState([]);
   const [topSPs, setTopSPs] = useState([]);
   const [randomSPs, setRandomSPs] = useState([]);
@@ -89,14 +89,14 @@ function HomePage() {
   const browseContainerRef = useRef(null);
   const [tags, setTags] = useState([]);
   const visibleSPs = randomSPs.slice(startIndex, startIndex + 2);
-  // Backend URL
+   
   const BACKEND_URL = 'http://localhost:8080';
 
   useEffect(() => {
-    // Set loading state
+     
     setIsLoading(true);
     
-    // Fetch top advisers with absolute URL
+     
     fetch(`${BACKEND_URL}/api/sp/top-advisers`)
       .then(response => {
         if (!response.ok) {
@@ -111,22 +111,22 @@ function HomePage() {
       })
       .catch(error => {
         console.error('Error fetching top advisers:', error);
-        // Set default data for testing
+         
         setTopAdvisers([
           { 
             adminId: 1, 
             firstName: 'John', 
             lastName: 'Pork',
             description: 'Specializes in blockchain technologies and distributed systems with focus on security implications.',
-            imagePath: 'https://placehold.co/120x120/800000/FFFFFF?text=JP', // Placeholder image
-            viewCount: 2340 // Example view count
+            imagePath: 'https://placehold.co/120x120/800000/FFFFFF?text=JP',  
+            viewCount: 2340  
           },
           { 
             adminId: 2, 
             firstName: 'Bombardino', 
             lastName: 'Crocodillo',
             description: 'Expert in AI and neural networks with applications in natural language processing.',
-            imagePath: 'https://placehold.co/50x50/800000/FFFFFF?text=BC', // Placeholder image
+            imagePath: 'https://placehold.co/50x50/800000/FFFFFF?text=BC',  
             viewCount: 1851
           },
           { 
@@ -134,7 +134,7 @@ function HomePage() {
             firstName: 'Tim', 
             lastName: 'Cheese',
             description: 'Researches web technologies and cloud computing architectures for scalable applications.',
-            imagePath: 'https://placehold.co/50x50/800000/FFFFFF?text=TC', // Placeholder image
+            imagePath: 'https://placehold.co/50x50/800000/FFFFFF?text=TC',  
             viewCount: 1911
           },
           { 
@@ -142,7 +142,7 @@ function HomePage() {
             firstName: 'Alice', 
             lastName: 'Smith',
             description: 'Focuses on cybersecurity and network defense strategies.',
-            imagePath: 'https://placehold.co/50x50/800000/FFFFFF?text=AS', // Placeholder image
+            imagePath: 'https://placehold.co/50x50/800000/FFFFFF?text=AS',  
             viewCount: 2540
           },
           { 
@@ -150,7 +150,7 @@ function HomePage() {
             firstName: 'Bob', 
             lastName: 'Johnson',
             description: 'Specializes in data analytics and big data processing.',
-            imagePath: 'https://placehold.co/50x50/800000/FFFFFF?text=BJ', // Placeholder image
+            imagePath: 'https://placehold.co/50x50/800000/FFFFFF?text=BJ',  
             viewCount: 1172
           },
           { 
@@ -158,7 +158,7 @@ function HomePage() {
             firstName: 'Charlie', 
             lastName: 'Brown',
             description: 'Researches human-computer interaction and user experience design.',
-            imagePath: 'https://placehold.co/50x50/800000/FFFFFF?text=CB', // Placeholder image
+            imagePath: 'https://placehold.co/50x50/800000/FFFFFF?text=CB',  
             viewCount: 980
           },
           { 
@@ -166,7 +166,7 @@ function HomePage() {
             firstName: 'Diana', 
             lastName: 'Prince',
             description: 'Expert in machine learning algorithms and their applications.',
-            imagePath: 'https://placehold.co/50x50/800000/FFFFFF?text=DP', // Placeholder image
+            imagePath: 'https://placehold.co/50x50/800000/FFFFFF?text=DP',  
             viewCount: 750
           },
           { 
@@ -174,13 +174,13 @@ function HomePage() {
             firstName: 'Eve', 
             lastName: 'Adams',
             description: 'Works on cloud infrastructure and distributed computing.',
-            imagePath: 'https://placehold.co/50x50/800000/FFFFFF?text=EA', // Placeholder image
+            imagePath: 'https://placehold.co/50x50/800000/FFFFFF?text=EA',  
             viewCount: 600
           }
         ]);
       });
 
-      // Fetch tags
+       
       fetch(`${BACKEND_URL}/api/tags`)
       .then(response => {
         if (!response.ok) throw new Error(`API responded with ${response.status}`);
@@ -192,7 +192,7 @@ function HomePage() {
       })
       .catch(error => {
         console.error('Error fetching tags:', error);
-        // Default tags if API fails
+         
         setTags([
           { tagId: 1, tagName: "AI" },
           { tagId: 2, tagName: "Machine Learning" },
@@ -207,7 +207,7 @@ function HomePage() {
         ]);
       });
 
-    // Fetch top SPs with absolute URL
+     
     fetch(`${BACKEND_URL}/api/sp/top-sps`)
       .then(response => {
         if (!response.ok) {
@@ -222,7 +222,7 @@ function HomePage() {
       })
       .catch(error => {
         console.error('Error fetching top SPs:', error);
-        // Default data for top SPs if API fails
+         
         setTopSPs([
           {
             "spId": 101,
@@ -231,7 +231,7 @@ function HomePage() {
             "year": 2023,
             "semester": "1st",
             "viewCount": 120,
-            "tagIds": [1, 6] // AI, Data Science
+            "tagIds": [1, 6]  
           },
           {
             "spId": 102,
@@ -240,7 +240,7 @@ function HomePage() {
             "year": 2024,
             "semester": "2nd",
             "viewCount": 95,
-            "tagIds": [3, 4] // Blockchain, Cybersecurity
+            "tagIds": [3, 4]  
           },
           {
             "spId": 103,
@@ -249,7 +249,7 @@ function HomePage() {
             "year": 2023,
             "semester": "2nd",
             "viewCount": 80,
-            "tagIds": [7, 8] // IoT, Cloud Computing
+            "tagIds": [7, 8]  
           },
           {
             "spId": 104,
@@ -258,7 +258,7 @@ function HomePage() {
             "year": 2024,
             "semester": "1st",
             "viewCount": 110,
-            "tagIds": [2, 1] // Machine Learning, AI
+            "tagIds": [2, 1]  
           },
           {
             "spId": 105,
@@ -267,16 +267,16 @@ function HomePage() {
             "year": 2023,
             "semester": "1st",
             "viewCount": 70,
-            "tagIds": [5] // Web Development (as a general tech tag)
+            "tagIds": [5]  
           }
         ]);
       });
 
-    // Fetch random SPs
+     
     fetchRandomSPs();
   }, []);
   
-  // Add this helper function
+   
   const getTagsForSp = (sp) => {
     if (!sp.tagIds || !Array.isArray(sp.tagIds)) return [];
     return tags
@@ -286,7 +286,7 @@ function HomePage() {
 
   const handleViewCountIncrement = async (spId) => {
     try {
-      // Make the POST request to your backend endpoint
+       
       await axios.post(`http://localhost:8080/api/sp/${spId}/view`);
       console.log(`View count incremented for SP ID: ${spId}`);
     } catch (error) {
@@ -305,22 +305,22 @@ function HomePage() {
       })
       .then(data => {
         console.log('Random SPs data:', data);
-        // Ensure data is an array before processing
+         
         if (Array.isArray(data)) {
-          // If API returns all SPs, we can randomly select some
+           
           const shuffled = [...data].sort(() => 0.5 - Math.random());
-          const randomSelection = shuffled.slice(0, 10); // Get 10 random SPs
+          const randomSelection = shuffled.slice(0, 10);  
           
-          // Add tags if they don't exist
+           
           const enhancedData = randomSelection.map(sp => {
-            // Prioritize existing tagIds, then sp.tags (if array of strings), then generate
+             
             let spTags = [];
             if (sp.tagIds && Array.isArray(sp.tagIds)) {
               spTags = getTagsForSp(sp);
             } else if (sp.tags && Array.isArray(sp.tags) && sp.tags.every(tag => typeof tag === 'string')) {
               spTags = sp.tags;
             } else {
-              // Create default tags based on title words if no tags are provided
+               
               const commonTechTerms = [
                 "AI", "Machine Learning", "Data Science", "Blockchain", 
                 "Cybersecurity", "IoT", "Cloud", "Web Development",
@@ -332,14 +332,14 @@ function HomePage() {
               const generatedTags = [];
               const title = sp.title || "";
               
-              // Try to find relevant tags from the title
+               
               commonTechTerms.forEach(term => {
                 if (title.toLowerCase().includes(term.toLowerCase()) && generatedTags.length < 3) {
                   generatedTags.push(term);
                 }
               });
               
-              // If we didn't find enough tags from the title, add some random ones
+               
               while (generatedTags.length < 2) {
                 const randomTerm = commonTechTerms[Math.floor(Math.random() * commonTechTerms.length)];
                 if (!generatedTags.includes(randomTerm)) {
@@ -354,13 +354,13 @@ function HomePage() {
           setRandomSPs(enhancedData);
         } else {
           console.error('API returned non-array data:', data);
-          // Fallback to default data if API response is not an array
+           
           setRandomSPs(getDefaultRandomSPs());
         }
       })
       .catch(error => {
         console.error('Error fetching random SPs:', error);
-        // Default data
+         
         setRandomSPs(getDefaultRandomSPs());
       })
       .finally(() => {
@@ -368,7 +368,7 @@ function HomePage() {
       });
   };
 
-  // Default random SPs data
+   
   const getDefaultRandomSPs = () => {
     return [
       {
@@ -464,39 +464,39 @@ function HomePage() {
     ];
   };
 
-  // Function to scroll browse container left
-// Function to scroll browse container left
+   
+ 
   const scrollLeft = () => {
-    setStartIndex(prevIndex => Math.max(0, prevIndex - 2)); // Scroll back by 3 cards
+    setStartIndex(prevIndex => Math.max(0, prevIndex - 2));  
   };
 
-  // Function to scroll browse container right
+   
   const scrollRight = () => {
-    setStartIndex(prevIndex => Math.min(randomSPs.length - 2, prevIndex + 2)); // Scroll forward by 3 cards
+    setStartIndex(prevIndex => Math.min(randomSPs.length - 2, prevIndex + 2));  
   };
   
-  // Inside HomePage.jsx, within the HomePage component
+   
 const handleDiscoverClick = () => {
   if (browseContainerRef.current) {
     browseContainerRef.current.scrollIntoView({ behavior: 'smooth' });
   }
 };
 
-  // Function to refresh random SPs
+   
   const refreshRandomSPs = () => {
-    // Add animation class to trigger fade-out effect
+     
     const container = browseContainerRef.current;
     if (container) {
       container.classList.add('fade-out');
       
-      // Wait for animation to complete, then fetch new data
+       
       setTimeout(() => {
         fetchRandomSPs();
-        // Remove fade-out class and add fade-in class
+         
         container.classList.remove('fade-out');
         container.classList.add('fade-in');
         
-        // Remove fade-in class after animation completes
+         
         setTimeout(() => {
           container.classList.remove('fade-in');
         }, 500);
@@ -586,7 +586,7 @@ const handleDiscoverClick = () => {
                     </Link>
                   </div>
                   <div className="adviser-list">
-                    {topAdvisers.slice(1, 5).map((adviser, index) => ( // Display top 4 after the featured one
+                    {topAdvisers.slice(1, 5).map((adviser, index) => (  
                       <Link to={`/adviser/${adviser.adminId}`} key={adviser.adminId || `adviser-list-${Math.random()}`} className="adviser-list-item-link" style={{ textDecoration: 'none' }}>
                         <div className="adviser-list-item">
                           <div className="adviser-rank">#{index + 2}</div> {/* Added rank number */}
@@ -594,7 +594,7 @@ const handleDiscoverClick = () => {
                           <img 
                             src={adviser.imagePath || 'https://placehold.co/50x50/800000/FFFFFF?text=A'} 
                             alt={`${adviser.firstName} ${adviser.lastName}`} 
-                            style={{ textDecoration: 'none', border: 'none', outline: 'none' }} // Added inline styles
+                            style={{ textDecoration: 'none', border: 'none', outline: 'none' }}  
                           />
                           <div className="adviser-info">
                             <h6 style={{ textDecoration: 'none' }}>{adviser.firstName} {adviser.lastName}</h6>

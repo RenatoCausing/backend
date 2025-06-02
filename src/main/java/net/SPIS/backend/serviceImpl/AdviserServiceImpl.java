@@ -58,7 +58,7 @@ public class AdviserServiceImpl implements AdviserService {
         Admin admin = adminRepository.findById(adviserId)
                 .orElseThrow(() -> new RuntimeException("Adviser not found"));
 
-        // Update properties
+         
         if (adviserDTO.getFirstName() != null)
             admin.setFirstName(adviserDTO.getFirstName());
         if (adviserDTO.getLastName() != null)
@@ -72,7 +72,7 @@ public class AdviserServiceImpl implements AdviserService {
         if (adviserDTO.getDescription() != null)
             admin.setDescription(adviserDTO.getDescription());
 
-        // Handle faculty (which can be null)
+         
         if (adviserDTO.getFacultyId() != null) {
             Faculty faculty = facultyRepository.findById(adviserDTO.getFacultyId())
                     .orElseThrow(() -> new RuntimeException("Faculty not found"));
@@ -102,7 +102,7 @@ public class AdviserServiceImpl implements AdviserService {
         return toDTO(adminRepository.save(admin));
     }
 
-    // Methods needed for UserManagementPanel functionality
+     
     @Override
     public List<AdviserDTO> getAllUsers() {
         return adminRepository.findAll().stream()
@@ -122,8 +122,8 @@ public class AdviserServiceImpl implements AdviserService {
 
     @Override
     public List<AdviserDTO> getUsersByRole(String role) {
-        // For student role, we need to handle null values as they're stored as null in
-        // the DB
+         
+         
         if (role.equals("student")) {
             return adminRepository.findByRoleIsNull().stream()
                     .map(this::toDTO)
@@ -139,7 +139,7 @@ public class AdviserServiceImpl implements AdviserService {
         Faculty faculty = facultyRepository.findById(facultyId)
                 .orElseThrow(() -> new RuntimeException("Faculty not found"));
 
-        // For student role, we need to handle null values
+         
         if (role.equals("student")) {
             return adminRepository.findByFacultyAndRoleIsNull(faculty).stream()
                     .map(this::toDTO)
@@ -174,16 +174,16 @@ public class AdviserServiceImpl implements AdviserService {
         Admin savedAdmin = adminRepository.save(newAdmin);
         return toDTO(savedAdmin);
     }
-    // In net.SPIS.backend.serviceImpl.AdviserServiceImpl
+     
 
     @Override
     @Transactional
-    public AdviserDTO updateUser(Integer adminId, AdviserDTO adviserDTO) { // <-- Change the parameter type to
-                                                                           // AdviserDTO
+    public AdviserDTO updateUser(Integer adminId, AdviserDTO adviserDTO) {  
+                                                                            
         Admin existingAdmin = adminRepository.findById(adminId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Update properties of the existing entity using data from the DTO
+         
         if (adviserDTO.getFirstName() != null) {
             existingAdmin.setFirstName(adviserDTO.getFirstName());
         }
@@ -197,21 +197,21 @@ public class AdviserServiceImpl implements AdviserService {
             existingAdmin.setEmail(adviserDTO.getEmail());
         }
 
-        // Handle role update (can be null in DTO, maps to nullable column)
-        // Assuming the DTO's setRole method or frontend handles converting "" to null
-        // if needed
+         
+         
+         
         existingAdmin.setRole(adviserDTO.getRole());
 
-        // Handle faculty update (can be null in DTO, maps to nullable relationship)
-        // Handle faculty (which can be null)
-        if (adviserDTO.getFacultyId() != null) { // Check if a facultyId is provided in the DTO
-            // If yes, find the Faculty entity by this ID
+         
+         
+        if (adviserDTO.getFacultyId() != null) {  
+             
             Faculty faculty = facultyRepository.findById(adviserDTO.getFacultyId())
-                    .orElseThrow(() -> new RuntimeException("Faculty not found")); // Throws error if ID doesn't exist
-            // Set the found Faculty entity on the existing Admin
+                    .orElseThrow(() -> new RuntimeException("Faculty not found"));  
+             
             existingAdmin.setFaculty(faculty);
         } else {
-            // If facultyId is null in the DTO, set the Admin's faculty to null
+             
             existingAdmin.setFaculty(null);
         }
 
@@ -222,7 +222,7 @@ public class AdviserServiceImpl implements AdviserService {
             existingAdmin.setDescription(adviserDTO.getDescription());
         }
 
-        // Save the updated existing entity
+         
         Admin updatedAdmin = adminRepository.save(existingAdmin);
         return toDTO(updatedAdmin);
     }
@@ -244,7 +244,7 @@ public class AdviserServiceImpl implements AdviserService {
         dto.setLastName(admin.getLastName());
         dto.setMiddleName(admin.getMiddleName());
 
-        // Handle faculty relationship
+         
         if (admin.getFaculty() != null) {
             dto.setFacultyId(admin.getFaculty().getFacultyId());
         } else {
@@ -254,7 +254,7 @@ public class AdviserServiceImpl implements AdviserService {
         dto.setEmail(admin.getEmail());
         dto.setImagePath(admin.getImagePath());
         dto.setDescription(admin.getDescription());
-        dto.setRole(admin.getRole()); // Add role to DTO
+        dto.setRole(admin.getRole());  
         return dto;
     }
 }

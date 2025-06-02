@@ -20,7 +20,7 @@ public class Admin {
     @Column(name = "middle_name")
     private String middleName;
 
-    @Column(nullable = true) // Change this to true since it can be null initially
+    @Column(nullable = true)  
     private String role;
 
     @Column(name = "email")

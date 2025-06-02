@@ -4,11 +4,11 @@ import UserManagementPanel from '../components/UserManagementPanel';
 import Dashboard from '../components/Dashboard';
 import AdviserNavbar from '../components/AdviserNavbar';
 
-// This component will be wrapped by the provider
+ 
 const UserManagementContent = () => {
   const { fetchUsers } = useUserContext();
   
-  // Fetch users on component mount
+   
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
@@ -16,9 +16,9 @@ const UserManagementContent = () => {
   return <UserManagementPanel />;
 };
 
-// Main component that provides the context
+ 
 const UserManagementView = () => {
-  // Get navbar height - using the same value as SPProjectView
+   
 
   return (
     <UserManagementProvider>

@@ -1,22 +1,22 @@
 import React from 'react';
-import '../styles/DeleteConfirmationModal.css'; // Assuming your CSS file is in this path
+import '../styles/DeleteConfirmationModal.css';  
 
-// Receive the isDeleting and isRefreshingList props
+ 
 const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, itemToDelete, isDeleting, isRefreshingList }) => {
-  // If the modal is not open, don't render anything
+   
   if (!isOpen) {
     return null;
   }
 
-  // Determine the title of the item being deleted
+   
   const itemTitle = itemToDelete?.spTitle || 'this item';
 
-  // Determine if buttons should be disabled (either deleting or refreshing)
+   
   const isProcessing = isDeleting || isRefreshingList;
 
   return (
-    // Overlay background
-    // Prevent closing the modal by clicking the overlay while processing
+     
+     
     <div className="modal-overlay" onClick={isProcessing ? null : onClose}>
       {/* Modal content wrapper */}
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>

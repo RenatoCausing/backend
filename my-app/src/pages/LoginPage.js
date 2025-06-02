@@ -1,4 +1,4 @@
-// src/pages/LoginPage.js
+ 
 import React from 'react';
 import universityLogo from '../images/university-logo.png';
 import '../styles/LoginPage.css';
@@ -8,9 +8,9 @@ import { useUser } from '../contexts/UserContext';
 const LoginPage = () => {
     const navigate = useNavigate();
     const { login } = useUser();
-// In src/pages/LoginPage.js, update the handleGuestLogin function:
+ 
 const handleGuestLogin = () => {
-    // Create a guest user object
+     
     const guestUser = {
       adminId: null,
       firstName: "Guest",
@@ -18,15 +18,15 @@ const handleGuestLogin = () => {
       isGuest: true
     };  
     
-    // Use the login function from context to set this guest user
+     
     login(guestUser);
     
-    // Navigate to home page
+     
     navigate('/');
   };
 
   const handleGoogleLogin = () => {
-    // Redirect to your backend's OAuth endpoint
+     
     window.location.href = 'http://localhost:8080/oauth2/authorization/google';
   };
 

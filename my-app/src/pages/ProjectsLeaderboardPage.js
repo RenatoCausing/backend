@@ -7,24 +7,24 @@ import Typography from '@mui/material/Typography';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
-import '../styles/SPFilterSystem.css'; // Keep this if other components on this page use it
-import '../styles/ProjectsLeaderboard.css'; // New and REVISED CSS file for leaderboard specific styles
+import '../styles/SPFilterSystem.css';  
+import '../styles/ProjectsLeaderboard.css';  
 
 function ProjectsLeaderboardPage() {
-  // State for special projects data
+   
   const [specialProjects, setSpecialProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [tags, setTags] = useState([]);
 
-  // Pagination states
+   
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // Backend URL
+   
   const BACKEND_URL = 'http://localhost:8080';
 
   useEffect(() => {
-    // Fetch top SPs
+     
     fetch(`${BACKEND_URL}/api/sp/top-sps`)
       .then(response => {
         if (!response.ok) {
@@ -34,7 +34,7 @@ function ProjectsLeaderboardPage() {
       })
       .then(data => {
         console.log('Top SPs data:', data);
-        // Sort by view count (highest first) before setting state
+         
         const sortedData = Array.isArray(data) ?
           [...data].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0)) :
           [];
@@ -50,7 +50,7 @@ function ProjectsLeaderboardPage() {
         setIsLoading(false);
       });
 
-    // Fetch tags
+     
     fetch(`${BACKEND_URL}/api/tags`)
       .then(response => {
         if (!response.ok) throw new Error(`API responded with ${response.status}`);
@@ -66,7 +66,7 @@ function ProjectsLeaderboardPage() {
       });
   }, []);
 
-  // Helper function to get tags for a project
+   
   const getTagsForSp = (sp) => {
     if (!sp.tagIds || !Array.isArray(sp.tagIds)) return [];
     return tags
@@ -83,25 +83,25 @@ function ProjectsLeaderboardPage() {
     }
   }
 
-  // Calculate total pages
+   
   const totalItems = specialProjects.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  // Get current items based on pagination
+   
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = specialProjects.slice(indexOfFirstItem, indexOfLastItem);
 
-  // Handle page change
+   
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
-    window.scrollTo(0, 0); // Scroll to top when page changes
+    window.scrollTo(0, 0);  
   };
 
-  // Handle items per page change
+   
   const handleItemsPerPageChange = (event) => {
     setItemsPerPage(event.target.value);
-    setCurrentPage(1); // Reset to first page when changing items per page
+    setCurrentPage(1);  
   };
 
   return (

@@ -23,21 +23,21 @@ function AdviserProfile() {
   const [editableDescription, setEditableDescription] = useState('');
   const [isOwner, setIsOwner] = useState(false);
   
-  // Pagination states
+   
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
   
-  // Notification state
+   
   const [notification, setNotification] = useState({
     show: false,
     message: '',
-    type: '' // 'success', 'error', or 'info'
+    type: ''  
   });
   
-  // Backend URL
+   
   const BACKEND_URL = 'http://localhost:8080';
 
-  // Show notification with auto-dismiss
+   
   const showNotification = (message, type) => {
     setNotification({
       show: true,
@@ -45,7 +45,7 @@ function AdviserProfile() {
       type
     });
     
-    // Auto-dismiss after 5 seconds
+     
     setTimeout(() => {
       setNotification({
         show: false,
@@ -56,7 +56,7 @@ function AdviserProfile() {
   };
 
   useEffect(() => {
-    // Fetch adviser details
+     
     fetch(`${BACKEND_URL}/api/advisers/${adviserId}`)
       .then(response => {
         if (!response.ok) {
@@ -69,14 +69,14 @@ function AdviserProfile() {
         setAdviser(data);
         setEditableDescription(data.description || '');
         
-        // Check if current user is the owner of this profile
+         
         if (isAuthenticated && currentUser && data.email === currentUser.email && currentUser.role == "faculty") {
           setIsOwner(true);
         }
       })
       .catch(error => {
         console.error('Error fetching adviser details:', error);
-        // Set default data for testing
+         
         const defaultData = {
           adminId: adviserId,
           firstName: 'John',
@@ -91,13 +91,13 @@ function AdviserProfile() {
         setAdviser(defaultData);
         setEditableDescription(defaultData.description || '');
         
-        // Check if current user is the owner of this profile even in test mode
+         
         if (isAuthenticated && currentUser && defaultData.email === currentUser.email) {
           setIsOwner(true);
         }
       });
 
-    // Fetch SPs from this adviser
+     
     fetch(`${BACKEND_URL}/api/sp/adviser/${adviserId}`)
       .then(response => {
         if (!response.ok) {
@@ -112,7 +112,7 @@ function AdviserProfile() {
       })
       .catch(error => {
         console.error('Error fetching adviser SPs:', error);
-        // Sample data for testing
+         
         setAdviserSPs([
           {
             spId: 101,
@@ -146,21 +146,21 @@ function AdviserProfile() {
       });
   }, [adviserId, isAuthenticated, currentUser]);
 
-  // Toggle editing mode
+   
   const toggleEditMode = () => {
     setIsEditing(!isEditing);
     if (!isEditing) {
-      // When entering edit mode, set editable description to current description
+       
       setEditableDescription(adviser.description || '');
     }
   };
 
-  // Handle description change
+   
   const handleDescriptionChange = (e) => {
     setEditableDescription(e.target.value);
   };
 
-  // Save description to backend
+   
   const saveDescription = () => {
     fetch(`${BACKEND_URL}/api/advisers/${adviserId}/description`, {
       method: 'PUT',
@@ -179,34 +179,34 @@ function AdviserProfile() {
         console.log('Updated adviser data:', data);
         setAdviser({...adviser, description: editableDescription});
         setIsEditing(false);
-        // Show success notification
+         
         showNotification("Profile description updated successfully!", "success");
       })
       .catch(error => {
         console.error('Error updating adviser description:', error);
-        // Revert to previous description on error
+         
         setEditableDescription(adviser.description || '');
         setIsEditing(false);
-        // Show error notification
+         
         showNotification("Failed to update profile description. Please try again.", "error");
       });
   };
 
-  // Handle profile image update
+   
   const updateProfileImage = () => {
     if (!isOwner || !currentUser) return;
     
-    // Check if user is authenticated
+     
     if (!isAuthenticated) {
       showNotification("You must be logged in to update your profile image.", "error");
       return;
     }
     
-    // Show loading notification
+     
     showNotification("Updating profile image...", "info");
     
-    // Since the image is already in the currentUser object, we can use it directly
-    // The backend already has the proper Google profile image from OAuth
+     
+     
     fetch(`${BACKEND_URL}/api/advisers/${adviserId}/image`, {
       method: 'PUT',
       headers: {
@@ -214,10 +214,10 @@ function AdviserProfile() {
       },
       body: JSON.stringify({ 
         adminId: currentUser.adminId,
-        // Use the image path from the current user context that was set during OAuth
+         
         imagePath: currentUser.imagePath 
       }),
-      credentials: 'include' // Include credentials for authentication
+      credentials: 'include'  
     })
       .then(response => {
         if (!response.ok) {
@@ -227,43 +227,43 @@ function AdviserProfile() {
       })
       .then(data => {
         console.log('Updated adviser image:', data);
-        // Update the local state with the image from currentUser
+         
         setAdviser({...adviser, imagePath: currentUser.imagePath});
-        // Show success notification
+         
         showNotification("Profile image updated successfully to current google avatar!", "success");
       })
       .catch(error => {
         console.error('Error updating adviser image:', error);
-        // Show error notification
+         
         showNotification("Failed to update profile image. Please try again.", "error");
       });
   };
 
-  // Cancel editing
+   
   const cancelEditing = () => {
     setEditableDescription(adviser.description || '');
     setIsEditing(false);
   };
 
-  // Handle page change
+   
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
   };
 
-  // Handle items per page change
+   
   const handleItemsPerPageChange = (event) => {
     setItemsPerPage(event.target.value);
-    setCurrentPage(1); // Reset to first page when changing items per page
+    setCurrentPage(1);  
   };
 
-  // Calculate pagination values
+   
   const totalItems = adviserSPs.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = adviserSPs.slice(indexOfFirstItem, indexOfLastItem);
 
-  // Loading state
+   
   if (loading || !adviser) {
     return (
       <div>

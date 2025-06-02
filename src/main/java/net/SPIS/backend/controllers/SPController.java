@@ -38,9 +38,9 @@ public class SPController {
 
     @Autowired
     private SPRepository spRepository;
-    // Keep if used directly (like in filterSPs)
+     
 
-    // --- Existing endpoints from Controller Backend.txt ---
+     
     @GetMapping("/{spId}")
     public SPDTO getSP(@PathVariable Integer spId) {
         return spService.getSP(spId);
@@ -61,7 +61,7 @@ public class SPController {
         logger.debug("Filtering SPs with: adviserIds={}, tagIds={}, facultyId={}, searchTerm={}",
                 adviserIds, tagIds, facultyId, searchTerm);
 
-        // Call the new comprehensive filter method in the service layer
+         
         List<SPDTO> results = spService.filterSPs(adviserIds, tagIds, facultyId, searchTerm);
         logger.debug("Filtered SPs count: {}", results.size());
         return results;
@@ -104,7 +104,7 @@ public class SPController {
 
     @GetMapping("/tags")
     public List<SPDTO> getSPsWithTags(@RequestParam(required = false) List<Integer> tagIds) {
-        // Now calls the new filterSPs method in the service
+         
         return spService.getSPsWithTags(tagIds);
     }
 
@@ -156,7 +156,7 @@ public class SPController {
         }
     }
 
-    // --- New Endpoint for CSV Upload ---
+     
     @PostMapping("/upload-csv")
     public ResponseEntity<Map<String, Object>> uploadSPCSV(
             @RequestParam("file") MultipartFile file,
@@ -193,22 +193,22 @@ public class SPController {
         }
     }
 
-    // --- New endpoint for deleting an SP ---
+     
     @DeleteMapping("/{spId}")
     public ResponseEntity<Void> deleteSP(@PathVariable Integer spId) {
         logger.info("Received request to delete SP with ID: {}", spId);
         try {
             spService.deleteSP(spId);
-            // Return 204 No Content on successful deletion
+             
             return ResponseEntity.noContent().build();
         } catch (ResponseStatusException e) {
             logger.error("Error deleting SP {}: {} - {}", spId, e.getStatusCode(), e.getReason());
-            // Propagate the ResponseStatusException with the appropriate status code (e.g.,
-            // 404)
+             
+             
             throw e;
         } catch (Exception e) {
             logger.error("Unexpected error deleting SP {}", spId, e);
-            // Return 500 Internal Server Error for any other unexpected exceptions
+             
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

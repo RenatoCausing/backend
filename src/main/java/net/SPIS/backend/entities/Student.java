@@ -9,9 +9,9 @@ import lombok.EqualsAndHashCode;
 
 @Entity
 @Table(name = "student")
-// Removed Lombok annotations
-// @Data
-// @EqualsAndHashCode
+ 
+ 
+ 
 public class Student {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,7 +37,7 @@ public class Student {
     @ManyToMany(mappedBy = "students")
     private Set<SP> sps = new HashSet<>();
 
-    // Manually added Getters and Setters
+     
 
     public Integer getStudentId() {
         return studentId;
@@ -95,8 +95,8 @@ public class Student {
         this.sps = sps;
     }
 
-    // Basic equals and hashCode methods (can be improved if needed,
-    // but these will satisfy the compiler for now)
+     
+     
     @Override
     public boolean equals(Object o) {
         if (this == o)

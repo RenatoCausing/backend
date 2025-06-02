@@ -13,22 +13,22 @@ public interface SPService {
 
     SPDTO getSP(Integer spId);
 
-    // Reverted to return a List of SPDTOs
+     
     List<SPDTO> getAllSP();
 
-    // Reverted to return a List of SPDTOs
+     
     List<SPDTO> getSPFromAdviser(Integer adviserId);
 
-    // Reverted to return a List of SPDTOs
+     
     List<SPDTO> getSPFromStudent(Integer studentId);
 
-    // *** CORRECTED METHOD NAME IN INTERFACE ***
-    // Reverted to return a List of SPDTOs
+     
+     
     List<SPDTO> getSPFromFaculty(Integer facultyId);
 
     SPDTO createSP(SPDTO spDTO);
 
-    // Reverted to return a List of SPDTOs
+     
     List<SPDTO> getSPsWithTags(List<Integer> tagIds);
 
     void incrementViewCount(Integer spId);
@@ -45,6 +45,6 @@ public interface SPService {
 
     List<SPDTO> filterSPs(List<Integer> adviserIds, List<Integer> tagIds, Integer facultyId, String searchTerm);
 
-    // Reverted to return a List of SPDTOs
+     
     void deleteSP(Integer spId);
 }

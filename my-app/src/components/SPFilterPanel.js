@@ -4,59 +4,59 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useProjectContext } from '../contexts/ProjectContext';
 import { useUser } from '../contexts/UserContext';
 import '../styles/SPFilterSystem.css';
-// Import Pagination and Select/FormControl/InputLabel from MUI
+ 
 import Pagination from '@mui/material/Pagination';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
-// Removed unused Stack import
-// import { Stack } from '@mui/material';
+ 
+ 
 
-// Import the new DeleteConfirmationModal component
+ 
 import DeleteConfirmationModal from './DeleteConfirmationModal';
 
 
 const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
-  // --- CORRECTED: Destructure triggerDataRefresh instead of setRefreshTrigger ---
+   
   const { refreshTrigger, triggerDataRefresh } = useProjectContext();
-  const { currentUser } = useUser(); // <--- Get the current user from context
+  const { currentUser } = useUser();  
 
-  // State management
+   
   const [advisers, setAdvisers] = useState([]);
   const [tags, setTags] = useState([]);
   const [sps, setSps] = useState([]);
   const [filteredSps, setFilteredSps] = useState([]);
-  const [filterLoading, setFilterLoading] = useState(false); // Keep this state
-  const filterLoadingTimerRef = useRef(null); // <-- NEW: Ref to hold the timer ID
+  const [filterLoading, setFilterLoading] = useState(false);  
+  const filterLoadingTimerRef = useRef(null);  
   const isStaff = currentUser?.role === 'staff';
 
   const [loading, setLoading] = useState(true);
   const [initialLoading, setInitialLoading] = useState(true);
-  // Separate state for initial loading
+   
   const [error, setError] = useState(null);
   const [adviserData, setAdviserData] = useState({});
-  // REMOVED studentGroups as it's no longer used with the new relationship
-  // const [studentGroups, setStudentGroups] = useState({});
+   
+   
 
-  // Pagination state (using 1-indexed page for MUI Pagination)
-  const [currentPage, setCurrentPage] = useState(1); // Standard 1-indexed for Pagination component
-  const [itemsPerPage, setItemsPerPage] = useState(20); // Default items per page
+   
+  const [currentPage, setCurrentPage] = useState(1);  
+  const [itemsPerPage, setItemsPerPage] = useState(20);  
 
-  // Calculate total pages and items for the current page
+   
   const totalItems = filteredSps.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  // --- CORRECTED: Use indexOfLastItem instead of lastItemIndex ---
+   
   const currentItems = filteredSps.slice(indexOfFirstItem, indexOfLastItem);
 
 
-  // Sorting state
+   
   const [sortBy, setSortBy] = useState('dateIssued');
   const [sortDirection, setSortDirection] = useState('desc');
 
-  // Filter states
+   
   const [selectedAdvisers, setSelectedAdvisers] = useState([]);
   const [selectedTags, setSelectedTags] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState('');
@@ -65,52 +65,52 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState(null);
 
-  // Input states
+   
   const [adviserInput, setAdviserInput] = useState('');
   const [tagInput, setTagInput] = useState('');
 
-  // Active tab states for each SP
+   
   const [activeTabs, setActiveTabs] = useState({});
 
-  // Dropdown visibility
+   
   const [showAdviserDropdown, setShowAdviserDropdown] = useState(false);
   const [showTagDropdown, setShowTagDropdown] = useState(false);
 
-  // Refs for click outside detection
+   
   const adviserDropdownRef = useRef(null);
   const tagDropdownRef = useRef(null);
   const searchTimeoutRef = useRef(null);
 
-  // --- State for Delete Confirmation Modal ---
+   
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [spToDelete, setSpToDelete] = useState(null); // Holds { spId, spTitle }
-  // --- New state to track deletion loading ---
+  const [spToDelete, setSpToDelete] = useState(null);  
+   
   const [isDeleting, setIsDeleting] = useState(false);
-  // --- New state to track list refreshing after deletion ---
+   
   const [isRefreshingList, setIsRefreshingList] = useState(false);
 
-  // --- NEW: Combined loading state for disabling controls ---
+   
   const isAnyLoading = initialLoading || filterLoading || isRefreshingList;
 
 
-  // --- Pagination Handlers ---
+   
   const handlePageChange = (event, value) => {
-    // Only allow page change if not loading
+     
     if (!isAnyLoading) {
-        setCurrentPage(value); // value is the 1-indexed page number from Pagination
+        setCurrentPage(value);  
     }
   };
 
   const handleItemsPerPageChange = (event) => {
-    // Only allow items per page change if not loading
+     
     if (!isAnyLoading) {
         setItemsPerPage(parseInt(event.target.value, 10));
-        setCurrentPage(1); // Reset to the first page when rows per page changes
+        setCurrentPage(1);  
     }
   };
 
 
-  // Sorting logic (assuming this logic is correct and doesn't need changes)
+   
   const sortSPs = (sps) => {
     if (!sps || !Array.isArray(sps)) return [];
     return [...sps].sort((a, b) => {
@@ -174,7 +174,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
     });
   };
 
-  // API service methods (assuming these are still correct for your backend)
+   
   const SPApiService = {
     fetchAdviserById: async (adviserId) => {
       try {
@@ -246,12 +246,12 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                          departmentId || searchTerm;
 
       if (!hasFilters) {
-        // If no filters are applied, fetch all SPs
+         
         return await SPApiService.fetchAllSPs();
       }
 
       try {
-        // Attempt server-side filtering first
+         
         const params = new URLSearchParams();
         if (adviserIds && adviserIds.length) {
           adviserIds.forEach(id => params.append('adviserIds', id));
@@ -262,7 +262,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
         }
 
         if (departmentId) {
-           // Assuming departmentId maps to facultyId on the backend for filtering
+            
           params.append('facultyId', departmentId);
         }
 
@@ -278,17 +278,17 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
            console.log("Filtered SPs fetched successfully:", data);
           return data;
         } else {
-          // If server-side filtering endpoint returns a non-ok status, warn and fallback
+           
            console.warn('Server-side filtering failed with status:', response.status);
-           // Throw an error to trigger the catch block for client-side fallback
+            
           throw new Error('Server-side filtering not supported or failed');
         }
       } catch (error) {
-        // Fallback to client-side filtering if server-side fails or throws
+         
         console.warn('Falling back to client-side filtering:', error);
         let result = await SPApiService.fetchAllSPs();
 
-        // Apply filters client-side
+         
         if (adviserIds && adviserIds.length) {
           result = result.filter(sp => sp.adviserId && adviserIds.includes(sp.adviserId));
         }
@@ -301,14 +301,14 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
         }
 
          if (departmentId) {
-             // Client-side filtering by student faculty requires iterating through students
-             // This is complex client-side without student faculty data in the SP object
+              
+              
              result = result.filter(sp => {
                  if (!sp.studentIds || sp.studentIds.length === 0) return false;
                   console.warn("Client-side filtering by Department/Faculty might not be fully accurate without student faculty data in SP object.");
-                  // As a placeholder, you might check if *any* student of this SP
-                  // belongs to the selected faculty, but this requires knowing student faculties.
-                  // For now, returning true to not incorrectly filter out SPs.
+                   
+                   
+                   
                   return true;
              });
          }
@@ -322,25 +322,25 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
           );
         }
 
-        return result; // Return client-side filtered results
+        return result;  
       }
     },
 
-    // --- New Delete SP API Call ---
+     
     deleteSP: async (spId) => {
         try {
             const response = await axios.delete(`http://localhost:8080/api/sp/${spId}`, { withCredentials: true });
-            if (response.status === 204) { // 204 No Content is typical for successful deletion
+            if (response.status === 204) {  
                 console.log(`SP with ID ${spId} deleted successfully.`);
-                return true; // Indicate success
+                return true;  
             } else {
                  console.error(`Failed to delete SP with ID ${spId}. Status: ${response.status}`);
-                 // Handle other success status codes if necessary, though 204 is standard
-                 return false; // Indicate failure
+                  
+                 return false;  
             }
         } catch (error) {
             console.error(`Error deleting SP with ID ${spId}:`, error);
-             // Check for specific error responses (e.g., 404 Not Found, 401 Unauthorized)
+              
             if (error.response) {
                  console.error("Error response data:", error.response.data);
                  console.error("Error response status:", error.response.status);
@@ -353,33 +353,33 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                      alert(`Failed to delete project: ${error.response.data?.message || error.message}`);
                  }
             } else if (error.request) {
-                 // The request was made but no response was received
+                  
                  console.error("Error request:", error.request);
                  alert("Failed to delete project: No response from server.");
             } else {
-                 // Something happened in setting up the request that triggered an Error
+                  
                  console.error("Error message:", error.message);
                  alert(`Failed to delete project: ${error.message}`);
             }
-            return false; // Indicate failure
+            return false;  
         }
     }
   };
 
 
-  // Implement debouncing for search term
+   
   useEffect(() => {
-    // Clear any existing timeout
+     
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
 
-    // Set a new timeout for 300ms
+     
     searchTimeoutRef.current = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
     }, 300);
 
-    // Cleanup on unmount or when searchTerm changes
+     
     return () => {
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
@@ -388,14 +388,14 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
   }, [searchTerm]);
 
 
-  // Parse URL parameters when component mounts
+   
   useEffect(() => {
     const parseUrlParams = () => {
       const queryParams = new URLSearchParams(window.location.search);
       const tagParam = queryParams.get('tag');
 
       if (tagParam && tags.length > 0) {
-        // Find tag by name (decodeURIComponent to handle spaces and special characters)
+         
         const decodedTagName = decodeURIComponent(tagParam);
         const matchedTag = tags.find(tag =>
           tag.tagName && tag.tagName.toLowerCase() === decodedTagName.toLowerCase()
@@ -410,7 +410,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
     if (tags.length > 0) {
       parseUrlParams();
     }
-  }, [tags]); // Run when tags are loaded
+  }, [tags]);  
 
 
   useEffect(() => {
@@ -419,14 +419,14 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
         .filter(sp => sp.adviserId)
         .map(sp => sp.adviserId);
 
-      // Remove duplicates
+       
       const uniqueAdviserIds = [...new Set(adviserIds)];
 
-      // Fetch details for unique adviser IDs
+       
       const adviserPromises = uniqueAdviserIds.map(id => SPApiService.fetchAdviserById(id));
       const results = await Promise.all(adviserPromises);
 
-      // Build a map of adviserId to adviser object
+       
       const adviserMap = {};
       results.forEach(adviser => {
         if (adviser && adviser.adminId) {
@@ -434,68 +434,68 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
         }
       });
 
-      // Update state with adviser data map
+       
       setAdviserData(adviserMap);
     };
 
-    // Fetch adviser details whenever the filtered SPs change
+     
     if (filteredSps.length > 0) {
       fetchAdviserDetails();
     } else {
-        // Clear adviser data if there are no filtered SPs
+         
         setAdviserData({});
     }
   }, [filteredSps]);
 
 
-  // *** THIS useEffect FETCHES THE INITIAL DATA AND DEPENDS ON refreshTrigger ***
-  // --- MODIFIED: Add isRefreshingList state management and modal closing logic ---
+   
+   
   useEffect(() => {
     const fetchData = async () => {
       setInitialLoading(true);
-      setIsRefreshingList(true); // --- Set refreshing state to true ---
+      setIsRefreshingList(true);  
       try {
         console.log('Fetching all data...');
 
-        // Fetch advisers
+         
         const adviserData = await SPApiService.fetchAllAdvisers();
         setAdvisers(adviserData || []);
 
-        // Fetch tags
+         
         const tagData = await SPApiService.fetchAllTags();
         setTags(tagData || []);
 
-        // Fetch all SPs and apply initial sorting
+         
         const spData = await SPApiService.fetchAllSPs();
         console.log('SP data fetched:', spData);
-        const sortedSpData = sortSPs(spData || []); // Apply initial sort
-        setSps(spData || []); // Keep original data for filtering
-        setFilteredSps(sortedSpData); // Set filtered/sorted data for display
+        const sortedSpData = sortSPs(spData || []);  
+        setSps(spData || []);  
+        setFilteredSps(sortedSpData);  
 
 
-        // Initialize active tabs state for SP details visibility
+         
         const initialActiveTabs = {};
         if (spData && Array.isArray(spData)) {
           spData.forEach(sp => {
             if (sp && sp.spId) {
-              initialActiveTabs[sp.spId] = 'AI'; // Default tab is 'AI' (Abstract/Intro)
+              initialActiveTabs[sp.spId] = 'AI';  
             }
           });
         }
         setActiveTabs(initialActiveTabs);
 
-        setError(null); // Clear any previous errors
+        setError(null);  
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Failed to load data. Please try again later.');
-        setFilteredSps([]); // Clear SPs on error
+        setFilteredSps([]);  
       } finally {
-        setInitialLoading(false); // Set initial loading to false regardless of success or failure
-        setIsRefreshingList(false); // --- Set refreshing state to false ---
+        setInitialLoading(false);  
+        setIsRefreshingList(false);  
         console.log("Data fetching complete. isRefreshingList set to false.");
 
-        // --- NEW: Close the delete modal if it's open and deletion is complete ---
-        // This ensures the modal stays open during the refresh and closes after
+         
+         
         if (showDeleteModal && spToDelete !== null && !isDeleting) {
              console.log("Closing delete modal after refresh.");
              setSpToDelete(null);
@@ -505,56 +505,56 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
     };
 
     fetchData();
-  }, [refreshTrigger]); // <--- ENSURE refreshTrigger IS IN THIS DEPENDENCY ARRAY
+  }, [refreshTrigger]);  
 
 
-  // Close dropdowns when clicking outside
+   
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Close adviser dropdown if click is outside
-      // --- NEW: Only close if not loading ---
+       
+       
       if (!isAnyLoading && adviserDropdownRef.current && !adviserDropdownRef.current.contains(event.target)) {
         setShowAdviserDropdown(false);
       }
-      // Close tag dropdown if click is outside
-      // --- NEW: Only close if not loading ---
+       
+       
       if (!isAnyLoading && tagDropdownRef.current && !tagDropdownRef.current.contains(event.target)) {
         setShowTagDropdown(false);
       }
     };
 
-    // Add event listener
+     
     document.addEventListener('mousedown', handleClickOutside);
 
-    // Cleanup function to remove event listener
+     
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isAnyLoading]); // --- NEW: Add isAnyLoading to dependencies ---
+  }, [isAnyLoading]);  
 
 
- // Effect to apply filters whenever filter states change
- // Use debouncedSearchTerm to avoid excessive API calls while typing
- // Effect to apply filters whenever filter states change
- // Use debouncedSearchTerm to avoid excessive API calls while typing
+  
+  
+  
+  
  useEffect(() => {
   const applyFiltersAndSort = async () => {
-    // <-- NEW: Clear any existing timer before starting a new operation
+     
     if (filterLoadingTimerRef.current) {
       clearTimeout(filterLoadingTimerRef.current);
       filterLoadingTimerRef.current = null;
     }
 
-    // <-- NEW: Start a timer to show the loading indicator after a short delay
-    // The loading state will only become true if the fetch takes longer than 150ms
+     
+     
     filterLoadingTimerRef.current = setTimeout(() => {
       setFilterLoading(true);
-    }, 150); // Adjust the delay (e.g., 100, 200, 300) as needed
+    }, 150);  
 
-    console.log("Applying filters effect triggered."); // Add log
+    console.log("Applying filters effect triggered.");  
 
     try {
-      // Construct filter object from state (no change needed here)
+       
       const filters = {
         adviserIds: selectedAdvisers.map(adviser => adviser.adminId),
         tagIds: selectedTags.map(tag => tag.tagId),
@@ -562,18 +562,18 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
         searchTerm: debouncedSearchTerm
       };
 
-      // Use the applyFilters service (no change needed here)
+       
       const filteredResults = await SPApiService.applyFilters(filters);
       console.log("Filtered SPs fetched successfully:", filteredResults);
 
-      // Apply sorting (no change needed here)
+       
       const sortedResults = sortSPs(filteredResults || []);
 
-      // Update state and reset pagination (no change needed here)
+       
       setFilteredSps(sortedResults);
       setCurrentPage(1);
 
-      // Update search results... (no change needed here)
+       
        if (debouncedSearchTerm) {
          setSearchResults({
            term: debouncedSearchTerm,
@@ -582,7 +582,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
        } else {
          setSearchResults(null);
        }
-       setError(null); // Clear filter-specific errors on success
+       setError(null);  
 
 
     } catch (err) {
@@ -591,93 +591,93 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
       setFilteredSps([]);
       setSearchResults(null);
     } finally {
-      // <-- NEW: Clear the timer and set filter loading to false when done, regardless of success/failure
+       
       if (filterLoadingTimerRef.current) {
         clearTimeout(filterLoadingTimerRef.current);
         filterLoadingTimerRef.current = null;
       }
-      setFilterLoading(false); // Always set filter loading to false when the operation completes
+      setFilterLoading(false);  
     }
   };
 
-  // Only apply filters if initial loading has completed (keep this condition)
+   
   if (!initialLoading) {
     applyFiltersAndSort();
   }
 
-  // <-- NEW: Cleanup function for the effect
-  // This runs when the component unmounts or the dependencies change
+   
+   
   return () => {
-    // Clear the timer if the effect is cleaned up before it fires
+     
     if (filterLoadingTimerRef.current) {
       clearTimeout(filterLoadingTimerRef.current);
       filterLoadingTimerRef.current = null;
     }
   };
 
-}, [selectedAdvisers, selectedTags, selectedDepartment, debouncedSearchTerm, sortBy, sortDirection, initialLoading, refreshTrigger]); // Added refreshTrigger dependency
+}, [selectedAdvisers, selectedTags, selectedDepartment, debouncedSearchTerm, sortBy, sortDirection, initialLoading, refreshTrigger]);  
 
 
-  // Get adviser name from fetched adviser data
+   
   const getAdviserName = (adviserId) => {
     const adviser = adviserData[adviserId];
     if (!adviser) return 'Unknown Adviser';
     return `${adviser.lastName || ''}${adviser.firstName ? ', ' + adviser.firstName : ''}`;
   };
 
-  // Get authors string from SP object
+   
   const getAuthors = (sp) => {
-    // If we have authors array directly from DTO, use it
+     
     if (sp.authors && Array.isArray(sp.authors) && sp.authors.length > 0) {
       return sp.authors.join('; ');
     }
-    // Fallback if authors array is empty or null (shouldn't happen with correct backend DTO)
+     
     return 'Unknown Author';
   };
 
 
-  // Handle adviser selection from dropdown
+   
   const handleSelectAdviser = (adviser) => {
-    // Only allow selection if not loading
+     
     if (!isAnyLoading) {
-        // Add adviser to selectedAdvisers if not already included
+         
         if (!selectedAdvisers.some(a => a.adminId === adviser.adminId)) {
           setSelectedAdvisers([...selectedAdvisers, adviser]);
         }
-        // Clear the input and hide the dropdown
+         
         setAdviserInput('');
         setShowAdviserDropdown(false);
     }
   };
 
-  // Handle tag selection from dropdown
+   
   const handleSelectTag = (tag) => {
-    // Only allow selection if not loading
+     
     if (!isAnyLoading) {
-        // Add tag to selectedTags if not already included
+         
         if (!selectedTags.some(t => t.tagId === tag.tagId)) {
           setSelectedTags([...selectedTags, tag]);
         }
-        // Clear the input and hide the dropdown
+         
         setTagInput('');
         setShowTagDropdown(false);
     }
   };
 
-  // Remove adviser from selected filters
+   
   const removeAdviser = (adviserId) => {
-    // Only allow removal if not loading
+     
     if (!isAnyLoading) {
         setSelectedAdvisers(selectedAdvisers.filter(a => a.adminId !== adviserId));
     }
   };
 
-  // Remove tag from selected filters
+   
   const removeTag = (tagId) => {
-    // Only allow removal if not loading
+     
     if (!isAnyLoading) {
         setSelectedTags(selectedTags.filter(t => t.tagId !== tagId));
-        // Optional: Update URL to remove the tag parameter if needed
+         
         const url = new URL(window.location);
         const currentTag = selectedTags.find(t => t.tagId === tagId);
         if (currentTag) {
@@ -690,8 +690,8 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
     }
   };
   const handleViewCountIncrement = async (spId) => {
-    console.log(`Attempting to increment view count for SP ID: ${spId}`); // Keep this log
-    console.log("Click handler triggered on <a> tag"); // <-- Add this new log
+    console.log(`Attempting to increment view count for SP ID: ${spId}`);  
+    console.log("Click handler triggered on <a> tag");  
     try {
       await axios.post(`http://localhost:8080/api/sp/${spId}/view`);
       console.log(`View count incremented successfully for SP ID: ${spId}`);
@@ -699,16 +699,16 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
       console.error(`Error incrementing view count for SP ID: ${spId}`, error);
     }
   };
-  // Handle tag clicks on SP cards
+   
   const handleTagClick = (tagName) => {
-    // Only allow tag click for filtering if not loading
+     
     if (!isAnyLoading) {
-        // Find the tag object by name in the tags list
+         
         const tag = tags.find(t => t.tagName === tagName);
-        // If tag found and not already selected, add it to selectedTags
+         
         if (tag && !selectedTags.some(t => t.tagId === tag.tagId)) {
           setSelectedTags([...selectedTags, tag]);
-          // Optional: Update URL to reflect the tag selection
+           
           const url = new URL(window.location);
           url.searchParams.set('tag', encodeURIComponent(tagName));
           window.history.pushState({}, '', url);
@@ -716,22 +716,22 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
     }
   };
 
-  // Clear all selected advisers
+   
   const clearAllAdvisers = () => {
-    // Only allow clearing if not loading
+     
     if (!isAnyLoading) {
         setSelectedAdvisers([]);
-        setAdviserInput(''); // Clear input field as well
+        setAdviserInput('');  
     }
   };
 
-  // Clear all selected tags
+   
   const clearAllTags = () => {
-    // Only allow clearing if not loading
+     
     if (!isAnyLoading) {
         setSelectedTags([]);
-        setTagInput(''); // Clear input field as well
-        // Optional: Remove tag parameter from URL
+        setTagInput('');  
+         
         const url = new URL(window.location);
         url.searchParams.delete('tag');
         window.history.pushState({}, '', url);
@@ -739,25 +739,25 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
   };
 
 
-  // Handle department filter change
+   
   const handleDepartmentChange = (e) => {
-    // Only allow change if not loading
+     
     if (!isAnyLoading) {
         setSelectedDepartment(e.target.value);
     }
   };
 
-  // Handle field filter change (assuming 'Field' is distinct from 'Department')
+   
   const handleFieldChange = (e) => {
-    // Only allow change if not loading
+     
     if (!isAnyLoading) {
         setSelectedField(e.target.value);
     }
   };
 
-  // Handle tab selection for a specific SP details display
+   
   const handleTabChange = (spId, tabName) => {
-    // Only allow tab change if not loading
+     
      if (!isAnyLoading) {
         setActiveTabs(prev => ({
           ...prev,
@@ -766,29 +766,29 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
      }
   };
 
-  // Handle search form submission (actual filtering is handled by useEffect with debounce)
+   
   const handleSearch = (e) => {
     e.preventDefault();
-    // The debounce effect will handle the search when the input changes
-    // No need to explicitly check isAnyLoading here as the useEffect dependency
-    // will prevent the fetch if loading is true.
+     
+     
+     
   };
 
-  // Filter advisers based on input for dropdown display
+   
   const filteredAdvisers = advisers.filter(adviser =>
     adviser && adviser.lastName &&
     (adviser.lastName.toLowerCase().includes(adviserInput.toLowerCase()) ||
      (adviser.firstName && adviser.firstName.toLowerCase().includes(adviserInput.toLowerCase())))
   );
 
-  // Filter tags based on input for dropdown display
+   
   const filteredTags = tags.filter(tag =>
     tag && tag.tagName &&
     tag.tagName.toLowerCase().includes(tagInput.toLowerCase())
   );
 
 
-  // Format the name (LastName, FirstName) for display
+   
   const formatName = (adviser) => {
     if (!adviser) return '';
     const parts = [];
@@ -797,35 +797,35 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
     return parts.join(', ');
   };
 
-  // Get tag names for a specific SP
+   
   const getTagsForSp = (sp) => {
-    // Check if sp and sp.tagIds exist and are arrays
+     
     if (!sp || !sp.tagIds || !Array.isArray(sp.tagIds)) return [];
-    // Filter the main tags list to find tags whose IDs are in sp.tagIds
+     
     return tags
       .filter(tag => tag && sp.tagIds.includes(tag.tagId))
-      .map(tag => tag?.tagName || 'Unknown Tag'); // Map to tag names, handle potential null tag
+      .map(tag => tag?.tagName || 'Unknown Tag');  
   };
 
-  // Handle clicking on an SP card to select it (e.g., for editing)
+   
   const handleSPSelect = (project) => {
-    // Only allow selection if not loading
+     
     if (!isAnyLoading) {
-        // Check if the onSPSelect prop is a function
+         
         if (typeof onSPSelect === 'function') {
           console.log("Calling onSPSelect with project:", project);
-          // Prepare the project data to be sent to the parent component,
-          // including necessary details like adviser name, authors, student IDs, and tag names.
+           
+           
           const projectForEdit = {
             ...project,
-            editMode: true, // Flag to indicate editing mode
-            adviserName: project.adviserId ? getAdviserName(project.adviserId) : 'Unknown Adviser', // Get adviser name
-            authors: project.authors || [], // Ensure authors array is included
-            studentIds: project.studentIds || [], // Ensure studentIds array is included
-            tags: getTagsForSp(project) // Get tag names for the project
+            editMode: true,  
+            adviserName: project.adviserId ? getAdviserName(project.adviserId) : 'Unknown Adviser',  
+            authors: project.authors || [],  
+            studentIds: project.studentIds || [],  
+            tags: getTagsForSp(project)  
           };
           console.log("Sending project with editMode=true:", projectForEdit);
-          onSPSelect(projectForEdit); // Call the parent's handler
+          onSPSelect(projectForEdit);  
         } else {
           console.error("onSPSelect is not a function. Check your component props.");
         }
@@ -833,46 +833,46 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
   };
 
 
-  // Handle file upload (placeholder function)
+   
   const handleUpload = () => {
-    // Only allow upload click if not loading
+     
     if (!isAnyLoading) {
         console.log("Upload button clicked - functionality to be implemented");
-        // You would typically open a modal or navigate to an upload form here
+         
         if (typeof onUploadClick === 'function') {
             onUploadClick();
         }
     }
   };
 
-  // --- Delete Modal Handlers ---
+   
   const handleDeleteClick = (sp) => {
-      // Only allow delete click if not loading
+       
       if (!isAnyLoading) {
           console.log("Delete button clicked for SP:", sp);
-          setSpToDelete({ spId: sp.spId, spTitle: sp.title }); // Set the SP to be deleted
-          setShowDeleteModal(true); // Show the modal
+          setSpToDelete({ spId: sp.spId, spTitle: sp.title });  
+          setShowDeleteModal(true);  
       }
   };
 
   const handleDeleteConfirm = async () => {
       console.log("Delete confirmed for SP ID:", spToDelete?.spId);
       if (spToDelete?.spId) {
-          setIsDeleting(true); // --- Set loading state to true for API call ---
+          setIsDeleting(true);  
           try {
               const success = await SPApiService.deleteSP(spToDelete.spId);
               if (success) {
                   console.log("Deletion API call successful. Triggering SP list refresh.");
-                  // Don't close the modal here. It will close after the refresh is complete.
-                  triggerDataRefresh(); // Call triggerDataRefresh from context
+                   
+                  triggerDataRefresh();  
               } else {
                   console.error("Deletion API call failed.");
-                  // Keep the modal open or show an error message to the user
-                  // The SPApiService.deleteSP already handles showing alerts for common errors
-                  // You might add more specific error handling here if needed
+                   
+                   
+                   
               }
           } finally {
-              setIsDeleting(false); // --- Set loading state to false after API call ---
+              setIsDeleting(false);  
                console.log("Deletion API call finished. isDeleting set to false.");
           }
       }
@@ -880,10 +880,10 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
 
   const handleDeleteCancel = () => {
       console.log("Delete cancelled.");
-      // Only close if not currently deleting or refreshing
+       
       if (!isDeleting && !isRefreshingList) {
-          setSpToDelete(null); // Clear the SP to delete
-          setShowDeleteModal(false); // Hide the modal
+          setSpToDelete(null);  
+          setShowDeleteModal(false);  
       } else {
           console.log("Cannot cancel deletion/refresh in progress.");
       }
@@ -899,15 +899,15 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
           <div className="mb-4">
             <form onSubmit={handleSearch} className="flex gap-2 mb-9">
                {/* Upload Button */}
-               {onUploadClick && isStaff && ( // Add the isStaff check here
+               {onUploadClick && isStaff && (  
   <button
     type="button"
     className={`text-white rounded p-2 flex items-center justify-center gap-1 ${
-      // You can simplify this now, as the button is only rendered if isStaff is true
+       
       'bg-red-800 hover:bg-red-900'
     }`}
-    onClick={handleUpload} // --- NEW: Call handleUpload ---
-    disabled={isAnyLoading} // --- NEW: Disable while loading ---
+    onClick={handleUpload}  
+    disabled={isAnyLoading}  
   >
     <i className="fa fa-upload"></i> UPLOAD
   </button>
@@ -918,7 +918,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                 className="border border-gray-300 rounded p-2 w-40"
                 onChange={handleDepartmentChange}
                 value={selectedDepartment}
-                disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                disabled={isAnyLoading}  
               >
                 <option value="">Course</option>
                 <option value="1">BSBC</option>
@@ -935,12 +935,12 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                   className="flex-1 border border-gray-300 rounded-l p-2"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                  disabled={isAnyLoading}  
                 />
                 <button
                   type="submit"
                   className="bg-red-800 text-white px-4 rounded-r"
-                  disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                  disabled={isAnyLoading}  
                 >
                   <i className="fa fa-search"></i>
                 </button>
@@ -952,7 +952,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                   className="border border-gray-300 p-2 mr-2"
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                  disabled={isAnyLoading}  
                 >
                   <option value="" disabled>Sort By</option>
                   <option value="yearSemester">Year/Semester</option>
@@ -963,7 +963,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                   className="bg-red-800 hover:bg-red-900 px-4 rounded justify-center text-white" style={{ height: '100%'}}
                   onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
                   title={sortDirection === 'asc' ? 'Ascending' : 'Descending'}
-                  disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                  disabled={isAnyLoading}  
                 >
                   {sortDirection === 'asc' ? ' ↑ ' : ' ↓ '}
                 </button>
@@ -1006,7 +1006,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
       size="medium"
       shape="rounded"
       color="primary"
-      disabled={isAnyLoading} // --- NEW: Disable while loading ---
+      disabled={isAnyLoading}  
       sx={{
         '& .MuiPaginationItem-root': {
           color: '#333',
@@ -1016,7 +1016,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
           backgroundColor: '#800000 !important',
           color: '#fff',
         },
-        // --- NEW: Style for disabled pagination items ---
+         
         '& .Mui-disabled': {
             opacity: 0.5,
             pointerEvents: 'none',
@@ -1035,7 +1035,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
         id="rows-per-page-select"
         value={itemsPerPage}
         onChange={handleItemsPerPageChange}
-        disabled={isAnyLoading} // --- NEW: Disable while loading ---
+        disabled={isAnyLoading}  
       >
         <MenuItem value={5}>5</MenuItem>
         <MenuItem value={10}>10</MenuItem>
@@ -1061,7 +1061,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
             <div className="sp-divider top-divider" style={{backgroundColor: 'rgba(229, 231, 235, 0.7)'}}></div>
 
             {/* No Results Found Message */}
-            {!initialLoading && !filterLoading && !isRefreshingList && filteredSps.length === 0 && ( // Include loading states here
+            {!initialLoading && !filterLoading && !isRefreshingList && filteredSps.length === 0 && (  
               <div className="bg-gray-100 p-4 text-center text-gray-600 rounded">
                 No results found. Try adjusting your filters.
               </div>
@@ -1069,7 +1069,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
 
             {/* Map through current items for the current page */}
             {currentItems.map((sp, index) => (
-              // --- NEW: Add pointer-events: none while loading to SP cards ---
+               
               <div key={sp.spId} className="relative" style={{ pointerEvents: isAnyLoading ? 'none' : 'auto' }}>
                 <div className="mb-6">
                   {/* SP Title and Action Buttons */}
@@ -1085,15 +1085,15 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                       {/* Edit Button */}
                       <button
                         onClick={(e) => {
-                          e.preventDefault(); // Prevent default link behavior
-                          e.stopPropagation(); // Stop event propagation to avoid triggering other handlers
+                          e.preventDefault();  
+                          e.stopPropagation();  
                           console.log("Edit button clicked for:", sp.title);
-                          // Call handleSPSelect to prepare and send the project data for editing
+                           
                           handleSPSelect(sp);
                         }}
                         className="text-gray-500 hover:text-gray-700 p-2"
                         aria-label="Edit project"
-                        disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                        disabled={isAnyLoading}  
                       >
                         <i className="fa-solid fa-pen"></i>
                       </button>
@@ -1103,11 +1103,11 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                             className="text-red-600 hover:text-red-800 p-2"
                             aria-label="Delete project"
                             onClick={(e) => {
-                                e.preventDefault(); // Prevent default link behavior
-                                e.stopPropagation(); // Stop event propagation
-                                handleDeleteClick(sp); // Call the new delete handler
+                                e.preventDefault();  
+                                e.stopPropagation();  
+                                handleDeleteClick(sp);  
                             }}
-                            disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                            disabled={isAnyLoading}  
                           >
                             <i className="fa fa-trash"></i>
                           </button>
@@ -1144,7 +1144,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                       <span
                         key={index}
                         className={`bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs cursor-pointer hover:bg-gray-300 ${isAnyLoading ? 'cursor-not-allowed' : ''}`}
-                        onClick={() => handleTagClick(tagName)} // Handle tag click for filtering
+                        onClick={() => handleTagClick(tagName)}  
                       >
                         {tagName}
                       </span>
@@ -1185,23 +1185,23 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                   placeholder="Search adviser"
                   value={adviserInput}
                   onChange={(e) => setAdviserInput(e.target.value)}
-                  onClick={() => setShowAdviserDropdown(true)} // Show dropdown on input click
-                   onFocus={() => setShowAdviserDropdown(true)} // Show dropdown on focus
-                   disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                  onClick={() => setShowAdviserDropdown(true)}  
+                   onFocus={() => setShowAdviserDropdown(true)}  
+                   disabled={isAnyLoading}  
                 />
                  {/* Clear Advisers Button */}
                 <button
                   className="bg-red-700 text-white px-2 rounded-r"
                   onClick={clearAllAdvisers}
                   aria-label="Clear selected advisers"
-                  disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                  disabled={isAnyLoading}  
                 >
                   ×
                 </button>
               </div>
               {/* Adviser Dropdown */}
               {showAdviserDropdown && filteredAdvisers.length > 0 && (
-                // --- NEW: Disable dropdown interactions while loading ---
+                 
                 <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-b mt-1 max-h-40 overflow-y-auto shadow-lg" style={{ pointerEvents: isAnyLoading ? 'none' : 'auto' }}>
                   {/* Corrected conditional rendering syntax */}
                   {filteredAdvisers.length > 0 ? (
@@ -1209,7 +1209,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                       <div
                         key={adviser.adminId}
                         className={`p-2 hover:bg-gray-100 cursor-pointer text-dm ${isAnyLoading ? 'cursor-not-allowed' : ''}`}
-                        onClick={() => handleSelectAdviser(adviser)} // Handle adviser selection
+                        onClick={() => handleSelectAdviser(adviser)}  
                       >
                         {formatName(adviser)}
                       </div>
@@ -1233,7 +1233,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                     className="ml-2 text-white font-bold leading-none"
                     onClick={() => removeAdviser(adviser.adminId)}
                     aria-label="Remove adviser"
-                    disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                    disabled={isAnyLoading}  
                   >
                     ×
                   </button>
@@ -1254,23 +1254,23 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                   placeholder="Search tags"
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
-                  onClick={() => setShowTagDropdown(true)} // Show dropdown on input click
-                   onFocus={() => setShowTagDropdown(true)} // Show dropdown on focus
-                   disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                  onClick={() => setShowTagDropdown(true)}  
+                   onFocus={() => setShowTagDropdown(true)}  
+                   disabled={isAnyLoading}  
                 />
                  {/* Clear Tags Button */}
                 <button
                   className="bg-red-700 text-white px-2 rounded-r"
                   onClick={clearAllTags}
                    aria-label="Clear selected tags"
-                   disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                   disabled={isAnyLoading}  
                 >
                   ×
                 </button>
               </div>
               {/* Tag Dropdown */}
               {showTagDropdown && (
-                // --- NEW: Disable dropdown interactions while loading ---
+                 
                 <div
                   className="absolute z-10 w-full bg-white border border-gray-300 rounded-b mt-1 max-h-40 overflow-y-auto shadow-lg" style={{ pointerEvents: isAnyLoading ? 'none' : 'auto' }}>
                   {/* Corrected conditional rendering syntax */}
@@ -1303,7 +1303,7 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
                     className="ml-2 text-white font-bold leading-none"
                     onClick={() => removeTag(tag.tagId)}
                      aria-label="Remove tag"
-                     disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                     disabled={isAnyLoading}  
                   >
                     ×
                   </button>
@@ -1318,9 +1318,9 @@ const SPFilterPanel = ({ onSPSelect, showUploadButton, onUploadClick }) => {
           isOpen={showDeleteModal}
           onClose={handleDeleteCancel}
           onConfirm={handleDeleteConfirm}
-          itemToDelete={spToDelete} // Pass the SP details to the modal
-          isDeleting={isDeleting} // --- Pass the API loading state ---
-          isRefreshingList={isRefreshingList} // --- Pass the list refreshing state ---
+          itemToDelete={spToDelete}  
+          isDeleting={isDeleting}  
+          isRefreshingList={isRefreshingList}  
       />
     </div>
   );

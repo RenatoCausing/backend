@@ -8,7 +8,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Determine active panel based on current path
+   
   const getActivePanel = () => {
     const path = location.pathname;
     if (path.includes('/dashboard/user')) return 'User';
@@ -18,7 +18,7 @@ const Dashboard = () => {
   
   const activePanel = getActivePanel();
   
-  // Navigation handlers
+   
   const navigateToPanel = (panel) => {
     switch (panel) {
       case 'Home':
@@ -37,33 +37,33 @@ const Dashboard = () => {
 
   const handleLogout = async () => {
     try {
-      // Call backend to invalidate the session
+       
       await fetch('http://localhost:8080/api/logout', {
         method: 'POST',
         credentials: 'include'
       });
       
-      // Clear local user data
+       
       logout();
       
-      // Redirect to login page
+       
       navigate('/login');
     } catch (error) {
       console.error('Logout error:', error);
-      // Fallback - still logout locally even if server request fails
+       
       logout();
       navigate('/login');
     }
   };
 
-  // Get user display name
+   
   const getUserDisplayName = () => {
     if (!currentUser) return "Guest User";
     if (currentUser.isGuest) return "Guest User";
     return `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || "User";
   };
 
-  // Check if user has staff role
+   
   const isStaffUser = currentUser && currentUser.role === 'staff';
 
   return (

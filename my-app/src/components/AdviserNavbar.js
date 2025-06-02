@@ -20,16 +20,16 @@ function AdviserNavbar() {
   const handleLogout = () => {
     logout();
     setUserMenuOpen(false);
-    // You might want to redirect to homepage after logout
+     
   };
 
-  // Check if the current path is the root path '/'
+   
   const isAtRoot = location.pathname === '/';
 
-  // Determine the profile link based on the current user
+   
   const profileLink = currentUser?.adminId ? `/adviser/${currentUser.adminId}` : '/profile';
 
-  // Determine dashboard link based on role
+   
   const dashboardLink = currentUser?.role === 'faculty' ? '/dashboard/sp' : '/dashboard/user';
 
   return (

@@ -1,7 +1,7 @@
 import { ProjectProvider } from './contexts/ProjectContext';
-// src/App.js
+ 
 import React from 'react';
-// Import useLocation
+ 
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import AdviserProfile from './pages/AdviserProfile';
@@ -18,10 +18,10 @@ import LeaderboardPage from './pages/LeaderboardPage';
 import ProjectsLeaderboardPage from './pages/ProjectsLeaderboardPage';
 import SPDashboard from './pages/SPDashboard';
 
-// Component to check if user is authenticated (any logged-in user)
+ 
 const RequireAuth = ({ children }) => {
   const { isAuthenticated, loading } = useUser();
-  // Use the useLocation hook
+   
   const location = useLocation();
 
   if (loading) {
@@ -29,14 +29,14 @@ const RequireAuth = ({ children }) => {
   }
 
   if (!isAuthenticated) {
-    // Redirect to login, preserving the current path in state for redirection back
+     
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 
   return children;
 };
 
-// Component for pages that are accessible to both guests and authenticated users
+ 
 const PublicOrAuth = ({ children }) => {
   const { loading } = useUser();
 
@@ -44,21 +44,21 @@ const PublicOrAuth = ({ children }) => {
     return <div>Loading...</div>;
   }
 
-  // No authentication check - accessible to everyone
+   
   return children;
 };
 
-// Component to prevent authenticated users from seeing login page
+ 
 const RequireNoAuth = ({ children }) => {
   const { isAuthenticated, loading } = useUser();
-  // Use the useLocation hook if you ever need the current location here
-  // const location = useLocation();
+   
+   
 
   if (loading) {
     return <div>Loading...</div>;
   }
 
-  // If authenticated, redirect to home or a default logged-in page
+   
   if (isAuthenticated) {
     return <Navigate to="/" replace />;
   }
@@ -66,10 +66,10 @@ const RequireNoAuth = ({ children }) => {
   return children;
 };
 
-// Component to require authentication and staff role
+ 
 const RequireStaff = ({ children }) => {
   const { currentUser, isAuthenticated, loading } = useUser();
-  // Use the useLocation hook
+   
   const location = useLocation();
 
 
@@ -77,23 +77,23 @@ const RequireStaff = ({ children }) => {
     return <div>Loading...</div>;
   }
 
-  // If not authenticated OR not staff, redirect
+   
   if (!isAuthenticated || !currentUser || currentUser.role !== 'staff') {
-    // Redirect to home or a permission denied page, preserving the attempted path
+     
     console.log("Access Denied: Not authenticated or not staff");
-    // Using state={{ from: location.pathname }} allows you to potentially redirect back
-    // after login, although the primary restriction here is role, not just auth.
-    // Redirecting to '/' is a common pattern for permission denied.
-    return <Navigate to="/" state={{ from: location.pathname }} replace />; // Or a custom permission denied route
+     
+     
+     
+    return <Navigate to="/" state={{ from: location.pathname }} replace />;  
   }
 
   return children;
 };
 
-// Component to require authentication and faculty role
+ 
 const RequireFaculty = ({ children }) => {
   const { currentUser, isAuthenticated, loading } = useUser();
-  // Use the useLocation hook
+   
   const location = useLocation();
 
 
@@ -101,20 +101,20 @@ const RequireFaculty = ({ children }) => {
     return <div>Loading...</div>;
   }
 
-  // If not authenticated OR not faculty, redirect
+   
   if (!isAuthenticated || !currentUser || currentUser.role !== 'faculty') {
      console.log("Access Denied: Not authenticated or not faculty");
-     // Using state={{ from: location.pathname }}
-    return <Navigate to="/" state={{ from: location.pathname }} replace />; // Or a custom permission denied route
+      
+    return <Navigate to="/" state={{ from: location.pathname }} replace />;  
   }
 
   return children;
 };
 
-// Component to require authentication and EITHER faculty or staff role
+ 
 const RequireFacultyOrStaff = ({ children }) => {
   const { currentUser, isAuthenticated, loading } = useUser();
-  // Use the useLocation hook
+   
   const location = useLocation();
 
 
@@ -122,11 +122,11 @@ const RequireFacultyOrStaff = ({ children }) => {
     return <div>Loading...</div>;
   }
 
-  // If not authenticated OR role is neither faculty nor staff, redirect
+   
   if (!isAuthenticated || !currentUser || (currentUser.role !== 'faculty' && currentUser.role !== 'staff')) {
     console.log("Access Denied: Not authenticated or not faculty/staff");
-    // Using state={{ from: location.pathname }}
-    return <Navigate to="/" state={{ from: location.pathname }} replace />; // Or a custom permission denied route
+     
+    return <Navigate to="/" state={{ from: location.pathname }} replace />;  
   }
 
   return children;

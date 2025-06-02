@@ -12,13 +12,13 @@ import java.util.Optional;
 
 @Repository
 public interface AdminRepository extends JpaRepository<Admin, Integer> {
-    // Existing methods - modified to match the DB schema with Faculty entity
+     
     List<Admin> findByRole(String role);
     List<Admin> findByRoleAndFaculty(String role, Faculty faculty);
     List<Admin> findByFirstNameAndLastName(String firstName, String lastName);
     Optional<Admin> findByEmail(String email);
     
-    // New methods needed for UserManagementPanel
+     
     @Query("SELECT a FROM Admin a WHERE a.role IS NULL")
     List<Admin> findByRoleIsNull();
     

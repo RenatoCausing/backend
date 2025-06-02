@@ -5,14 +5,14 @@ public class TagViewCountDTO {
     private String tagName;
     private Long totalViews;
 
-    // Constructor to initialize fields
+     
     public TagViewCountDTO(Integer tagId, String tagName, Long totalViews) {
         this.tagId = tagId;
         this.tagName = tagName;
         this.totalViews = totalViews;
     }
 
-    // Getters
+     
     public Integer getTagId() {
         return tagId;
     }
@@ -25,7 +25,7 @@ public class TagViewCountDTO {
         return totalViews;
     }
 
-    // Setters (optional, but good practice if needed for manipulation)
+     
     public void setTagId(Integer tagId) {
         this.tagId = tagId;
     }

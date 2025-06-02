@@ -9,7 +9,7 @@ import lombok.Data;
 public class Faculty {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer facultyId; // Must match the property name in the query
+    private Integer facultyId;  
 
     @Column(name = "faculty_name", nullable = false)
     private String facultyName;

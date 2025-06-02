@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useUserContext } from '../contexts/UserManagementContext';
-import { useUser } from '../contexts/UserContext'; // Import useUser context for access control
-import { Navigate } from 'react-router-dom'; // Import for redirection
+import { useUser } from '../contexts/UserContext';  
+import { Navigate } from 'react-router-dom';  
 import '../styles/SPFilterSystem.css';
-import '../styles/UserModal.css'; // Import the modal styles
+import '../styles/UserModal.css';  
 
-// Import Pagination and Select/FormControl/InputLabel from MUI
+ 
 import Pagination from '@mui/material/Pagination';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
@@ -13,7 +13,7 @@ import FormControl from '@mui/material/FormControl';
 import Typography from '@mui/material/Typography';
 
 const UserManagementPanel = () => {
-  // User context for access control
+   
   const { currentUser: user, loading: userLoading } = useUser();
   
   const {
@@ -53,46 +53,46 @@ const UserManagementPanel = () => {
     setSearchTerm,
   } = useUserContext();
 
-  // --- Pagination State and Logic ---
+   
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(20); // Default items per page
+  const [itemsPerPage, setItemsPerPage] = useState(20);  
 
-  // Ensure filteredUsers is an array before calculating length
+   
   const totalItems = filteredUsers ? filteredUsers.length : 0;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  // Ensure filteredUsers is an array before slicing
+   
   const currentItems = filteredUsers && Array.isArray(filteredUsers)
     ? filteredUsers.slice(indexOfFirstItem, indexOfLastItem)
     : [];
 
-  // --- Pagination Handlers ---
+   
   const handlePageChange = (event, value) => {
-    setCurrentPage(value); // value is the 1-indexed page number from Pagination
+    setCurrentPage(value);  
   };
 
   const handleItemsPerPageChange = (event) => {
     setItemsPerPage(parseInt(event.target.value, 10));
-    setCurrentPage(1); // Reset to the first page when rows per page changes
+    setCurrentPage(1);  
   };
 
-  // Fetch users when the component mounts
+   
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
 
-  // Reset pagination when filters change and filteredUsers is updated
+   
   useEffect(() => {
     setCurrentPage(1);
   }, [filteredUsers]);
 
-  // Access control - redirect if not staff
+   
   if (!userLoading && (!user || user.role !== 'staff')) {
     return <Navigate to="/unauthorized" replace />;
   }
 
-  // Show loading while checking user status
+   
   if (userLoading) {
     return <div className="loading">Checking access permissions...</div>;
   }

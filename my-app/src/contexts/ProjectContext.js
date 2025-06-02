@@ -11,7 +11,7 @@ export function ProjectProvider({ children }) {
   const [selectedProject, setSelectedProject] = useState(null);
   const [showDetailPanel, setShowDetailPanel] = useState(false);
   const [showEditPanel, setShowEditPanel] = useState(false);
-  const [refreshTrigger, setRefreshTrigger] = useState(0); // Trigger for refreshing data
+  const [refreshTrigger, setRefreshTrigger] = useState(0);  
   
   const handleProjectSelect = (project) => {
     console.log("Project selected in context:", project);
@@ -43,7 +43,7 @@ export function ProjectProvider({ children }) {
     setShowEditPanel(false);
   };
   
-  // Function to trigger a refresh of the SPFilterPanel data
+   
   const triggerDataRefresh = () => {
     console.log("triggerDataRefresh called!");
     setRefreshTrigger(prev => prev + 1);
@@ -53,7 +53,7 @@ export function ProjectProvider({ children }) {
     try {
       console.log("Updating project in context:", updatedProject);
       
-      // Make API call to update the project in the backend
+       
       const response = await axios.put(
         `http://localhost:8080/api/sp/${updatedProject.spId}/update`,
         updatedProject
@@ -62,11 +62,11 @@ export function ProjectProvider({ children }) {
       console.log("Project updated successfully:", response.data);
       setSelectedProject(response.data);
       
-      // Close the edit panel and show the detail panel with updated data
+       
       setShowEditPanel(false);
       setShowDetailPanel(true);
       
-      // Trigger a refresh of the filter panel data
+       
       triggerDataRefresh();
     } catch (error) {
       console.error("Error updating project:", error);

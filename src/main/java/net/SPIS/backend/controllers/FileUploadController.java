@@ -31,23 +31,23 @@ public class FileUploadController {
         }
 
         try {
-            // Create the directory if it doesn't exist
+             
             File directory = new File(uploadDir + "/images");
             if (!directory.exists()) {
                 directory.mkdirs();
             }
 
-            // Generate a unique filename
+             
             String originalFilename = file.getOriginalFilename();
             String extension = originalFilename != null ? originalFilename.substring(originalFilename.lastIndexOf("."))
                     : ".jpg";
             String filename = UUID.randomUUID().toString() + extension;
 
-            // Save the file
+             
             Path path = Paths.get(uploadDir + "/images/" + filename);
             Files.copy(file.getInputStream(), path);
 
-            // Return the file path
+             
             Map<String, String> response = new HashMap<>();
             response.put("imagePath", "/api/uploads/images/" + filename);
             return ResponseEntity.ok(response);
@@ -64,8 +64,8 @@ public class FileUploadController {
             Path path = Paths.get(uploadDir + "/images/" + filename);
             byte[] imageBytes = Files.readAllBytes(path);
 
-            // Determine content type based on file extension
-            String contentType = "image/jpeg"; // Default
+             
+            String contentType = "image/jpeg";  
             if (filename.toLowerCase().endsWith(".png")) {
                 contentType = "image/png";
             } else if (filename.toLowerCase().endsWith(".gif")) {

@@ -1,21 +1,21 @@
 import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom'; // Required for createPortal
+import ReactDOM from 'react-dom';  
 import '../styles/GraphModal.css'
-const GraphModal = ({ isOpen, onClose, children, title, chartContainerClassName = '' }) => { // Added chartContainerClassName prop
-  // Prevent scrolling on the body when modal is open
+const GraphModal = ({ isOpen, onClose, children, title, chartContainerClassName = '' }) => {  
+   
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
     }
     return () => {
-      document.body.style.overflow = 'unset'; // Always ensure scrolling is restored on unmount
+      document.body.style.overflow = 'unset';  
     };
   }, [isOpen]);
 
-  // If the modal is not open, don't render anything (this conditional return is fine AFTER hooks)
+   
   if (!isOpen) return null;
 
-  // Use React Portal to render the modal outside the component's DOM hierarchy
+   
   return ReactDOM.createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className="bmodal-content" onClick={(e) => e.stopPropagation()}>

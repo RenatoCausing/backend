@@ -50,14 +50,14 @@ public class FileProxyController {
                     headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"document.pdf\"");
                     break;
                 case "preview":
-                    // For preview, we'll return a URL that points to our own proxy endpoint
-                    // This avoids embedding Google Drive directly
+                     
+                     
                     return ResponseEntity.ok().body("/api/files/proxy/download/" + fileId);
                 default:
                     return ResponseEntity.badRequest().body("Invalid proxy type");
             }
             
-            // Get content from Google Drive
+             
             ResponseEntity<byte[]> response = restTemplate.getForEntity(new URI(url), byte[].class);
             
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {

@@ -52,16 +52,16 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
             System.out.println("OAuth login attempt for: " + firstName + " " + lastName);
 
-            // First check if admin exists with this name
+             
             List<Admin> admins = adminRepository.findByFirstNameAndLastName(firstName, lastName);
             Admin admin = null;
 
             if (!admins.isEmpty()) {
-                // Found existing admin(s) with this name
-                admin = admins.get(0); // Take the first match
+                 
+                admin = admins.get(0);  
                 System.out.println("Found existing admin with ID: " + admin.getAdminId());
 
-                // Update email and image if they're missing
+                 
                 boolean needsUpdate = false;
 
                 if (admin.getEmail() == null || admin.getEmail().isEmpty()) {
@@ -80,17 +80,17 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                     admin = adminRepository.save(admin);
                 }
             } else {
-                // If no match by name, then try by email as fallback
+                 
                 admin = adminRepository.findByEmail(email).orElse(null);
 
                 if (admin == null) {
-                    // Create new admin if not found by name or email
+                     
                     admin = new Admin();
                     admin.setEmail(email);
                     admin.setFirstName(firstName);
                     admin.setLastName(lastName);
                     admin.setImagePath(picture);
-                    admin.setRole(null); // Role is set manually later
+                    admin.setRole(null);  
 
                     System.out.println("Creating new admin for: " + firstName + " " + lastName);
 

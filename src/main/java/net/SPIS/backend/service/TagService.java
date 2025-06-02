@@ -1,7 +1,7 @@
 package net.SPIS.backend.service;
 
 import net.SPIS.backend.DTO.TagDTO;
-import net.SPIS.backend.DTO.TagViewCountDTO; // Import the new DTO
+import net.SPIS.backend.DTO.TagViewCountDTO;  
 import java.util.List;
 
 public interface TagService {
@@ -11,10 +11,10 @@ public interface TagService {
 
     void deleteTag(Integer tagId);
 
-    TagDTO getTagById(Integer tagId); // Ensure this method exists if you use it
+    TagDTO getTagById(Integer tagId);  
 
-    TagDTO updateTag(Integer tagId, TagDTO tagDTO); // Ensure this method exists
+    TagDTO updateTag(Integer tagId, TagDTO tagDTO);  
 
-    // New method for getting tag view counts
+     
     List<TagViewCountDTO> getTagViewCounts();
 }

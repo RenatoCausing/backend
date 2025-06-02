@@ -1,47 +1,47 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { FaSearch, FaTimes, FaRobot } from 'react-icons/fa'; // Add FaRobot icon
+import { FaSearch, FaTimes, FaRobot } from 'react-icons/fa';  
 import '../styles/SearchPage.css';
 
 const SearchPage = () => {
   const [searchParams, setSearchParams] = useState({
-    department: '', // This should map to facultyId in backend
-    field: '',     // This might be part of the general query
-    query: '',     // General text search term
-    year: '',      // New: Year filter
-    tags: []       // This state is not directly used for active tags, activeTags handles it.
+    department: '',  
+    field: '',      
+    query: '',      
+    year: '',       
+    tags: []        
   });
 
   const [searchResults, setSearchResults] = useState([]);
   const [resultCount, setResultCount] = useState(0);
 
-  // States for all available tags and advisers fetched from backend
+   
   const [allTags, setAllTags] = useState([]);
   const [allAdvisers, setAllAdvisers] = useState([]);
 
-  const [activeTags, setActiveTags] = useState([]); // Selected tags by user
-  const [activeAdvisers, setActiveAdvisers] = useState([]); // Selected advisers by user
+  const [activeTags, setActiveTags] = useState([]);  
+  const [activeAdvisers, setActiveAdvisers] = useState([]);  
 
-  const [aiQuery, setAiQuery] = useState(''); // User's natural language AI query
-  const [isAiProcessing, setIsAiProcessing] = useState(false); // AI loading state
-  const [aiError, setAiError] = useState(''); // AI error state
+  const [aiQuery, setAiQuery] = useState('');  
+  const [isAiProcessing, setIsAiProcessing] = useState(false);  
+  const [aiError, setAiError] = useState('');  
 
-  // Dummy data for departments, replace with actual fetch if dynamic
+   
   const departments = [
     { value: '', label: 'Course' },
     { value: '1', label: 'BSCS' },
     { value: '2', label: 'BSBC' },
     { value: '3', label: 'BSAP' }
-    // Add more departments as per your faculty IDs
+     
   ];
 
-  // Helper to map department label to ID (from your `departments` array)
+   
   const getDepartmentId = (departmentLabel) => {
     const dept = departments.find(d => d.label.toLowerCase() === departmentLabel.toLowerCase());
-    return dept ? dept.value : ''; // Return value (ID) or empty string
+    return dept ? dept.value : '';  
   };
 
-  // Helper to get Tag IDs from names, using the fetched `allTags`
+   
   const getTagIdsFromNames = (tagNames) => {
     const foundTags = allTags.filter(tag =>
       tagNames.some(name => tag.name.toLowerCase() === name.toLowerCase())
@@ -49,7 +49,7 @@ const SearchPage = () => {
     return foundTags.map(tag => tag.id);
   };
 
-  // Helper to get Adviser IDs from names, using the fetched `allAdvisers`
+   
   const getAdviserIdsFromNames = (adviserNames) => {
     const foundAdvisers = allAdvisers.filter(adviser =>
       adviserNames.some(name => adviser.name.toLowerCase() === name.toLowerCase())
@@ -57,7 +57,7 @@ const SearchPage = () => {
     return foundAdvisers.map(adviser => adviser.id);
   };
 
-  // --- Fetching all Tags and Advisers on Mount ---
+   
   useEffect(() => {
     const fetchAllTagsAndAdvisers = async () => {
       try {
@@ -65,23 +65,23 @@ const SearchPage = () => {
           axios.get('http://localhost:8080/api/tags'),
           axios.get('http://localhost:8080/api/advisers')
         ]);
-        setAllTags(tagsResponse.data); // Assuming data is [{id: 1, name: 'Tag Name'}, ...]
-        setAllAdvisers(advisersResponse.data); // Assuming data is [{id: 101, name: 'Adviser Name'}, ...]
+        setAllTags(tagsResponse.data);  
+        setAllAdvisers(advisersResponse.data);  
       } catch (error) {
         console.error('Error fetching all tags or advisers:', error);
-        // Handle error, e.g., show a message to the user
+         
       }
     };
     fetchAllTagsAndAdvisers();
-  }, []); // Run once on component mount
+  }, []);  
 
-  // --- Main Search Results Fetching ---
+   
   const fetchSearchResults = useCallback(async () => {
     const { department, query, year } = searchParams;
-    const departmentId = department === '' ? null : parseInt(department); // Convert to int or null
+    const departmentId = department === '' ? null : parseInt(department);  
     const tagIds = activeTags.length > 0 ? activeTags.map(tag => tag.id) : null;
     const adviserIds = activeAdvisers.length > 0 ? activeAdvisers.map(adviser => adviser.id) : null;
-    const searchYear = year === '' ? null : parseInt(year); // Convert year to int or null
+    const searchYear = year === '' ? null : parseInt(year);  
 
     try {
       const response = await axios.get('http://localhost:8080/api/projects/search', {
@@ -89,11 +89,11 @@ const SearchPage = () => {
           adviserIds: adviserIds,
           tagIds: tagIds,
           facultyId: departmentId,
-          year: searchYear, // Pass the year filter
+          year: searchYear,  
           searchTerm: query.trim() === '' ? null : query.trim()
         },
         paramsSerializer: {
-          indexes: null // Correctly serialize array parameters (e.g., adviserIds=1&adviserIds=2)
+          indexes: null  
         }
       });
       setSearchResults(response.data);
@@ -103,15 +103,15 @@ const SearchPage = () => {
       setSearchResults([]);
       setResultCount(0);
     }
-  }, [searchParams, activeTags, activeAdvisers]); // Dependencies for useCallback
+  }, [searchParams, activeTags, activeAdvisers]);  
 
   useEffect(() => {
-    // Trigger search when searchParams or active filters change
+     
     fetchSearchResults();
   }, [fetchSearchResults]);
 
 
-  // --- AI Search Integration ---
+   
   const handleAiSearch = async () => {
     if (!aiQuery.trim()) {
       setAiError("Please enter your search criteria for AI.");
@@ -122,7 +122,7 @@ const SearchPage = () => {
     setAiError('');
 
     try {
-      // Call your Java backend's AI parsing endpoint
+       
       const response = await axios.post('http://localhost:3001/api/ai/parse-query', {
         query: aiQuery,
       });
@@ -130,23 +130,23 @@ const SearchPage = () => {
       const aiFilters = response.data;
       console.log("AI Parsed Filters:", aiFilters);
 
-      // Update searchParams and active filters based on AI output
+       
       setSearchParams(prevParams => {
         const newParams = { ...prevParams };
 
         if (aiFilters.year) {
-          newParams.year = aiFilters.year.toString(); // Year input expects a string
+          newParams.year = aiFilters.year.toString();  
         } else {
-          newParams.year = ''; // Clear year if AI doesn't specify
+          newParams.year = '';  
         }
 
         if (aiFilters.course) {
           newParams.department = getDepartmentId(aiFilters.course);
         } else {
-          newParams.department = ''; // Clear department if AI doesn't specify
+          newParams.department = '';  
         }
 
-        // --- Handle Tags from AI ---
+         
         if (aiFilters.tags && Array.isArray(aiFilters.tags) && allTags.length > 0) {
           const aiTagNames = aiFilters.tags;
           const newActiveTags = allTags.filter(tag =>
@@ -154,10 +154,10 @@ const SearchPage = () => {
           );
           setActiveTags(newActiveTags);
         } else {
-          setActiveTags([]); // Clear tags if AI doesn't specify or lookup fails
+          setActiveTags([]);  
         }
 
-        // --- Handle Adviser from AI ---
+         
         if (aiFilters.adviser && allAdvisers.length > 0) {
           const aiAdviserName = aiFilters.adviser;
           const newActiveAdvisers = allAdvisers.filter(adviser =>
@@ -165,17 +165,17 @@ const SearchPage = () => {
           );
           setActiveAdvisers(newActiveAdvisers);
         } else {
-          setActiveAdvisers([]); // Clear adviser if AI doesn't specify or lookup fails
+          setActiveAdvisers([]);  
         }
 
-        // Clear general query if AI is providing specific filters
+         
         newParams.query = '';
 
         return newParams;
       });
 
-      setAiQuery(''); // Clear AI query input after processing
-      // fetchSearchResults will be triggered by useEffect due to searchParams/activeTags/activeAdvisers changes
+      setAiQuery('');  
+       
     } catch (error) {
       console.error("Error parsing AI query:", error);
       setAiError("Failed to parse AI query. Please try again or refine your input.");
@@ -187,7 +187,7 @@ const SearchPage = () => {
     }
   };
 
-  // --- Event Handlers ---
+   
   const handleChange = (e) => {
     const { name, value } = e.target;
     setSearchParams(prevParams => ({
@@ -219,7 +219,7 @@ const SearchPage = () => {
   const handleClearFilters = () => {
     setSearchParams({
       department: '',
-      field: '', // 'field' is not directly used for filtering in backend, but kept for consistency if UI uses it.
+      field: '',  
       query: '',
       year: '',
       tags: []
@@ -292,7 +292,7 @@ const SearchPage = () => {
             name="year"
             value={searchParams.year}
             onChange={handleChange}
-            min="1900" // Adjust min/max as appropriate for your data
+            min="1900"  
             max={new Date().getFullYear()}
           />
         </div>

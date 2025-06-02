@@ -25,10 +25,10 @@ function SPDetails() {
   const [error, setError] = useState(null);
   const [tags, setTags] = useState([]);
 
-  // Backend URL
+   
   const BACKEND_URL = 'http://localhost:8080';
   
-  // Default journal image path
+   
   const defaultJournalImage = '/images/journal.jpg';
 
   useEffect(() => {
@@ -40,7 +40,7 @@ function SPDetails() {
       }
 
       try {
-        // Fetch SP data
+         
         const spResponse = await fetch(`${BACKEND_URL}/api/sp/${spId}`);
 
         if (!spResponse.ok) {
@@ -51,7 +51,7 @@ function SPDetails() {
         console.log('SP data:', spDataResponse);
         setSpData(spDataResponse);
 
-        // Fetch adviser data if available
+         
         if (spDataResponse.adviserId) {
           const adviserResponse = await fetch(`${BACKEND_URL}/api/advisers/${spDataResponse.adviserId}`);
 
@@ -67,7 +67,7 @@ function SPDetails() {
           setAdviser(null);
         }
 
-        // Fetch all tags
+         
         try {
           const tagsResponse = await fetch(`${BACKEND_URL}/api/tags`);
           if (tagsResponse.ok) {
@@ -92,27 +92,27 @@ function SPDetails() {
     fetchData();
   }, [spId, BACKEND_URL]); 
 
-  // Get tags for this SP
+   
   const getTagsForSp = () => {
     if (!tags || !Array.isArray(tags) || !spData || !spData.tagIds || !Array.isArray(spData.tagIds)) return [];
     return tags.filter(tag => spData.tagIds.includes(tag.tagId));
   };
 
-  // Handle tag click to redirect to search page with selected tag
+   
   const handleTagClick = (tagName) => {
     navigate(`/search?tag=${encodeURIComponent(tagName)}`);
   };
 
-  // Extract Google Drive file ID from various URL formats
+   
   const extractGoogleDriveFileId = (url) => {
     if (!url) return null;
 
-    // Handle direct file IDs
+     
     if (!url.includes('/') && !url.includes('drive.google.com')) {
       return url;
     }
 
-    // Extract from standard Drive URLs
+     
     const fileIdMatch = url.match(/\/d\/([^\/]+)/) ||
                          url.match(/id=([^&]+)/) ||
                          url.match(/file\/d\/([^\/]+)/);
@@ -124,14 +124,14 @@ function SPDetails() {
     return null;
   };
 
-  // Instead of directly using Google Drive URLs, create a backend proxy endpoint
-  // This will avoid CSP issues by having your backend fetch the content
+   
+   
   const getFileProxyUrl = (type, fileId) => {
     if (!fileId) return null;
     return `${BACKEND_URL}/api/files/proxy/${type}/${fileId}`;
   };
 
-  // Get the Google Drive PDF URL for direct download
+   
   const getGoogleDriveDownloadUrl = (driveUrl) => {
     const fileId = extractGoogleDriveFileId(driveUrl);
     if (!fileId) return null;
@@ -139,7 +139,7 @@ function SPDetails() {
     return `https://drive.google.com/uc?export=download&id=${fileId}`;
   };
 
-  // Get the Google Drive PDF viewer URL
+   
   const getGoogleDrivePdfViewerUrl = (driveUrl) => {
     const fileId = extractGoogleDriveFileId(driveUrl);
     if (!fileId) return null;
@@ -147,11 +147,11 @@ function SPDetails() {
     return `https://drive.google.com/file/d/${fileId}/preview`;
   };
 
-  // Get tag color based on tag name
+   
   const getTagColor = (tagName) => {
-    if (!tagName) return '#6c757d'; // Default gray
+    if (!tagName) return '#6c757d';  
 
-    // Map specific tag categories to colors
+     
     const tagColors = {
       'Machine Learning': '#007bff',
       'Web Development': '#6c757d',
@@ -162,11 +162,11 @@ function SPDetails() {
       'Security': '#e83e8c',
     };
 
-    // Return specific color if defined, otherwise return default
+     
     return tagColors[tagName] || '#6c757d';
   };
 
-  // Build URLs for resources
+   
   const getResourceUrls = () => {
     if (!spData?.documentPath) return { thumbnail: null, download: null, viewerUrl: null };
     
@@ -174,11 +174,11 @@ function SPDetails() {
     if (!fileId) return { thumbnail: null, download: null, viewerUrl: null };
 
     return {
-      // Use proxy for thumbnail
+       
       thumbnail: getFileProxyUrl('thumbnail', fileId),
-      // Use direct Google Drive URL for download
+       
       download: getGoogleDriveDownloadUrl(spData.documentPath),
-      // Use direct Google Drive URL for preview
+       
       viewerUrl: getGoogleDrivePdfViewerUrl(spData.documentPath),
     };
   };
@@ -204,7 +204,7 @@ function SPDetails() {
     </div>
   );
 
-  // Get resource URLs
+   
   const { thumbnail, download, viewerUrl } = getResourceUrls();
 
   return (

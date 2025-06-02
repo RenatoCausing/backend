@@ -6,7 +6,7 @@ import '../styles/Navbar.css';
 function Navbar() {
   const { currentUser } = useUser();
   
-  // Determine the profile link based on the current user
+   
   const profileLink = currentUser?.adminId ? `/adviser/${currentUser.adminId}` : '/profile';
 
   return (

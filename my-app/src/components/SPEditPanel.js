@@ -3,7 +3,7 @@ import axios from 'axios';
 import '../styles/SPEditPanel.css';
 
 const SPEditPanel = ({ project, onClose, onSave }) => {
-  // Initialize state with project data
+   
   const [formData, setFormData] = useState({
     title: '',
     year: '',
@@ -14,7 +14,7 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
     dateIssued: '',
     uploadedBy: '',
     adviserId: '',
-    facultyId: '', // Added facultyId to state
+    facultyId: '',  
     author: '',
     adviserName: '',
     tags: [],
@@ -23,41 +23,41 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
     studentIds: []
   });
 
-  // Panel container ref for scroll management
+   
   const panelContainerRef = useRef(null);
 
-  // State for dropdown selections
+   
   const [showTagSelector, setShowTagSelector] = useState(false);
   const [showAdviserSelector, setShowAdviserSelector] = useState(false);
   const [showAuthorSelector, setShowAuthorSelector] = useState(false);
 
-  // State for available options (faculties are now hardcoded)
+   
   const [availableTags, setAvailableTags] = useState([]);
   const [availableAdvisers, setAvailableAdvisers] = useState([]);
   const [availableStudents, setAvailableStudents] = useState([]);
-  // Removed availableFaculties state
+   
   const [tagInput, setTagInput] = useState('');
   const [adviserInput, setAdviserInput] = useState('');
   const [authorInput, setAuthorInput] = useState('');
 
-  // State for thumbnail handling
+   
   const [thumbnailFailed, setThumbnailFailed] = useState(false);
 
-  // Refs for closing dropdowns when clicking outside
+   
   const tagSelectorRef = useRef(null);
   const adviserSelectorRef = useRef(null);
   const authorSelectorRef = useRef(null);
 
-  // Extract Google Drive file ID from various URL formats
+   
   const extractGoogleDriveFileId = (url) => {
     if (!url) return null;
 
-    // Handle direct file IDs
+     
     if (!url.includes('/') && !url.includes('drive.google.com')) {
       return url;
     }
 
-    // Extract from standard Drive URLs
+     
     const fileIdMatch = url.match(/\/d\/([^\/]+)/) ||
                         url.match(/id=([^&]+)/) ||
                         url.match(/file\/d\/([^\/]+)/);
@@ -69,16 +69,16 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
     return null;
   };
 
-  // Get Google Drive thumbnail URL
+   
   const getGoogleDrivePreviewUrl = (driveUrl) => {
     const fileId = extractGoogleDriveFileId(driveUrl);
     if (!fileId) return null;
 
-    // This returns a preview URL that can be used in an iframe
+     
     return `https://drive.google.com/file/d/${fileId}/preview`;
   };
 
-  // Update form data whenever the project prop changes
+   
   useEffect(() => {
     if (project) {
       setFormData({
@@ -91,7 +91,7 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
         dateIssued: project.dateIssued || '',
         uploadedBy: project.uploadedBy || '',
         adviserId: project.adviserId || '',
-        facultyId: project.facultyId || '', // Initialize facultyId from project
+        facultyId: project.facultyId || '',  
         author: project.author || '',
         adviserName: project.adviserName || '',
         tags: project.tags || [],
@@ -103,23 +103,23 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
     }
   }, [project]);
 
-  // Fetch advisers, tags, and students on component mount (faculties are hardcoded)
+   
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch all advisers
+         
         const adviserResponse = await axios.get('http://localhost:8080/api/advisers');
         setAvailableAdvisers(adviserResponse.data || []);
 
-        // Fetch all tags
+         
         const tagResponse = await axios.get('http://localhost:8080/api/tags');
         setAvailableTags(tagResponse.data || []);
 
-        // Fetch all students
+         
         const studentResponse = await axios.get('http://localhost:8080/api/students');
         setAvailableStudents(studentResponse.data || []);
 
-        // Removed faculty fetch
+         
 
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -129,7 +129,7 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
     fetchData();
   }, []);
 
-  // Set up click outside handlers for dropdowns
+   
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (tagSelectorRef.current && !tagSelectorRef.current.contains(e.target)) {
@@ -160,7 +160,7 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Create updated project object with editable fields
+     
     const updatedProjectData = {
       title: formData.title,
       year: formData.year ? parseInt(formData.year) : null,
@@ -169,19 +169,19 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
       uri: formData.uri,
       documentPath: formData.documentPath,
       adviserId: formData.adviserId ? parseInt(formData.adviserId) : null,
-      facultyId: formData.facultyId ? parseInt(formData.facultyId) : null, // Include facultyId in update data
+      facultyId: formData.facultyId ? parseInt(formData.facultyId) : null,  
       tagIds: formData.tagIds && formData.tagIds.length > 0 ? formData.tagIds : [],
       studentIds: formData.studentIds && formData.studentIds.length > 0 ? formData.studentIds : []
     };
 
     try {
-      // Make the API call to update the project
+       
       const response = await axios.put(
         `http://localhost:8080/api/sp/${project.spId}/update`,
         updatedProjectData
       );
 
-      // Call the parent's onSave function with updated data
+       
       onSave(response.data);
       onClose();
     } catch (error) {
@@ -266,27 +266,27 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
     setShowAdviserSelector(false);
   };
 
-  // Filter advisers based on input
+   
   const filteredAdvisers = availableAdvisers.filter(adviser =>
     adviser && adviser.lastName &&
     (adviser.lastName.toLowerCase().includes(adviserInput.toLowerCase()) ||
      (adviser.firstName && adviser.firstName.toLowerCase().includes(adviserInput.toLowerCase())))
   );
 
-  // Filter tags based on input
+   
   const filteredTags = availableTags.filter(tag =>
     tag && tag.tagName &&
     tag.tagName.toLowerCase().includes(tagInput.toLowerCase())
   );
 
-  // Filter students based on input
+   
   const filteredStudents = availableStudents.filter(student =>
     student && student.lastName &&
     (student.lastName.toLowerCase().includes(authorInput.toLowerCase()) ||
      (student.firstName && student.firstName.toLowerCase().includes(authorInput.toLowerCase())))
   );
 
-  // Generate thumbnail URL for document
+   
   const thumbnailUrl = getGoogleDrivePreviewUrl(formData.documentPath);
 
   return (
@@ -384,7 +384,7 @@ const SPEditPanel = ({ project, onClose, onSave }) => {
             </label>
             <select
               id="faculty"
-              name="facultyId" // Use name="facultyId" to match the state
+              name="facultyId"  
               className="form-control"
               value={formData.facultyId}
               onChange={handleChange}

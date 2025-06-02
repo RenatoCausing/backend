@@ -4,44 +4,44 @@ const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
     const [currentUser, setCurrentUser] = useState(null);
-    const [loading, setLoading] = useState(true); // State to indicate if context is loading user from storage
+    const [loading, setLoading] = useState(true);  
 
     useEffect(() => {
         console.log("UserContext: useEffect checking localStorage...");
-        // Check localStorage for existing user on initial load
+         
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
             try {
                 const parsedUser = JSON.parse(storedUser);
-                console.log("UserContext: Loaded user from localStorage:", parsedUser); // Log user loaded from storage
+                console.log("UserContext: Loaded user from localStorage:", parsedUser);  
                 setCurrentUser(parsedUser);
             } catch (e) {
-                console.error("UserContext: Error parsing stored user data from localStorage:", e); // Log parsing errors
-                localStorage.removeItem('user'); // Clear invalid data
+                console.error("UserContext: Error parsing stored user data from localStorage:", e);  
+                localStorage.removeItem('user');  
             }
         }
-        setLoading(false); // Loading is complete after checking storage
+        setLoading(false);  
         console.log("UserContext: Loading finished.");
-    }, []); // Empty dependency array means this runs once on mount
+    }, []);  
 
     const login = (userData) => {
-        console.log("UserContext: login function called with userData:", userData); // Log data received by login
-        setCurrentUser(userData); // Set the user state
+        console.log("UserContext: login function called with userData:", userData);  
+        setCurrentUser(userData);  
         try {
-            localStorage.setItem('user', JSON.stringify(userData)); // Store in local storage
+            localStorage.setItem('user', JSON.stringify(userData));  
             console.log("UserContext: Stored user in localStorage");
         } catch (e) {
-            console.error("UserContext: Error storing user data in localStorage:", e); // Log storage errors
+            console.error("UserContext: Error storing user data in localStorage:", e);  
         }
     };
 
     const logout = () => {
         console.log("UserContext: Logging out user");
-        setCurrentUser(null); // Clear user state
-        localStorage.removeItem('user'); // Remove from local storage
+        setCurrentUser(null);  
+        localStorage.removeItem('user');  
     };
 
-    // Determine if user is authenticated (not null and not a guest if you have guest logic)
+     
     const isAuthenticated = !!currentUser && !currentUser.isGuest;
 
     return (

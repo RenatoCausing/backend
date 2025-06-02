@@ -20,7 +20,7 @@ public interface AdviserService {
 
     AdviserDTO updateAdviserImage(Integer adviserId, String imagePath);
 
-    // Methods for UserManagementPanel
+     
     List<AdviserDTO> getAllUsers();
 
     List<AdviserDTO> getUsersByFaculty(Integer facultyId);

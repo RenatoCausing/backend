@@ -4,17 +4,17 @@ import React, { useState, useEffect, useRef } from 'react';
 import '../styles/SPFilterSystem.css';
 import AdviserNavbar from '../components/AdviserNavbar';
 
-// Import Pagination and Select/FormControl/InputLabel from MUI
+ 
 import Pagination from '@mui/material/Pagination';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Typography from '@mui/material/Typography';
-// You might also need InputLabel if you use it with FormControl for the Select
-// import InputLabel from '@mui/material/InputLabel';
+ 
+ 
 
 const SPFilterSystem = () => {
-  // State management
+   
   const [advisers, setAdvisers] = useState([]);
   const [tags, setTags] = useState([]);
   const [sps, setSps] = useState([]);
@@ -25,28 +25,28 @@ const SPFilterSystem = () => {
   const [adviserData, setAdviserData] = useState({});
   const [studentGroups, setStudentGroups] = useState({});
 
-  const [filterLoading, setFilterLoading] = useState(false); // Keep this state
-  const filterLoadingTimerRef = useRef(null); // <-- NEW: Ref to hold the timer ID
+  const [filterLoading, setFilterLoading] = useState(false);  
+  const filterLoadingTimerRef = useRef(null);  
 
-  // --- NEW: Combined loading state for disabling controls ---
+   
   const isAnyLoading = initialLoading || filterLoading;
 
-  // Pagination state (using 1-indexed page for MUI Pagination)
+   
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(20); // Default items per page
+  const [itemsPerPage, setItemsPerPage] = useState(20);  
 
-  // Calculate total pages and items for the current page
+   
   const totalItems = filteredSps.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredSps.slice(indexOfFirstItem, indexOfLastItem);
 
 
-  // Sorting state
-  const [sortBy, setSortBy] = useState('dateIssued'); // Default sort option
-  const [sortDirection, setSortDirection] = useState('desc'); // Default direction (descending)
+   
+  const [sortBy, setSortBy] = useState('dateIssued');  
+  const [sortDirection, setSortDirection] = useState('desc');  
 
-  // Filter states
+   
   const [selectedAdvisers, setSelectedAdvisers] = useState([]);
   const [selectedTags, setSelectedTags] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState('');
@@ -55,37 +55,37 @@ const SPFilterSystem = () => {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState(null);
 
-  // Input states
+   
   const [adviserInput, setAdviserInput] = useState('');
   const [tagInput, setTagInput] = useState('');
-  // Active tab states for each SP
+   
   const [activeTabs, setActiveTabs] = useState({});
-  // Dropdown visibility
+   
   const [showAdviserDropdown, setShowAdviserDropdown] = useState(false);
   const [showTagDropdown, setShowTagDropdown] = useState(false);
-  // Refs for click outside detection
+   
   const adviserDropdownRef = useRef(null);
   const tagDropdownRef = useRef(null);
   const searchTimeoutRef = useRef(null);
 
-  // --- Pagination Handlers ---
+   
    const handlePageChange = (event, value) => {
-     // Only allow page change if not loading
+      
      if (!isAnyLoading) {
-        setCurrentPage(value); // value is the 1-indexed page number from Pagination
+        setCurrentPage(value);  
      }
   };
 
   const handleItemsPerPageChange = (event) => {
-    // Only allow items per page change if not loading
+     
     if (!isAnyLoading) {
         setItemsPerPage(parseInt(event.target.value, 10));
-        setCurrentPage(1); // Reset to the first page when rows per page changes
+        setCurrentPage(1);  
     }
   };
 
 
-  // Updated sorting function (from SPFilterPanel)
+   
   const sortSPs = (sps) => {
     if (!sps || !Array.isArray(sps)) return [];
 
@@ -110,7 +110,7 @@ const SPFilterSystem = () => {
           valueB = b.dateIssued || '';
       }
 
-      // Parse dates if sorting by date
+       
       if (sortBy === 'dateIssued') {
         const dateA = valueA ? new Date(valueA) : new Date(0);
         const dateB = valueB ? new Date(valueB) : new Date(0);
@@ -124,7 +124,7 @@ const SPFilterSystem = () => {
         return sortDirection === 'asc' ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
       }
 
-      // Handle year and semester specially (assuming semester is a string like '1st', '2nd', 'midyear')
+       
       if (sortBy === 'yearSemester') {
         const yearA = parseInt(valueA, 10) || 0;
         const yearB = parseInt(valueB, 10) || 0;
@@ -141,7 +141,7 @@ const SPFilterSystem = () => {
       }
 
 
-      // Compare as strings for other fields
+       
       const stringA = String(valueA || '').toLowerCase();
       const stringB = String(valueB || '').toLowerCase();
 
@@ -154,7 +154,7 @@ const SPFilterSystem = () => {
   };
 
 
-  // API service methods (simplified, you might want a dedicated service file)
+   
    const SPApiService = {
      fetchAdviserById: async (adviserId) => {
        try {
@@ -241,12 +241,12 @@ const SPFilterSystem = () => {
        const hasFilters = (adviserIds && adviserIds.length > 0) || (tagIds && tagIds.length > 0) ||
                           departmentId || searchTerm;
        if (!hasFilters) {
-         // If no filters are applied, fetch all SPs
+          
          return await SPApiService.fetchAllSPs();
        }
 
        try {
-         // Attempt server-side filtering first
+          
          const params = new URLSearchParams();
          if (adviserIds && adviserIds.length) {
            adviserIds.forEach(id => params.append('adviserIds', id));
@@ -257,7 +257,7 @@ const SPFilterSystem = () => {
          }
 
          if (departmentId) {
-            // Assuming departmentId maps to facultyId on the backend for filtering
+             
            params.append('facultyId', departmentId);
          }
 
@@ -273,17 +273,17 @@ const SPFilterSystem = () => {
             console.log("Filtered SPs fetched successfully:", data);
            return data;
          } else {
-           // If server-side filtering endpoint returns a non-ok status, warn and fallback
+            
             console.warn('Server-side filtering failed with status:', response.status);
-            // Throw an error to trigger the catch block for client-side fallback
+             
            throw new Error('Server-side filtering not supported or failed');
          }
        } catch (error) {
-         // Fallback to client-side filtering if server-side fails or throws
+          
          console.warn('Falling back to client-side filtering:', error);
          let result = await SPApiService.fetchAllSPs();
 
-         // Apply filters client-side
+          
          if (adviserIds && adviserIds.length) {
            result = result.filter(sp => sp.adviserId && adviserIds.includes(sp.adviserId));
          }
@@ -296,16 +296,16 @@ const SPFilterSystem = () => {
          }
 
           if (departmentId) {
-              // Client-side filtering by student faculty requires iterating through students
-              // This is complex client-side without student faculty data in the SP object
+               
+               
               result = result.filter(sp => {
                   if (!sp.studentIds || sp.studentIds.length === 0) return false;
 
                    console.warn("Client-side filtering by Department/Faculty might not be fully accurate without student faculty data in SP object.");
-                   // As a placeholder, you might check if *any* student of this SP
-                   // belongs to the selected faculty, but this requires knowing student faculties.
+                    
+                    
 
-           // For now, returning true to not incorrectly filter out SPs.
+            
                    return true;
               });
           }
@@ -319,24 +319,24 @@ const SPFilterSystem = () => {
            );
          }
 
-         return result; // Return client-side filtered results
+         return result;  
        }
      }
    };
 
-  // Implement debouncing for search term
+   
   useEffect(() => {
-    // Clear any existing timeout
+     
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
 
-    // Set a new timeout for 300ms
+     
     searchTimeoutRef.current = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
     }, 300);
 
-    // Cleanup on unmount or when searchTerm changes
+     
     return () => {
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
@@ -344,14 +344,14 @@ const SPFilterSystem = () => {
     };
   }, [searchTerm]);
 
-  // Parse URL parameters when component mounts
+   
   useEffect(() => {
     const parseUrlParams = () => {
       const queryParams = new URLSearchParams(window.location.search);
       const tagParam = queryParams.get('tag');
 
       if (tagParam && tags.length > 0) {
-        // Find tag by name (decodeURIComponent to handle spaces and special characters)
+         
         const decodedTagName = decodeURIComponent(tagParam);
         const matchedTag = tags.find(tag =>
           tag.tagName && tag.tagName.toLowerCase() === decodedTagName.toLowerCase()
@@ -366,7 +366,7 @@ const SPFilterSystem = () => {
     if (tags.length > 0) {
       parseUrlParams();
     }
-  }, [tags]); // Run when tags are loaded
+  }, [tags]);  
 
 
   useEffect(() => {
@@ -375,14 +375,14 @@ const SPFilterSystem = () => {
         .filter(sp => sp.adviserId)
         .map(sp => sp.adviserId);
 
-      // Remove duplicates
+       
       const uniqueAdviserIds = [...new Set(adviserIds)];
 
-      // Fetch details for unique adviser IDs
+       
       const adviserPromises = uniqueAdviserIds.map(id => SPApiService.fetchAdviserById(id));
       const results = await Promise.all(adviserPromises);
 
-      // Build a map of adviserId to adviser object
+       
       const adviserMap = {};
       results.forEach(adviser => {
         if (adviser && adviser.adminId) {
@@ -390,15 +390,15 @@ const SPFilterSystem = () => {
         }
       });
 
-      // Update state with adviser data map
+       
       setAdviserData(adviserMap);
     };
 
-    // Fetch adviser details whenever the filtered SPs change
+     
     if (filteredSps.length > 0) {
       fetchAdviserDetails();
     } else {
-        // Clear adviser data if there are no filtered SPs
+         
         setAdviserData({});
     }
   }, [filteredSps]);
@@ -427,7 +427,7 @@ const SPFilterSystem = () => {
     }
   }, [filteredSps]);
 
-  // Fetch data on component mount
+   
   useEffect(() => {
     const fetchData = async () => {
       setInitialLoading(true);
@@ -440,30 +440,30 @@ const SPFilterSystem = () => {
         const tagData = await SPApiService.fetchAllTags();
         setTags(tagData || []);
 
-        // Fetch all SPs and apply initial sorting
+         
         const spData = await SPApiService.fetchAllSPs();
         console.log('SP data fetched:', spData);
-        const sortedSpData = sortSPs(spData || []); // Apply initial sort
-        setSps(spData || []); // Keep original data for filtering
-        setFilteredSps(sortedSpData); // Set filtered/sorted data for display
+        const sortedSpData = sortSPs(spData || []);  
+        setSps(spData || []);  
+        setFilteredSps(sortedSpData);  
 
 
         const initialActiveTabs = {};
         if (spData && Array.isArray(spData)) {
           spData.forEach(sp => {
             if (sp && sp.spId) {
-              initialActiveTabs[sp.spId] = 'AI'; // Default tab is 'AI' (Abstract/Intro)
+              initialActiveTabs[sp.spId] = 'AI';  
             }
           });
         }
         setActiveTabs(initialActiveTabs);
 
-        setError(null); // Clear any previous errors
+        setError(null);  
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Failed to load data. Please try again later.');
       } finally {
-        setInitialLoading(false); // Set initial loading to false regardless of success or failure
+        setInitialLoading(false);  
       }
     };
 
@@ -471,52 +471,52 @@ const SPFilterSystem = () => {
   }, []);
 
 
-  // Close dropdowns when clicking outside
+   
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Close adviser dropdown if click is outside
-      // --- NEW: Only close if not loading ---
+       
+       
       if (!isAnyLoading && adviserDropdownRef.current && !adviserDropdownRef.current.contains(event.target)) {
         setShowAdviserDropdown(false);
       }
-      // Close tag dropdown if click is outside
-      // --- NEW: Only close if not loading ---
+       
+       
       if (!isAnyLoading && tagDropdownRef.current && !tagDropdownRef.current.contains(event.target)) {
         setShowTagDropdown(false);
       }
     };
 
-    // Add event listener
+     
     document.addEventListener('mousedown', handleClickOutside);
 
-    // Cleanup function to remove event listener
+     
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isAnyLoading]); // --- NEW: Add isAnyLoading to dependencies ---
+  }, [isAnyLoading]);  
 
 
- // Effect to apply filters whenever filter states change
- // Use debouncedSearchTerm to avoid excessive API calls while typing
-// Effect to apply filters whenever filter states change
- // Use debouncedSearchTerm to avoid excessive API calls while typing
+  
+  
+ 
+  
   useEffect(() => {
    const applyFiltersAndSort = async () => {
-     // <-- NEW: Clear any existing timer before starting a new operation
+      
      if (filterLoadingTimerRef.current) {
        clearTimeout(filterLoadingTimerRef.current);
        filterLoadingTimerRef.current = null;
      }
 
-     // <-- NEW: Start a timer to show the loading indicator after a short delay
-     // The loading state will only become true if the fetch takes longer than 150ms
+      
+      
      filterLoadingTimerRef.current = setTimeout(() => {
        setFilterLoading(true);
-     }, 150); // Adjust the delay (e.g., 100, 200, 300) as needed
+     }, 150);  
 
 
      try {
-       // Construct filter object from state (no change needed here)
+        
        const filters = {
          adviserIds: selectedAdvisers.map(adviser => adviser.adminId),
          tagIds: selectedTags.map(tag => tag.tagId),
@@ -524,18 +524,18 @@ const SPFilterSystem = () => {
          searchTerm: debouncedSearchTerm
        };
 
-       // Use the applyFilters service (no change needed here)
+        
        const filteredResults = await SPApiService.applyFilters(filters);
        console.log("Filtered SPs fetched successfully:", filteredResults);
 
-       // Apply sorting (no change needed here)
+        
        const sortedResults = sortSPs(filteredResults || []);
 
-       // Update state and reset pagination (no change needed here)
+        
        setFilteredSps(sortedResults);
        setCurrentPage(1);
 
-       // Update search results... (no change needed here)
+        
         if (debouncedSearchTerm) {
           setSearchResults({
             term: debouncedSearchTerm,
@@ -544,7 +544,7 @@ const SPFilterSystem = () => {
         } else {
           setSearchResults(null);
         }
-        setError(null); // Clear filter-specific errors on success
+        setError(null);  
 
 
      } catch (err) {
@@ -553,42 +553,42 @@ const SPFilterSystem = () => {
        setFilteredSps([]);
        setSearchResults(null);
      } finally {
-       // <-- NEW: Clear the timer and set filter loading to false when done, regardless of success/failure
+        
        if (filterLoadingTimerRef.current) {
          clearTimeout(filterLoadingTimerRef.current);
          filterLoadingTimerRef.current = null;
        }
-       setFilterLoading(false); // Always set filter loading to false when the operation completes
+       setFilterLoading(false);  
      }
    };
 
-   // Only apply filters if initial loading has completed (keep this condition)
+    
    if (!initialLoading) {
      applyFiltersAndSort();
    }
 
-   // <-- NEW: Cleanup function for the effect
-   // This runs when the component unmounts or the dependencies change
+    
+    
    return () => {
-     // Clear the timer if the effect is cleaned up before it fires
+      
      if (filterLoadingTimerRef.current) {
        clearTimeout(filterLoadingTimerRef.current);
        filterLoadingTimerRef.current = null;
      }
    };
 
- }, [selectedAdvisers, selectedTags, selectedDepartment, debouncedSearchTerm, sortBy, sortDirection, initialLoading]); // Dependencies remain the same
+ }, [selectedAdvisers, selectedTags, selectedDepartment, debouncedSearchTerm, sortBy, sortDirection, initialLoading]);  
 
-  // Get adviser name from fetched adviser data
+   
   const getAdviserName = (adviserId) => {
     const adviser = adviserData[adviserId];
     if (!adviser) return 'Unknown Adviser';
     return `${adviser.lastName || ''}${adviser.firstName ? ', ' + adviser.firstName : ''}`;
   };
 
-  // Get authors string from SP object
+   
    const getAuthors = (sp) => {
-     // If we have authors array directly from DTO, use it
+      
      if (sp.authors && Array.isArray(sp.authors) && sp.authors.length > 0) {
        if (typeof sp.authors[0] === 'string') {
          return sp.authors.join('; ');
@@ -599,7 +599,7 @@ const SPFilterSystem = () => {
             .join('; ');
         }
      }
-     // Check if there's a group ID with associated students
+      
      else if (sp.groupId != null && studentGroups[sp.groupId] && Array.isArray(studentGroups[sp.groupId])) {
        const students = studentGroups[sp.groupId];
        if (students.length > 0) {
@@ -608,58 +608,58 @@ const SPFilterSystem = () => {
            .join('; ');
        }
      }
-      // If there's a direct author field, use it
+       
       else if (sp.author) {
         return sp.author;
       }
 
-     // Fallback if authors array is empty or null (shouldn't happen with correct backend DTO)
+      
      return 'Unknown Author';
    };
 
 
-  // Handle adviser selection from dropdown
+   
   const handleSelectAdviser = (adviser) => {
-    // Only allow selection if not loading
+     
     if (!isAnyLoading) {
-        // Add adviser to selectedAdvisers if not already included
+         
         if (!selectedAdvisers.some(a => a.adminId === adviser.adminId)) {
           setSelectedAdvisers([...selectedAdvisers, adviser]);
         }
-        // Clear the input and hide the dropdown
+         
         setAdviserInput('');
         setShowAdviserDropdown(false);
     }
   };
 
-  // Handle tag selection from dropdown
+   
   const handleSelectTag = (tag) => {
-    // Only allow selection if not loading
+     
     if (!isAnyLoading) {
-        // Add tag to selectedTags if not already included
+         
         if (!selectedTags.some(t => t.tagId === tag.tagId)) {
           setSelectedTags([...selectedTags, tag]);
         }
-        // Clear the input and hide the dropdown
+         
         setTagInput('');
         setShowTagDropdown(false);
     }
   };
 
-  // Remove adviser from selected filters
+   
   const removeAdviser = (adviserId) => {
-    // Only allow removal if not loading
+     
     if (!isAnyLoading) {
         setSelectedAdvisers(selectedAdvisers.filter(a => a.adminId !== adviserId));
     }
   };
 
-  // Remove tag from selected filters
+   
   const removeTag = (tagId) => {
-    // Only allow removal if not loading
+     
     if (!isAnyLoading) {
         setSelectedTags(selectedTags.filter(t => t.tagId !== tagId));
-        // Optional: Update URL to remove the tag parameter if needed
+         
         const url = new URL(window.location);
         const currentTag = selectedTags.find(t => t.tagId === tagId);
         if (currentTag) {
@@ -672,16 +672,16 @@ const SPFilterSystem = () => {
     }
   };
 
-  // Handle tag clicks on SP cards
+   
   const handleTagClick = (tagName) => {
-    // Only allow tag click for filtering if not loading
+     
     if (!isAnyLoading) {
-        // Find the tag object by name in the tags list
+         
         const tag = tags.find(t => t.tagName === tagName);
-        // If tag found and not already selected, add it to selectedTags
+         
         if (tag && !selectedTags.some(t => t.tagId === tag.tagId)) {
           setSelectedTags([...selectedTags, tag]);
-          // Optional: Update URL to reflect the tag selection
+           
           const url = new URL(window.location);
           url.searchParams.set('tag', encodeURIComponent(tagName));
           window.history.pushState({}, '', url);
@@ -689,17 +689,17 @@ const SPFilterSystem = () => {
     }
   };
 
-  // Clear all selected advisers
+   
   const clearAllAdvisers = () => {
-    // Only allow clearing if not loading
+     
     if (!isAnyLoading) {
         setSelectedAdvisers([]);
-        setAdviserInput(''); // Clear input field as well
+        setAdviserInput('');  
     }
   };
   const handleViewCountIncrement = async (spId) => {
-    console.log(`Attempting to increment view count for SP ID: ${spId}`); // Keep this log
-    console.log("Click handler triggered on <a> tag"); // <-- Add this new log
+    console.log(`Attempting to increment view count for SP ID: ${spId}`);  
+    console.log("Click handler triggered on <a> tag");  
     try {
       await axios.post(`http://localhost:8080/api/sp/${spId}/view`);
       console.log(`View count incremented successfully for SP ID: ${spId}`);
@@ -708,13 +708,13 @@ const SPFilterSystem = () => {
     }
   };
 
-  // Clear all selected tags
+   
   const clearAllTags = () => {
-    // Only allow clearing if not loading
+     
     if (!isAnyLoading) {
         setSelectedTags([]);
-        setTagInput(''); // Clear input field as well
-        // Optional: Remove tag parameter from URL
+        setTagInput('');  
+         
         const url = new URL(window.location);
         url.searchParams.delete('tag');
         window.history.pushState({}, '', url);
@@ -722,25 +722,25 @@ const SPFilterSystem = () => {
   };
 
 
-  // Handle department filter change
+   
   const handleDepartmentChange = (e) => {
-    // Only allow change if not loading
+     
     if (!isAnyLoading) {
         setSelectedDepartment(e.target.value);
     }
   };
 
-  // Handle field filter change (assuming 'Field' is distinct from 'Department')
+   
   const handleFieldChange = (e) => {
-    // Only allow change if not loading
+     
     if (!isAnyLoading) {
         setSelectedField(e.target.value);
     }
   };
 
-  // Handle tab selection for a specific SP details display
+   
   const handleTabChange = (spId, tabName) => {
-    // Only allow tab change if not loading
+     
      if (!isAnyLoading) {
         setActiveTabs(prev => ({
           ...prev,
@@ -749,28 +749,28 @@ const SPFilterSystem = () => {
      }
   };
 
-  // Handle search form submission (actual filtering is handled by useEffect with debounce)
+   
   const handleSearch = (e) => {
     e.preventDefault();
-    // The debounce effect will handle the search when the input changes
-    // No need to explicitly check isAnyLoading here as the useEffect dependency
-    // will prevent the fetch if loading is true.
+     
+     
+     
   };
 
-  // Filter advisers based on input for dropdown display
+   
   const filteredAdvisers = advisers.filter(adviser =>
     adviser && adviser.lastName &&
     (adviser.lastName.toLowerCase().includes(adviserInput.toLowerCase()) ||
      (adviser.firstName && adviser.firstName.toLowerCase().includes(adviserInput.toLowerCase())))
   );
 
-  // Filter tags based on input for dropdown display
+   
   const filteredTags = tags.filter(tag =>
     tag && tag.tagName &&
     tag.tagName.toLowerCase().includes(tagInput.toLowerCase())
   );
 
-  // Format the name (LastName, FirstName) for display
+   
   const formatName = (adviser) => {
     if (!adviser) return '';
     const parts = [];
@@ -779,14 +779,14 @@ const SPFilterSystem = () => {
     return parts.join(', ');
   };
 
-  // Get tag names for a specific SP
+   
   const getTagsForSp = (sp) => {
-    // Check if sp and sp.tagIds exist and are arrays
+     
     if (!sp || !sp.tagIds || !Array.isArray(sp.tagIds)) return [];
-    // Filter the main tags list to find tags whose IDs are in sp.tagIds
+     
     return tags
       .filter(tag => tag && sp.tagIds.includes(tag.tagId))
-      .map(tag => tag?.tagName || 'Unknown Tag'); // Map to tag names, handle potential null tag
+      .map(tag => tag?.tagName || 'Unknown Tag');  
   };
 
 
@@ -816,16 +816,16 @@ const SPFilterSystem = () => {
                    placeholder="Search adviser"
                    value={adviserInput}
                    onChange={(e) => setAdviserInput(e.target.value)}
-                   onClick={() => setShowAdviserDropdown(true)} // Show dropdown on input click
-                    onFocus={() => setShowAdviserDropdown(true)} // Show dropdown on focus
-                    disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                   onClick={() => setShowAdviserDropdown(true)}  
+                    onFocus={() => setShowAdviserDropdown(true)}  
+                    disabled={isAnyLoading}  
                  />
                   {/* Clear Advisers Button */}
                  <button
                    className="bg-red-700 text-white px-2 rounded-r"
                    onClick={clearAllAdvisers}
                    aria-label="Clear selected advisers"
-                   disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                   disabled={isAnyLoading}  
                  >
                    ×
                  </button>
@@ -836,8 +836,8 @@ const SPFilterSystem = () => {
                    {filteredAdvisers.map(adviser => (
                      <div
                        key={adviser.adminId}
-                       className={`p-2 hover:bg-gray-100 cursor-pointer text-dm ${isAnyLoading ? 'cursor-not-allowed' : ''}`} // --- NEW: Add cursor style ---
-                       onClick={() => handleSelectAdviser(adviser)} // Handle adviser selection
+                       className={`p-2 hover:bg-gray-100 cursor-pointer text-dm ${isAnyLoading ? 'cursor-not-allowed' : ''}`}  
+                       onClick={() => handleSelectAdviser(adviser)}  
                      >
                        {formatName(adviser)}
                      </div>
@@ -857,7 +857,7 @@ const SPFilterSystem = () => {
                      className="ml-2 text-white font-bold leading-none"
                      onClick={() => removeAdviser(adviser.adminId)}
                      aria-label="Remove adviser"
-                     disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                     disabled={isAnyLoading}  
                    >
                      ×
                    </button>
@@ -878,16 +878,16 @@ const SPFilterSystem = () => {
                    placeholder="Search tags"
                    value={tagInput}
                    onChange={(e) => setTagInput(e.target.value)}
-                   onClick={() => setShowTagDropdown(true)} // Show dropdown on input click
-                    onFocus={() => setShowTagDropdown(true)} // Show dropdown on focus
-                    disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                   onClick={() => setShowTagDropdown(true)}  
+                    onFocus={() => setShowTagDropdown(true)}  
+                    disabled={isAnyLoading}  
                  />
                  {/* Clear Tags Button */}
                  <button
                    className="bg-red-700 text-white px-2 rounded-r"
                    onClick={clearAllTags}
                     aria-label="Clear selected tags"
-                    disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                    disabled={isAnyLoading}  
                  >
                    ×
                  </button>
@@ -901,7 +901,7 @@ const SPFilterSystem = () => {
                      filteredTags.map(tag => (
                        <div
                          key={tag.tagId}
-                         className={`p-2 hover:bg-gray-100 cursor-pointer text-dm ${isAnyLoading ? 'cursor-not-allowed' : ''}`} // --- NEW: Add cursor style ---
+                         className={`p-2 hover:bg-gray-100 cursor-pointer text-dm ${isAnyLoading ? 'cursor-not-allowed' : ''}`}  
                          onClick={() => handleSelectTag(tag)}
                        >
                          {tag.tagName}
@@ -925,7 +925,7 @@ const SPFilterSystem = () => {
                      className="ml-2 text-white font-bold leading-none"
                      onClick={() => removeTag(tag.tagId)}
                      aria-label="Remove tag"
-                     disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                     disabled={isAnyLoading}  
                    >
                      ×
                    </button>
@@ -946,7 +946,7 @@ const SPFilterSystem = () => {
                 className="border border-gray-300 rounded p-2 w-40"
                 onChange={handleDepartmentChange}
                 value={selectedDepartment}
-                disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                disabled={isAnyLoading}  
               >
                 <option value="">Course</option>
                 <option value="1">BSBC</option>
@@ -964,12 +964,12 @@ const SPFilterSystem = () => {
                   className="flex-1 border border-gray-300 rounded-l p-2"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                  disabled={isAnyLoading}  
                 />
                 <button
                   type="submit"
                   className="bg-red-800 text-white px-4 rounded-r"
-                  disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                  disabled={isAnyLoading}  
                 >
                   <i className="fa fa-search"></i>
                 </button>
@@ -981,7 +981,7 @@ const SPFilterSystem = () => {
                   className="border border-gray-300 p-2 mr-2"
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                  disabled={isAnyLoading}  
                 >
                   <option value="" disabled>Sort By</option>
                   <option value="yearSemester">Year/Semester</option>
@@ -992,7 +992,7 @@ const SPFilterSystem = () => {
                   className="bg-red-800 hover:bg-red-900 px-4 rounded justify-center text-white" style={{ height: '100%'}}
                   onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
                   title={sortDirection === 'asc' ? 'Ascending' : 'Descending'}
-                  disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                  disabled={isAnyLoading}  
                 >
                   {sortDirection === 'asc' ? ' ↑ ' : ' ↓ '}
                 </button>
@@ -1014,7 +1014,7 @@ const SPFilterSystem = () => {
             <div style={{ width: '33%', flexShrink: 0, display: 'flex', md: 'block' }}></div> {/* Hide on small screens */}
 
           {/* Pagination Numbers (Center/Top) */}
-           {totalPages > 1 && ( // Only show pagination if more than 1 page
+           {totalPages > 1 && (  
              <Pagination
                count={totalPages}
                page={currentPage}
@@ -1022,20 +1022,20 @@ const SPFilterSystem = () => {
                size="medium"
                shape="rounded"
                color="primary"
-               disabled={isAnyLoading} // --- NEW: Disable while loading ---
+               disabled={isAnyLoading}  
                sx={{
                  '& .MuiPaginationItem-root': {
                    color: '#333',
                    borderColor: '#e4e4e4',
                  },
                  '& .Mui-selected': {
-                   backgroundColor: '#800000 !important', // Customize the selected color
+                   backgroundColor: '#800000 !important',  
                    color: '#fff',
                  },
-                 flexGrow: 1, // Allows pagination to take available space
-                 justifyContent: 'center', // Center the pagination items
-                 marginBottom: { xs: '10px', md: '0' }, // Add margin bottom on small screens
-                 // --- NEW: Style for disabled pagination items ---
+                 flexGrow: 1,  
+                 justifyContent: 'center',  
+                 marginBottom: { xs: '10px', md: '0' },  
+                  
                  '& .Mui-disabled': {
                      opacity: 0.5,
                  }
@@ -1053,7 +1053,7 @@ const SPFilterSystem = () => {
                   id="rows-per-page-select"
                   value={itemsPerPage}
                   onChange={handleItemsPerPageChange}
-                  disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                  disabled={isAnyLoading}  
                 >
                   <MenuItem value={5}>5</MenuItem>
                   <MenuItem value={10}>10</MenuItem>
@@ -1077,7 +1077,7 @@ const SPFilterSystem = () => {
             <div className="sp-divider top-divider" style={{backgroundColor: 'rgba(229, 231, 235, 0.7)'}}></div>
 
             {/* No Results Found Message */}
-            {!isAnyLoading && filteredSps.length === 0 && ( // Use isAnyLoading here
+            {!isAnyLoading && filteredSps.length === 0 && (  
               <div className="bg-gray-100 p-4 text-center text-gray-600 rounded">
                 No results found. Try adjusting your filters.
               </div>
@@ -1113,7 +1113,7 @@ const SPFilterSystem = () => {
                     {getTagsForSp(sp).map((tagName, index) => (
                       <span
                         key={index}
-                        className={`bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs cursor-pointer hover:bg-gray-300 ${isAnyLoading ? 'cursor-not-allowed' : ''}`} // --- NEW: Add cursor style ---
+                        className={`bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs cursor-pointer hover:bg-gray-300 ${isAnyLoading ? 'cursor-not-allowed' : ''}`}  
                         onClick={() => handleTagClick(tagName)}
                       >
                         {tagName}
@@ -1140,7 +1140,7 @@ const SPFilterSystem = () => {
              <div style={{ width: '33%', flexShrink: 0, display: 'flex', md: 'block' }}></div> {/* Hide on small screens */}
 
             {/* Pagination Numbers (Center/Bottom) */}
-             {totalPages > 1 && ( // Only show pagination if more than 1 page
+             {totalPages > 1 && (  
                <Pagination
                  count={totalPages}
                  page={currentPage}
@@ -1148,20 +1148,20 @@ const SPFilterSystem = () => {
                  size="medium"
                  shape="rounded"
                  color="primary"
-                 disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                 disabled={isAnyLoading}  
                  sx={{
                    '& .MuiPaginationItem-root': {
                      color: '#333',
                      borderColor: '#e4e4e4',
                    },
                    '& .Mui-selected': {
-                     backgroundColor: '#800000 !important', // Customize the selected color
+                     backgroundColor: '#800000 !important',  
                      color: '#fff',
                    },
-                   flexGrow: 1, // Allows pagination to take available space
-                   justifyContent: 'center', // Center the pagination items
-                   marginBottom: { xs: '10px', md: '0' }, // Add margin bottom on small screens
-                    // --- NEW: Style for disabled pagination items ---
+                   flexGrow: 1,  
+                   justifyContent: 'center',  
+                   marginBottom: { xs: '10px', md: '0' },  
+                     
                     '& .Mui-disabled': {
                         opacity: 0.5,
                     }
@@ -1179,7 +1179,7 @@ const SPFilterSystem = () => {
                     id="rows-per-page-select"
                     value={itemsPerPage}
                     onChange={handleItemsPerPageChange}
-                    disabled={isAnyLoading} // --- NEW: Disable while loading ---
+                    disabled={isAnyLoading}  
                   >
                     <MenuItem value={5}>5</MenuItem>
                     <MenuItem value={10}>10</MenuItem>

@@ -1,51 +1,51 @@
-import React, { useState } from 'react'; // Import useState
+import React, { useState } from 'react';  
 import AdviserNavbar from '../components/AdviserNavbar';
 import SPFilterPanel from '../components/SPFilterPanel';
 import SPEditPanel from '../components/SPEditPanel';
 import Dashboard from '../components/Dashboard';
-import UploadModal from '../components/UploadModal'; // Import the UploadModal
+import UploadModal from '../components/UploadModal';  
 import { useProjectContext } from '../contexts/ProjectContext';
 
 const SPProjectView = () => {
   const {
     selectedProject,
-    showDetailPanel, // Assuming you might use this for a detail panel later
+    showDetailPanel,  
     showEditPanel,
     handleProjectSelect,
-    closeDetailPanel, // Assuming for a detail panel
-    openEditPanel, // Assuming for an edit panel
+    closeDetailPanel,  
+    openEditPanel,  
     closeEditPanel,
     updateProject,
-    // *** CORRECTED: Get triggerDataRefresh from your context ***
-    triggerDataRefresh // Import the function to trigger refresh
+     
+    triggerDataRefresh  
   } = useProjectContext();
 
-  // State to manage the visibility of the UploadModal
+   
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
-  // Get navbar height - you can adjust this value to match your actual navbar height
-  const navbarHeight = 64; // height in pixels
+   
+  const navbarHeight = 64;  
 
-  // Function to open the upload modal
+   
   const handleOpenUploadModal = () => {
     setIsUploadModalOpen(true);
   };
 
-  // Function to close the upload modal
-  // *** MODIFIED: This function now calls triggerDataRefresh ***
+   
+   
   const handleCloseUploadModal = () => {
     console.log("Upload modal closing. Triggering SPFilterPanel refresh.");
     setIsUploadModalOpen(false);
-    // *** Call the triggerDataRefresh function from the context ***
+     
     triggerDataRefresh();
   };
 
-  // Function called by UploadModal when upload is successful
-  // This function will now only close the modal, as refresh is handled by handleCloseUploadModal
+   
+   
   const handleUploadSuccess = () => {
     console.log("Upload successful! Closing modal.");
-    // The refresh is now handled by handleCloseUploadModal when the modal state changes
-    handleCloseUploadModal(); // This will also trigger the refresh
+     
+    handleCloseUploadModal();  
   };
 
 
@@ -65,7 +65,7 @@ const SPProjectView = () => {
           {/* Pass the function to open the modal to the SPFilterPanel's upload button */}
           <SPFilterPanel
             onSPSelect={handleProjectSelect}
-            onUploadClick={handleOpenUploadModal} // Pass the function to open the modal
+            onUploadClick={handleOpenUploadModal}  
           />
         </div>
       </div>
@@ -80,10 +80,10 @@ const SPProjectView = () => {
       <div
         style={{
           position: 'fixed',
-          top: `${navbarHeight}px`, // Use the navbar height variable
+          top: `${navbarHeight}px`,  
           right: '0',
           bottom: '0',
-          height: `calc(100vh - ${navbarHeight}px)`, // Calculate remaining height
+          height: `calc(100vh - ${navbarHeight}px)`,  
           width: '400px',
           zIndex: 50,
           transform: showEditPanel ? 'translateX(0)' : 'translateX(100%)',
@@ -103,8 +103,8 @@ const SPProjectView = () => {
       {/* Pass state and handlers to control the modal's visibility and handle success */}
       <UploadModal
         show={isUploadModalOpen}
-        onClose={handleCloseUploadModal} // Pass the close handler (which now triggers refresh)
-        onUploadSuccess={handleUploadSuccess} // Still pass success handler, but it just closes the modal
+        onClose={handleCloseUploadModal}  
+        onUploadSuccess={handleUploadSuccess}  
       />
     </div>
   );

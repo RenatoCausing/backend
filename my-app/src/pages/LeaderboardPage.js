@@ -6,33 +6,33 @@ import Typography from '@mui/material/Typography';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
-// import '../styles/SPFilterSystem.css'; // Remove if not used elsewhere on this page
-import '../styles/AdvisersLeaderboard.css'; // Keep this for component-specific styles
+ 
+import '../styles/AdvisersLeaderboard.css';  
 
 function LeaderboardPage() {
-  // State for advisers data
+   
   const [advisers, setAdvisers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Pagination states
+   
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // Backend URL
+   
   const BACKEND_URL = 'http://localhost:8080';
 
   useEffect(() => {
-    // // === REMOVED: Logic to set body background white for THIS PAGE ONLY ===
-    // // This block is removed to avoid potential rendering issues.
-    // // The background will now be handled by .leaderboard-page-container in CSS.
-    // const originalBodyBackgroundColor = document.body.style.backgroundColor;
-    // document.body.style.backgroundColor = 'white';
-    // return () => {
-    //   document.body.style.backgroundColor = originalBodyBackgroundColor;
-    // };
-    // // === END OF REMOVED BLOCK ===
+     
+     
+     
+     
+     
+     
+     
+     
+     
 
-    // Fetch top advisers
+     
     fetch(`${BACKEND_URL}/api/sp/top-advisers`)
       .then(response => {
         if (!response.ok) {
@@ -46,7 +46,7 @@ function LeaderboardPage() {
       })
       .catch(error => {
         console.error('Error fetching top advisers:', error);
-        // Set default data for testing if API fails
+         
         const defaultAdvisers = [
           {
             adminId: 1,
@@ -162,33 +162,33 @@ function LeaderboardPage() {
       .finally(() => {
         setIsLoading(false);
       });
-  }, []); // Empty dependency array means this effect runs once on mount
+  }, []);  
 
-  // Sort advisers by view count (descending) to ensure proper ranking
+   
   const sortedAdvisers = [...advisers].sort((a, b) => b.viewCount - a.viewCount);
 
-  // Calculate total pages
+   
   const totalItems = sortedAdvisers.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  // Get current items based on pagination
+   
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = sortedAdvisers.slice(indexOfFirstItem, indexOfLastItem);
 
-  // Handle page change
+   
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
-    window.scrollTo(0, 0); // Scroll to top when page changes
+    window.scrollTo(0, 0);  
   };
 
-  // Handle items per page change
+   
   const handleItemsPerPageChange = (event) => {
     setItemsPerPage(event.target.value);
-    setCurrentPage(1); // Reset to first page when changing items per page
+    setCurrentPage(1);  
   };
 
-  // Function to abbreviate description to a certain length
+   
   const abbreviateDescription = (description, maxLength = 160) => {
     if (!description) return 'No description available.';
     return description.length > maxLength

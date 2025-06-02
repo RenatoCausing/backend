@@ -58,8 +58,8 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of("http://localhost:3000"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true); // Important for OAuth cookies
-        config.setExposedHeaders(List.of("Set-Cookie")); // Add this line
+        config.setAllowCredentials(true);  
+        config.setExposedHeaders(List.of("Set-Cookie"));  
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
