@@ -1099,7 +1099,7 @@ const SPFilterSystem = () => {
                     </span>
                     <span className="mr-4">
                       <i className="fa-regular fa-clock"></i>
-                      {sp.dateIssued ? new Date(sp.dateIssued).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : sp.year || 'No Date'}
+                      {sp.dateIssued ? new Date(sp.dateIssued).toLocaleDateString('en-US', { year: 'numeric', month: 'long'}) : sp.year || 'No Date'}
                     </span>
                     <span>
                       <i className="fa-solid fa-user"></i>
