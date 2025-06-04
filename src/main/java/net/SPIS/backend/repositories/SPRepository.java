@@ -1,8 +1,8 @@
 package net.SPIS.backend.repositories;
 
 import net.SPIS.backend.entities.SP;
-import net.SPIS.backend.entities.Student;  
-import net.SPIS.backend.entities.Groups;  
+import net.SPIS.backend.entities.Student;
+import net.SPIS.backend.entities.Groups;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,7 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Set;  
+import java.util.Set;
 
 public interface SPRepository extends JpaRepository<SP, Integer> {
         List<SP> findByAdviserAdminId(Integer adviserId);
@@ -41,22 +41,19 @@ public interface SPRepository extends JpaRepository<SP, Integer> {
                         "ORDER BY total_views DESC", nativeQuery = true)
         List<Object[]> findTopAdvisersByViews(Pageable pageable);
 
-         
         List<SP> findByStudentsStudentId(Integer studentId);
 
         @Query("SELECT sp FROM SP sp JOIN sp.adviser adviser JOIN adviser.faculty faculty WHERE faculty.facultyId = :facultyId")
         List<SP> findByAdviserFacultyId(@Param("facultyId") Integer facultyId);
 
-         
         @Query("SELECT DISTINCT sp FROM SP sp " +
                         "LEFT JOIN sp.adviser adviser " +
                         "LEFT JOIN sp.tags tag " +
-                         
-                         
+
                         "WHERE (:adviserIds IS NULL OR adviser.adminId IN :adviserIds) " +
                         "AND (:tagIds IS NULL OR tag.tagId IN :tagIds) " +
-                        "AND (:facultyId IS NULL OR sp.faculty.facultyId = :facultyId) " +  
-                                                                                            
+                        "AND (:facultyId IS NULL OR sp.faculty.facultyId = :facultyId) " +
+
                         "AND (:searchTerm IS NULL OR LOWER(sp.title) LIKE %:searchTerm% OR LOWER(sp.abstractText) LIKE %:searchTerm%)")
         List<SP> findSPsByFilters(
                         @Param("adviserIds") List<Integer> adviserIds,

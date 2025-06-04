@@ -30,14 +30,11 @@ import {
   min as dateFnsMin,
   max as dateFnsMax,
   isValid,
-  isThisWeek,  
-  isThisMonth,  
-  isToday,  
+  isThisWeek, // Import for current week check
+  isThisMonth, // Import for current month check
+  isToday, // Import for current day check
 } from 'date-fns';
 import { BoxPlotController, BoxAndWiskers } from '@sgratzl/chartjs-chart-boxplot';
-
-// Import the useUser hook from your UserContext
-import { useUser } from '../contexts/UserContext'; //  Assuming UserContext is in ../UserContext.js
 
 ChartJS.register(
   CategoryScale,
@@ -56,18 +53,20 @@ ChartJS.register(
 
 const BACKEND_URL = 'http://localhost:8080';
 
+// Define the fixed faculty mappings here
 const FACULTY_MAP = {
   1: 'BSBC',
   2: 'BSCS',
   3: 'BSAP',
 };
 
+// Define colors for each faculty
 const FACULTY_COLORS = {
-    'BSBC': 'rgba(75, 192, 192, 0.7)',  
-    'BSCS': 'rgba(255, 99, 132, 0.7)',  
-    'BSAP': 'rgba(153, 102, 255, 0.7)',  
-    'Faculty Not Found': 'rgba(128, 128, 128, 0.5)',  
-    'Unknown Faculty': 'rgba(128, 128, 128, 0.5)',  
+    'BSBC': 'rgba(75, 192, 192, 0.7)', // Teal
+    'BSCS': 'rgba(255, 99, 132, 0.7)', // Pink
+    'BSAP': 'rgba(153, 102, 255, 0.7)', // Purple
+    'Faculty Not Found': 'rgba(128, 128, 128, 0.5)', // Grey for unknown
+    'Unknown Faculty': 'rgba(128, 128, 128, 0.5)', // Grey for unknown
 };
 
 const FACULTY_BORDER_COLORS = {
@@ -98,16 +97,13 @@ const SPDashboard = () => {
   const [modalContent, setModalContent] = useState(null);
   const [modalTitle, setModalTitle] = useState('');
 
-   
+  // State for new counts
   const [spsThisWeek, setSpsThisWeek] = useState(0);
   const [spsThisMonth, setSpsThisMonth] = useState(0);
   const [spsToday, setSpsToday] = useState(0);
 
-  // Get currentUser and userLoading from UserContext
-  const { currentUser, loading: userLoading } = useUser(); // 
-
   useEffect(() => {
-     
+    // When dateTypeFilter changes to 'written', force granularity to 'year'
     if (dateTypeFilter === 'written' && timeGranularity !== 'year') {
       setTimeGranularity('year');
     }
@@ -116,40 +112,28 @@ const SPDashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Ensure user data is loaded before fetching SPs if filtering by role
-        if (userLoading) { // 
-          return;
-        }
-
         const [spResponse, tagsResponse, tagViewsResponse] = await Promise.all([
           axios.get(`${BACKEND_URL}/api/sp`),
           axios.get(`${BACKEND_URL}/api/tags`),
           axios.get(`${BACKEND_URL}/api/tags/view-counts`),
         ]);
 
-        let spData = spResponse.data.map(sp => ({ // 
+        const spData = spResponse.data.map(sp => ({
           ...sp,
-      
+          // Ensure dateIssued is a valid Date object, handling ISO-mm-dd format
           dateIssued: (sp.dateIssued && !isNaN(new Date(sp.dateIssued))) ? new Date(sp.dateIssued) : null,
           viewCount: sp.viewCount !== undefined && sp.viewCount !== null ? sp.viewCount : 0
         }));
-
-        // Filter SPs based on user role if faculty 
-        if (currentUser && currentUser.role === 'faculty') { // 
-          spData = spData.filter(sp => sp.faculty === currentUser.faculty); // 
-        }
-
-        setAllSps(spData); // 
-        setAllTags(tagsResponse.data); // 
+        setAllSps(spData);
+        setAllTags(tagsResponse.data);
 
         const processedTagViewCounts = tagViewsResponse.data.map(tagView => ({
           ...tagView,
-        
           tagName: getTagName(tagView.tagId, tagsResponse.data)
         }));
         setTagViewCounts(processedTagViewCounts);
 
-         
+        // Extract all unique years from both 'year' and 'dateIssued' (published year)
         const allYears = new Set();
         spData.forEach(sp => {
             if (sp.year) allYears.add(sp.year);
@@ -158,19 +142,18 @@ const SPDashboard = () => {
         const years = [...allYears].sort((a, b) => b - a);
         setAvailableYears(['All', ...years]);
 
+        // Calculate new counts
         const now = new Date();
         let weekCount = 0;
         let monthCount = 0;
         let todayCount = 0;
-
         spData.forEach(sp => {
           if (sp.dateIssued && isValid(sp.dateIssued)) {
-            if (isThisWeek(sp.dateIssued, { weekStartsOn: 0 })) {  
+            if (isThisWeek(sp.dateIssued, { weekStartsOn: 0 })) { // Sunday as week start
               weekCount++;
             }
             if (isThisMonth(sp.dateIssued)) {
               monthCount++;
-          
             }
             if (isToday(sp.dateIssued)) {
               todayCount++;
@@ -190,7 +173,7 @@ const SPDashboard = () => {
     };
 
     fetchData();
-  }, [currentUser, userLoading]); // Add currentUser and userLoading to dependencies 
+  }, []);
 
   useEffect(() => {
     const fetchAdviserDetails = async () => {
@@ -200,7 +183,7 @@ const SPDashboard = () => {
       const fetchPromises = uniqueAdviserIds.map(async (adviserId) => {
         if (!(adviserId in newAdviserFacultyMap)) {
           try {
-            const response = await axios.get(`${BACKEND_URL}/api/advisers/${adviserId}`); // 
+            const response = await axios.get(`${BACKEND_URL}/api/advisers/${adviserId}`);
             newAdviserFacultyMap[adviserId] = { facultyId: response.data.facultyId };
           } catch (err) {
             console.error(`Error fetching adviser ${adviserId} details:`, err);
@@ -210,7 +193,6 @@ const SPDashboard = () => {
       });
 
       await Promise.all(fetchPromises);
-   
       setAdviserFacultyMap(newAdviserFacultyMap);
     };
 
@@ -223,47 +205,48 @@ const SPDashboard = () => {
     if (selectedYear !== 'All') {
       const semesterOrder = ['First Semester', 'Second Semester', 'Summer'];
       const semestersInYear = [...new Set(allSps.filter(sp => sp.year === parseInt(selectedYear)).map(sp => sp.semester).filter(Boolean))].sort((a,b) => {
-         
+        // Custom sort to maintain order
         const order = ['First Semester', 'Second Semester', 'Summer'];
         return order.indexOf(a) - order.indexOf(b);
       });
       setAvailableSemesters(['All', ...semesterOrder.filter(sem => semestersInYear.includes(sem))]);
     } else {
-   
       setAvailableSemesters([]);
     }
   }, [selectedYear, allSps]);
 
   const getTagName = (tagId, tagsArray = allTags) => {
     const tag = tagsArray.find(t => t.tagId === tagId);
-    return tag ? tag.tagName : `Unknown Tag (${tagId})`; // 
+    return tag ? tag.tagName : `Unknown Tag (${tagId})`;
   };
 
   const getFacultyNameForAdviser = (adviserId) => {
     const adviserDetails = adviserFacultyMap[adviserId];
     if (adviserDetails && adviserDetails.facultyId !== null) {
-      return FACULTY_MAP[adviserDetails.facultyId] || `Unknown Faculty (${adviserDetails.facultyId})`; // 
+      return FACULTY_MAP[adviserDetails.facultyId] || `Unknown Faculty (${adviserDetails.facultyId})`;
     }
-    return 'Faculty Not Found'; // 
+    return 'Faculty Not Found';
   };
 
-   
+  // --- Chart Data Functions ---
 
-   
+  // 1. Projects Over Time Data (Line Chart)
   const projectsOverTimeData = () => {
     let filteredSps = allSps;
+
+    // Apply year filter based on dateTypeFilter
     if (selectedYear !== 'All') {
         const yearInt = parseInt(selectedYear);
         if (dateTypeFilter === 'published') {
-             
+            // Filter by published year only
             filteredSps = filteredSps.filter(sp => sp.dateIssued && isValid(sp.dateIssued) && sp.dateIssued.getFullYear() === yearInt);
         } else if (dateTypeFilter === 'written') {
-             
+            // Filter by written year only
             filteredSps = filteredSps.filter(sp => sp.year === yearInt);
         }
     }
 
-     
+    // Apply semester filter ONLY if dateTypeFilter is 'written' and a year is selected
     if (dateTypeFilter === 'written' && selectedYear !== 'All' && selectedSemester !== 'All') {
       filteredSps = filteredSps.filter(sp => sp.semester === selectedSemester);
     }
@@ -277,18 +260,20 @@ const SPDashboard = () => {
         .filter(sp => sp.dateIssued && isValid(sp.dateIssued))
         .map(sp => sp.dateIssued);
 
+      // If a specific year is selected and there are no valid dates for that year,
+      // ensure we still generate labels for the full year for consistency.
       let minDate = selectedYear !== 'All' ? startOfYear(new Date(parseInt(selectedYear), 0, 1)) : dateFnsMin(validDates);
       let maxDate = selectedYear !== 'All' ? endOfYear(new Date(parseInt(selectedYear), 0, 1)) : dateFnsMax(validDates);
 
-       
+      // Handle cases where validDates might be empty but a year is selected
       if (validDates.length === 0 && selectedYear === 'All') {
         return { labels: [], datasets: [{ label: '', data: [] }] };
       }
       if (validDates.length === 0 && selectedYear !== 'All') {
-         
-         
+        // If no data for selected year, minDate/maxDate are already set to full year range
+        // Proceed to generate labels, data will be all zeros
       } else if (validDates.length > 0 && selectedYear === 'All') {
-         
+        // If 'All' years are selected, use actual min/max dates from data
         minDate = dateFnsMin(validDates);
         maxDate = dateFnsMax(validDates);
       }
@@ -299,13 +284,14 @@ const SPDashboard = () => {
         if (timeGranularity === 'year') {
           key = format(date, 'yyyy');
         } else if (timeGranularity === 'month') {
-          key = format(date, 'yyyy-MM');  
+          key = format(date, 'yyyy-MM'); // Use 'yyyy-MM' for consistent keys
         } else if (timeGranularity === 'week') {
-          key = format(date, 'yyyy-ww');  
+          key = format(date, 'yyyy-ww'); // Use 'yyyy-ww'
         }
         counts[key] = (counts[key] || 0) + 1;
       });
 
+      // Generate labels as Date objects for time scale based on min/max dates
       if (timeGranularity === 'year') {
         labels = eachYearOfInterval({ start: minDate, end: maxDate }).map(d => d);
       } else if (timeGranularity === 'month') {
@@ -314,16 +300,15 @@ const SPDashboard = () => {
         labels = eachWeekOfInterval({ start: minDate, end: maxDate }, { weekStartsOn: 0 }).map(d => d);
       }
       
-       
-       
+      // Map labels (Date objects) back to the keys used in counts
+      // This ensures data points align with the generated labels for missing periods
       data = labels.map(labelDate => {
         let key;
         if (timeGranularity === 'year') {
           key = format(labelDate, 'yyyy');
         } else if (timeGranularity === 'month') {
           key = format(labelDate, 'yyyy-MM');
-        } 
-        else if (timeGranularity === 'week') {
+        } else if (timeGranularity === 'week') {
           key = format(labelDate, 'yyyy-ww');
         }
         return counts[key] || 0;
@@ -333,14 +318,15 @@ const SPDashboard = () => {
         const key = String(sp.year);
         counts[key] = (counts[key] || 0) + 1;
       });
+
       const yearsPresent = [...new Set(filteredSps.map(sp => sp.year).filter(Boolean))].sort((a, b) => a - b);
       if (yearsPresent.length === 0) {
-         
-         
+        // If no written years, and selectedYear is 'All', return empty.
+        // If a specific written year is selected and no data, labels will be for that year.
         if (selectedYear === 'All') {
             return { labels: [], datasets: [{ label: '', data: [] }] };
         } else {
-            labels.push(String(parseInt(selectedYear)));  
+            labels.push(String(parseInt(selectedYear))); // Ensure selected year is a label even if no data
             data.push(0);
         }
       } else {
@@ -354,10 +340,10 @@ const SPDashboard = () => {
     }
 
     return {
-      labels: labels,  
+      labels: labels, // Now contains Date objects for 'published' filter
       datasets: [
         {
-          label: `Number of Projects ${dateTypeFilter === 'published' ? 'Published' : 'Written'}`, // 
+          label: `Number of Projects ${dateTypeFilter === 'published' ? 'Published' : 'Written'}`,
           data: data,
           fill: false,
           borderColor: 'rgb(128, 0, 0)',
@@ -366,12 +352,12 @@ const SPDashboard = () => {
           pointBorderColor: '#fff',
           pointHoverBackgroundColor: '#fff',
           pointHoverBorderColor: 'rgb(128, 0, 0)',
-    
         },
       ],
     };
   };
 
+  // Corrected to be a function
   const projectsOverTimeOptions = () => ({
     responsive: true,
     maintainAspectRatio: false,
@@ -383,30 +369,29 @@ const SPDashboard = () => {
         display: true,
         text: `Projects ${dateTypeFilter === 'published' ? 'Published' : 'Written'} Per ${dateTypeFilter === 'published' ? (timeGranularity.charAt(0).toUpperCase() + timeGranularity.slice(1)) : 'Year'}`,
         font: {
-       
           size: 18,
         },
       },
     },
     scales: {
       x: {
-        type: dateTypeFilter === 'published' ? 'time' : 'category',  
+        type: dateTypeFilter === 'published' ? 'time' : 'category', // Always 'time' for published dates
         time: dateTypeFilter === 'published' ?
           {
             unit: timeGranularity,
-            tooltipFormat: timeGranularity === 'year' ? 'yyyy' : (timeGranularity === 'month' ? 'MMM yyyy' : 'MMM dd, yyyy'), // 
+            tooltipFormat: timeGranularity === 'year' ? 'yyyy' : (timeGranularity === 'month' ? 'MMM yyyy' : 'MMM dd, yyyy'),
             displayFormats: {
               year: 'yyyy',
               month: 'MMM yyyy',
               week: 'MMM dd, yyyy',
             },
-             
-            min: selectedYear !== 'All' ? startOfYear(new Date(parseInt(selectedYear), 0, 1)).getTime() : undefined, // 
-            max: selectedYear !== 'All' ? endOfYear(new Date(parseInt(selectedYear), 0, 1)).getTime() : undefined, // 
+            // Explicitly set min/max for time scale when a year is selected
+            min: selectedYear !== 'All' ? startOfYear(new Date(parseInt(selectedYear), 0, 1)).getTime() : undefined,
+            max: selectedYear !== 'All' ? endOfYear(new Date(parseInt(selectedYear), 0, 1)).getTime() : undefined,
           } : undefined,
         title: {
           display: true,
-          text: dateTypeFilter === 'published' ? (timeGranularity === 'year' ? 'Year' : (timeGranularity === 'month' ? 'Month' : 'Week')) : 'Year', // 
+          text: dateTypeFilter === 'published' ? (timeGranularity === 'year' ? 'Year' : (timeGranularity === 'month' ? 'Month' : 'Week')) : 'Year',
           font: {
             size: 14,
           },
@@ -416,7 +401,6 @@ const SPDashboard = () => {
         },
       },
       y: {
-   
         title: {
           display: true,
           text: 'Number of Projects',
@@ -426,27 +410,29 @@ const SPDashboard = () => {
         },
         beginAtZero: true,
         ticks: {
-          
           stepSize: 1,
         },
       },
     },
   });
 
+  // NEW: Projects Published by Faculty Over Time (Stacked Bar Chart)
   const projectsByFacultyOverTimeData = () => {
     let filteredSps = allSps;
+
+    // Apply year filter based on dateTypeFilter
     if (selectedYear !== 'All') {
         const yearInt = parseInt(selectedYear);
         if (dateTypeFilter === 'published') {
-             
+            // Filter by published year only
             filteredSps = filteredSps.filter(sp => sp.dateIssued && isValid(sp.dateIssued) && sp.dateIssued.getFullYear() === yearInt);
         } else if (dateTypeFilter === 'written') {
-             
+            // Filter by written year only
             filteredSps = filteredSps.filter(sp => sp.year === yearInt);
         }
     }
 
-     
+    // Apply semester filter ONLY if dateTypeFilter is 'written' and a year is selected
     if (dateTypeFilter === 'written' && selectedYear !== 'All' && selectedSemester !== 'All') {
       filteredSps = filteredSps.filter(sp => sp.semester === selectedSemester);
     }
@@ -454,28 +440,32 @@ const SPDashboard = () => {
     const dataByFacultyAndPeriod = {};
     let periodLabels = [];
     const facultyNames = Object.values(FACULTY_MAP);
+
+    // This chart only uses 'published' dates for time-based granularity
     const validDates = filteredSps
         .filter(sp => sp.dateIssued && isValid(sp.dateIssued))
         .map(sp => sp.dateIssued);
 
+    // If a specific year is selected and there are no valid dates for that year,
+    // ensure we still generate labels for the full year for consistency.
     let minDate = selectedYear !== 'All' ? startOfYear(new Date(parseInt(selectedYear), 0, 1)) : dateFnsMin(validDates);
     let maxDate = selectedYear !== 'All' ? endOfYear(new Date(parseInt(selectedYear), 0, 1)) : dateFnsMax(validDates);
 
-     
+    // Handle cases where validDates might be empty but a year is selected
     if (validDates.length === 0 && selectedYear === 'All') {
         return { labels: [], datasets: [] };
     }
     if (validDates.length === 0 && selectedYear !== 'All') {
-         
-         
+        // If no data for selected year, minDate/maxDate are already set to full year range
+        // Proceed to generate labels, data will be all zeros
     } else if (validDates.length > 0 && selectedYear === 'All') {
-         
+        // If 'All' years are selected, use actual min/max dates from data
         minDate = dateFnsMin(validDates);
         maxDate = dateFnsMax(validDates);
     }
 
 
-     
+    // Populate all periods based on granularity, using Date objects
     if (timeGranularity === 'year') {
       periodLabels = eachYearOfInterval({ start: minDate, end: maxDate }).map(d => d);
     } else if (timeGranularity === 'month') {
@@ -484,7 +474,7 @@ const SPDashboard = () => {
       periodLabels = eachWeekOfInterval({ start: minDate, end: maxDate }, { weekStartsOn: 0 }).map(d => d);
     }
 
-     
+    // Initialize counts for all faculties for all periods
     periodLabels.forEach(periodDate => {
       let periodKey;
       if (timeGranularity === 'year') {
@@ -495,7 +485,6 @@ const SPDashboard = () => {
         periodKey = format(periodDate, 'yyyy-ww');
       }
       
-   
       dataByFacultyAndPeriod[periodKey] = {};
       facultyNames.forEach(faculty => {
         dataByFacultyAndPeriod[periodKey][faculty] = 0;
@@ -504,6 +493,7 @@ const SPDashboard = () => {
       dataByFacultyAndPeriod[periodKey]['Unknown Faculty'] = 0;
     });
 
+    // Aggregate data
     filteredSps.forEach(sp => {
       if (sp.dateIssued && isValid(sp.dateIssued)) {
         let periodKey;
@@ -512,7 +502,7 @@ const SPDashboard = () => {
         } else if (timeGranularity === 'month') {
           periodKey = format(sp.dateIssued, 'yyyy-MM');
         } else if (timeGranularity === 'week') {
-          periodKey = format(sp.dateIssued, 'yyyy-ww'); // 
+          periodKey = format(sp.dateIssued, 'yyyy-ww');
         }
 
         const facultyName = getFacultyNameForAdviser(sp.adviserId);
@@ -523,6 +513,7 @@ const SPDashboard = () => {
       }
     });
 
+    // Prepare datasets for Chart.js
     const datasets = facultyNames.map(faculty => {
       const data = periodLabels.map(periodDate => {
         let periodKey;
@@ -531,7 +522,6 @@ const SPDashboard = () => {
         } else if (timeGranularity === 'month') {
           periodKey = format(periodDate, 'yyyy-MM');
         } else if (timeGranularity === 'week') {
-         
           periodKey = format(periodDate, 'yyyy-ww');
         }
         return dataByFacultyAndPeriod[periodKey][faculty] || 0;
@@ -554,9 +544,9 @@ const SPDashboard = () => {
         } else if (timeGranularity === 'week') {
           periodKey = format(periodDate, 'yyyy-ww');
         }
- 
       return dataByFacultyAndPeriod[periodKey]['Faculty Not Found'] || 0;
     });
+
     const unknownFacultyData = periodLabels.map(periodDate => {
       let periodKey;
         if (timeGranularity === 'year') {
@@ -566,7 +556,6 @@ const SPDashboard = () => {
         } else if (timeGranularity === 'week') {
           periodKey = format(periodDate, 'yyyy-ww');
         }
- 
       return dataByFacultyAndPeriod[periodKey]['Unknown Faculty'] || 0;
     });
 
@@ -590,12 +579,12 @@ const SPDashboard = () => {
     }
 
     return {
-      labels: periodLabels,  
+      labels: periodLabels, // Now contains Date objects
       datasets: datasets,
     };
   };
 
-   
+  // Corrected to be a function
   const projectsByFacultyOverTimeOptions = () => ({
     responsive: true,
     maintainAspectRatio: false,
@@ -608,7 +597,6 @@ const SPDashboard = () => {
         text: `Number of Projects Published by Faculty Over Time (${timeGranularity.charAt(0).toUpperCase() + timeGranularity.slice(1)})`,
         font: {
           size: 18,
-  
           weight: 'bold',
         },
       },
@@ -618,8 +606,7 @@ const SPDashboard = () => {
         callbacks: {
           label: function(context) {
             let label = context.dataset.label || '';
-            if (label) 
-            {
+            if (label) {
               label += ': ';
             }
             if (context.parsed.y !== null) {
@@ -627,9 +614,8 @@ const SPDashboard = () => {
             }
             return label;
           },
- 
           footer: function(tooltipItems) {
-            let total = tooltipItems.reduce((sum, item) => sum + item.parsed.y, 0); // 
+            let total = tooltipItems.reduce((sum, item) => sum + item.parsed.y, 0);
             return 'Total: ' + total + ' Projects';
           }
         }
@@ -638,18 +624,18 @@ const SPDashboard = () => {
     scales: {
       x: {
         stacked: true,
-        type: 'time',  
+        type: 'time', // Always 'time' for published dates
         time: {
           unit: timeGranularity,
-          tooltipFormat: timeGranularity === 'year' ? 'yyyy' : (timeGranularity === 'month' ? 'MMM yyyy' : 'MMM dd, yyyy'), // 
+          tooltipFormat: timeGranularity === 'year' ? 'yyyy' : (timeGranularity === 'month' ? 'MMM yyyy' : 'MMM dd, yyyy'),
           displayFormats: {
             year: 'yyyy',
             month: 'MMM yyyy',
             week: 'MMM dd, yyyy',
           },
-           
-          min: selectedYear !== 'All' ? startOfYear(new Date(parseInt(selectedYear), 0, 1)).getTime() : undefined, // 
-          max: selectedYear !== 'All' ? endOfYear(new Date(parseInt(selectedYear), 0, 1)).getTime() : undefined, // 
+          // Explicitly set min/max for time scale when a year is selected
+          min: selectedYear !== 'All' ? startOfYear(new Date(parseInt(selectedYear), 0, 1)).getTime() : undefined,
+          max: selectedYear !== 'All' ? endOfYear(new Date(parseInt(selectedYear), 0, 1)).getTime() : undefined,
         },
         title: {
           display: true,
@@ -659,7 +645,6 @@ const SPDashboard = () => {
           },
         },
         grid: {
-  
           display: false,
         },
       },
@@ -670,7 +655,6 @@ const SPDashboard = () => {
           text: 'Number of Projects',
           font: {
             size: 14,
-    
           },
         },
         beginAtZero: true,
@@ -681,20 +665,23 @@ const SPDashboard = () => {
     },
   });
 
+  // 3. Data for SP View Count vs. Date (Dynamic Chart: Scatter or Bar) - No Change needed here for `dateIssued` format, as `x` is already a Date object
   const spViewCountVsDateData = () => {
     let filteredSps = allSps;
+
+    // Apply year filter based on dateTypeFilter
     if (selectedYear !== 'All') {
         const yearInt = parseInt(selectedYear);
         if (dateTypeFilter === 'published') {
-             
+            // Filter by published year only
             filteredSps = filteredSps.filter(sp => sp.dateIssued && isValid(sp.dateIssued) && sp.dateIssued.getFullYear() === yearInt);
         } else if (dateTypeFilter === 'written') {
-             
+            // Filter by written year only
             filteredSps = filteredSps.filter(sp => sp.year === yearInt);
         }
     }
 
-     
+    // Apply semester filter ONLY if dateTypeFilter is 'written' and a year is selected
     if (dateTypeFilter === 'written' && selectedYear !== 'All' && selectedSemester !== 'All') {
       filteredSps = filteredSps.filter(sp => sp.semester === selectedSemester);
     }
@@ -703,7 +690,7 @@ const SPDashboard = () => {
       const dataPoints = filteredSps
         .filter(sp => sp.dateIssued && isValid(sp.dateIssued) && sp.viewCount !== undefined && sp.viewCount !== null)
         .map(sp => ({
-          x: sp.dateIssued,  
+          x: sp.dateIssued, // x is already a Date
           y: sp.viewCount,
           title: sp.title,
         }));
@@ -715,7 +702,6 @@ const SPDashboard = () => {
             backgroundColor: 'rgba(75, 192, 192, 0.6)',
             borderColor: 'rgba(75, 192, 192, 1)',
             pointRadius: 5,
-     
             pointHoverRadius: 7,
           },
         ],
@@ -729,10 +715,12 @@ const SPDashboard = () => {
         countsByYear[sp.year].totalViews += (sp.viewCount || 0);
         countsByYear[sp.year].count++;
       });
+
       const averageViews = Object.keys(countsByYear).map(year => ({
         year: parseInt(year),
         averageViewCount: countsByYear[year].count > 0 ? countsByYear[year].totalViews / countsByYear[year].count : 0,
       })).sort((a, b) => a.year - b.year);
+
       return {
         labels: averageViews.map(data => data.year),
         datasets: [
@@ -741,7 +729,6 @@ const SPDashboard = () => {
             data: averageViews.map(data => data.averageViewCount),
             backgroundColor: 'rgba(54, 162, 235, 0.7)',
             borderColor: 'rgba(54, 162, 235, 1)',
-     
             borderWidth: 1,
             borderRadius: 5,
           },
@@ -750,7 +737,7 @@ const SPDashboard = () => {
     }
   };
 
-   
+  // Corrected to be a function
   const spViewCountVsDateOptions = () => {
     if (dateTypeFilter === 'published') {
       return {
@@ -761,7 +748,6 @@ const SPDashboard = () => {
             position: 'top',
           },
           title: {
-     
             display: true,
             text: 'Project View Count vs. Published Date',
             font: {
@@ -769,11 +755,10 @@ const SPDashboard = () => {
             },
           },
           tooltip: {
-            callbacks: 
-            {
+            callbacks: {
               label: function(context) {
                 const sp = context.raw;
-                return `${sp.title}: Views = ${sp.y}, Date = ${sp.x.toLocaleDateString()}`; // 
+                return `${sp.title}: Views = ${sp.y}, Date = ${sp.x.toLocaleDateString()}`;
               }
             }
           }
@@ -783,23 +768,21 @@ const SPDashboard = () => {
             type: 'time',
             time: {
               unit: timeGranularity,
- 
-              tooltipFormat: timeGranularity === 'year' ? 'yyyy' : (timeGranularity === 'month' ? 'MMM yyyy' : 'MMM dd, yyyy'), // 
+              tooltipFormat: timeGranularity === 'year' ? 'yyyy' : (timeGranularity === 'month' ? 'MMM yyyy' : 'MMM dd, yyyy'),
               displayFormats: {
                 year: 'yyyy',
                 month: 'MMM yyyy',
                 week: 'MMM dd, yyyy',
               },
-      
-              min: selectedYear !== 'All' ? startOfYear(new Date(parseInt(selectedYear), 0, 1)).getTime() : undefined, // 
-              max: selectedYear !== 'All' ? endOfYear(new Date(parseInt(selectedYear), 0, 1)).getTime() : undefined, // 
+              // Explicitly set min/max for time scale when a year is selected
+              min: selectedYear !== 'All' ? startOfYear(new Date(parseInt(selectedYear), 0, 1)).getTime() : undefined,
+              max: selectedYear !== 'All' ? endOfYear(new Date(parseInt(selectedYear), 0, 1)).getTime() : undefined,
             },
             title: {
               display: true,
               text: 'Published Date',
               font: {
                 size: 14,
-       
               },
             },
           },
@@ -808,15 +791,13 @@ const SPDashboard = () => {
               display: true,
               text: 'View Count',
               font: {
- 
                 size: 14,
               },
             },
             beginAtZero: true,
             ticks: {
-               
+              // Removed stepSize: 1
             },
-     
           },
         },
       };
@@ -830,7 +811,6 @@ const SPDashboard = () => {
           },
           title: {
             display: true,
-      
             text: `Average Project View Count Per Written Year`,
             font: {
               size: 18,
@@ -861,6 +841,7 @@ const SPDashboard = () => {
             },
             beginAtZero: true,
             ticks: {
+              // Removed stepSize: 1
             },
           },
         },
@@ -868,6 +849,7 @@ const SPDashboard = () => {
     }
   };
 
+  // 4. Data for Total Project Views by Tag (Bar Chart) - No Change
   const tagViewCountsChartData = () => {
     const sortedTags = [...tagViewCounts].sort((a, b) => b.totalViews - a.totalViews);
     const top10Tags = sortedTags.slice(0, 10);
@@ -905,8 +887,7 @@ const SPDashboard = () => {
       tooltip: {
         callbacks: {
           label: function(context) {
-            let label = context.dataset.label ||
-            '';
+            let label = context.dataset.label || '';
             if (label) {
               label += ': ';
             }
@@ -936,23 +917,30 @@ const SPDashboard = () => {
           display: true,
           text: 'Total View Count',
           font: {
-            size: 14,
+                size: 14,
           },
         },
         beginAtZero: true,
         ticks: {
+          // Removed stepSize: 1
         },
       },
     },
   };
 
+  // --- Modal Logic ---
   const handleGraphClick = (title, chartType, chartData, chartOptions) => {
     setModalTitle(title);
     setModalContent(
-      chartType === 'Line' ? ( <Line data={chartData} options={chartOptions} /> ) :
-      chartType === 'Pie' ? ( <Pie data={chartData} options={chartOptions} /> ) :
-      chartType === 'Scatter' ? ( <Scatter data={chartData} options={chartOptions} /> ) :
-      chartType === 'Bar' ? ( <Bar data={chartData} options={chartOptions} /> ) : null
+      chartType === 'Line' ? (
+        <Line data={chartData} options={chartOptions} />
+      ) : chartType === 'Pie' ? (
+        <Pie data={chartData} options={chartOptions} />
+      ) : chartType === 'Scatter' ? (
+        <Scatter data={chartData} options={chartOptions} />
+      ) : chartType === 'Bar' ? (
+        <Bar data={chartData} options={chartOptions} />
+      ) : null
     );
     setIsModalOpen(true);
   };
@@ -963,14 +951,13 @@ const SPDashboard = () => {
     setModalTitle('');
   };
 
-  // Ensure both dashboard data and user data are loaded before display
-  const isDataReadyForDisplay = !isLoading && !userLoading && (allSps.length === 0 || Object.keys(adviserFacultyMap).length === new Set(allSps.map(sp => sp.adviserId).filter(id => id !== undefined && id !== null)).size); // 
+  const isDataReadyForDisplay = !isLoading && (allSps.length === 0 || Object.keys(adviserFacultyMap).length === new Set(allSps.map(sp => sp.adviserId).filter(id => id !== undefined && id !== null)).size);
 
   if (!isDataReadyForDisplay) {
     return (
       <div className="flex flex-col h-screen bg-gray-100 font-inter">
         <Navbar />
-        <Dashboard />
+        <Dashboard /> 
         <div className="flex-1 flex items-center justify-center text-gray-700">
           Loading dashboard data...
         </div>
@@ -998,18 +985,19 @@ const SPDashboard = () => {
         <div className="w-64 flex-shrink-0 bg-white shadow-lg">
           <Dashboard />
         </div>
+
         {/* Main Content Area */}
         <div className="flex-1 p-8 overflow-y-auto dashboard-content">
           {/* Removed border-l-4 border-maroon-700 from here */}
           <h1 className="text-3xl font-bold text-gray-800 text-center" style = {{marginBottom: '3rem'}}>Admin Dashboard</h1>
+
           {/* New: Stats Blobs Section */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 stat-cards-container">
             <div className="bg-white p-4 rounded-lg shadow-md flex flex-col items-center justify-center text-center stat-card">
               <h3 className="text-lg font-semibold text-gray-700">SPs Posted Today</h3>
               <p className="text-4xl font-bold text-maroon-700">{spsToday}</p>
             </div>
-            <div className="bg-white p-4 rounded-lg shadow-md flex flex-col 
-              items-center justify-center text-center stat-card">
+            <div className="bg-white p-4 rounded-lg shadow-md flex flex-col items-center justify-center text-center stat-card">
               <h3 className="text-lg font-semibold text-gray-700">SPs Posted This Week</h3>
               <p className="text-4xl font-bold text-maroon-700">{spsThisWeek}</p>
             </div>
@@ -1018,9 +1006,11 @@ const SPDashboard = () => {
               <p className="text-4xl font-bold text-maroon-700">{spsThisMonth}</p>
             </div>
           </div>
+
           {/* Filters Section */}
           <div className="bg-white p-6 rounded-lg shadow-md mb-8 flex flex-wrap items-center gap-4 dashboard-filters">
             <h2 className="text-xl font-semibold text-gray-700 mr-4">Dashboard Filters:</h2>
+
             {/* Date Type Filter (Published vs Written) */}
             <div className="flex items-center gap-2">
               <label htmlFor="date-type-select" className="text-gray-600 font-medium">Date Type:</label>
@@ -1030,33 +1020,35 @@ const SPDashboard = () => {
                 onChange={(e) => setDateTypeFilter(e.target.value)}
                 className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-maroon-600 focus:border-transparent"
               >
-                <option value="published">Date Uploaded</option>
+                <option value="published">Published Date</option>
                 <option value="written">Written Date (Year/Semester)</option>
-              </select> 
+              </select>
             </div>
+
             {/* Granularity Buttons */}
             <div className="flex items-center gap-2 ml-4">
               <button
                 onClick={() => setTimeGranularity('year')}
-                className={`px-4 py-2 rounded-md font-medium transition-colors duration-200 ${timeGranularity === 'year' ? 'bg-maroon-700 text-white shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`} // 
+                className={`px-4 py-2 rounded-md font-medium transition-colors duration-200 ${timeGranularity === 'year' ? 'bg-maroon-700 text-white shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
               >
                 Year
               </button>
               <button
                 onClick={() => setTimeGranularity('month')}
-                className={`px-4 py-2 rounded-md font-medium transition-colors duration-200 ${timeGranularity === 'month' ? 'bg-maroon-700 text-white shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`} // 
+                className={`px-4 py-2 rounded-md font-medium transition-colors duration-200 ${timeGranularity === 'month' ? 'bg-maroon-700 text-white shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                 disabled={dateTypeFilter === 'written'}
               >
                 Month
               </button>
               <button
                 onClick={() => setTimeGranularity('week')}
-                className={`px-4 py-2 rounded-md font-medium transition-colors duration-200 ${timeGranularity === 'week' ? 'bg-maroon-700 text-white shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`} // 
+                className={`px-4 py-2 rounded-md font-medium transition-colors duration-200 ${timeGranularity === 'week' ? 'bg-maroon-700 text-white shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                 disabled={dateTypeFilter === 'written'}
               >
                 Week
               </button>
             </div>
+
             {/* Year Filter */}
             <div className="flex items-center gap-2">
               <label htmlFor="year-select" className="text-gray-600 font-medium">Year:</label>
@@ -1071,6 +1063,7 @@ const SPDashboard = () => {
                 ))}
               </select>
             </div>
+
             {/* Semester Filter (only for written date type and specific year) */}
             {dateTypeFilter === 'written' && selectedYear !== 'All' && availableSemesters.length > 0 && (
               <div className="flex items-center gap-2">
@@ -1082,20 +1075,20 @@ const SPDashboard = () => {
                   className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-maroon-600 focus:border-transparent"
                 >
                   {availableSemesters.map(semester => (
-                    <option 
-                      key={semester} value={semester}>{semester}</option>
+                    <option key={semester} value={semester}>{semester}</option>
                   ))}
                 </select>
               </div>
             )}
           </div>
+
           {/* Charts Grid */}
           <div className="charts-grid">
             {/* Projects Over Time Chart */}
             <div
               className="bg-white p-6 rounded-lg shadow-md chart-card"
               onClick={() => handleGraphClick(
-                `Projects ${dateTypeFilter === 'published' ? 'Published' : 'Written'} Per ${dateTypeFilter === 'published' ? (timeGranularity.charAt(0).toUpperCase() + timeGranularity.slice(1)) : 'Year'}`, // 
+                `Projects ${dateTypeFilter === 'published' ? 'Published' : 'Written'} Per ${dateTypeFilter === 'published' ? (timeGranularity.charAt(0).toUpperCase() + timeGranularity.slice(1)) : 'Year'}`,
                 'Line',
                 projectsOverTimeData(),
                 projectsOverTimeOptions()
@@ -1113,29 +1106,29 @@ const SPDashboard = () => {
               </div>
             </div>
 
-            {/* Projects by Faculty Over Time Chart */}
+            {/* Projects Published by Faculty Over Time (New Chart) */}
             <div
               className="bg-white p-6 rounded-lg shadow-md chart-card"
               onClick={() => handleGraphClick(
-                `Number of Projects Published by Faculty Over Time (${timeGranularity.charAt(0).toUpperCase() + timeGranularity.slice(1)})`,
+                `Number of Projects Published by Course Over Time (${timeGranularity.charAt(0).toUpperCase() + timeGranularity.slice(1)})`,
                 'Bar',
                 projectsByFacultyOverTimeData(),
                 projectsByFacultyOverTimeOptions()
               )}
             >
               <h2 className="text-xl font-semibold text-gray-700 mb-4">
-                Projects by Faculty Over Time
+                Projects by Course Over Time
               </h2>
               <div className="h-full w-full">
                 <Bar
-                  key={`projects-by-faculty-${timeGranularity}-${dateTypeFilter}-${selectedYear}-${selectedSemester}`}
+                  key={`projects-by-faculty-${timeGranularity}-${selectedYear}-${selectedSemester}`}
                   data={projectsByFacultyOverTimeData()}
                   options={projectsByFacultyOverTimeOptions()}
                 />
               </div>
             </div>
 
-            {/* Top 10 Tags by Total Views Chart */}
+            {/* Total Project Views by Tag Chart */}
             <div
               className="bg-white p-6 rounded-lg shadow-md chart-card"
               onClick={() => handleGraphClick(
@@ -1149,17 +1142,13 @@ const SPDashboard = () => {
                 Top 10 Tags by Total Views
               </h2>
               <div className="h-full w-full">
-                <Bar
-                  key="tag-view-counts"
-                  data={tagViewCountsChartData()}
-                  options={tagViewCountsChartOptions}
-                />
+                <Bar data={tagViewCountsChartData()} options={tagViewCountsChartOptions} />
               </div>
             </div>
 
-            {/* Project View Count vs. Date Chart */}
+            {/* SP View Count vs. Date (Dynamic Chart: Scatter or Bar) */}
             <div
-              className="bg-white p-6 rounded-lg shadow-md chart-card"
+              className="bg-white p-6 rounded-lg shadow-md chart-card col-span-full"
               onClick={() => handleGraphClick(
                 `Project View Count vs. ${dateTypeFilter === 'published' ? 'Published Date' : 'Written Date'}`,
                 dateTypeFilter === 'published' ? 'Scatter' : 'Bar',
