@@ -232,7 +232,11 @@ function ProjectsLeaderboardPage() {
                         {project.year && project.semester && (
                           <span>
                             <i className="far fa-calendar-alt"></i>
-                            {project.year} - {project.semester} Semester
+                            {project.year} - {project.semester} Semester 
+                      <i style = {{marginLeft: '1rem'}}className="fa-solid fa-pen-to-square"></i>
+                           {project.authors}
+                           
+                      
                           </span>
                         )}
                         {/* You can add more meta info here if available, e.g., Advisers, Authors */}

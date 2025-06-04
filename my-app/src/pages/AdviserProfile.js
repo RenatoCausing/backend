@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import AdviserNavbar from '../components/AdviserNavbar';
 import { Link } from 'react-router-dom';
@@ -34,7 +35,15 @@ function AdviserProfile() {
     type: ''  
   });
   
-   
+     const handleViewCountIncrement = async (spId) => {
+    try {
+       
+      await axios.post(`http://localhost:8080/api/sp/${spId}/view`);
+      console.log(`View count incremented for SP ID: ${spId}`);
+    } catch (error) {
+      console.error(`Error incrementing view count for SP ID: ${spId}`, error);
+    }
+  };
   const BACKEND_URL = 'http://localhost:8080';
 
    
@@ -438,7 +447,7 @@ function AdviserProfile() {
             ) : (
               currentItems.map((sp, index) => (
                 <div key={sp.spId} className="relative">
-                  <Link to={`/project/${sp.spId}`} className="project-card-link">
+                  <Link to={`/project/${sp.spId}`}  onClick={() => handleViewCountIncrement(sp.spId)} className="project-card-link">
                     <div className="project-card">
                       <h3>{sp.title}</h3>
                       <div className="view-count">

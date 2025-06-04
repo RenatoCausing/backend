@@ -7,6 +7,9 @@ import SPCard from '../components/SPCard';
 import '../styles/HomePage.css';  
 import { Link } from 'react-router-dom';
 
+// FontAwesome imports
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEdit } from '@fortawesome/free-solid-svg-icons';
  
 import heroBackgroundImg from '../images/hero-background.jpg';
 import leaderboardBackgroundImg from '../images/leaderboard-background.jpg';
@@ -66,7 +69,7 @@ const PopularSPListItem = ({ sp, index, handleViewCountIncrement }) => {
         <div style={{ flex: '1', display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
           <h6 style={{ margin: '0 0 0.2rem 0', fontSize: '1rem', fontWeight: '500', color: '#333', textDecoration: 'none', }}>{sp.title || 'Untitled Project'}</h6> {/* Less bold, added bottom margin */}
           <span style={{ fontSize: '0.85rem', color: '#666', 
-          marginTop: '.2rem' }}>{sp.year || 'N/A'} | {sp.semester || 'N/A'}</span>
+          marginTop: '.2rem' }}>{sp.authors}</span>
         </div>
         {/* View Count */}
         <div style={{ display: 'flex', alignItems: 'center', fontSize: '0.9rem', color: '#800000', marginLeft: '1rem', fontWeight: '600' }}>
@@ -674,7 +677,7 @@ const handleDiscoverClick = () => {
                   {/* Text Content */}
                   <div style={{ flex: '1', display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
                     <h6 style={{ margin: '0', fontSize: '1.3rem', fontWeight: '700', color: '#333', textDecoration: 'none' }}>{topSPs[0].title || 'Untitled Project'}</h6>
-                    <span style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.5rem',marginTop: '.4rem', }}>{topSPs[0].year || 'N/A'} | {topSPs[0].semester || 'N/A'}</span>
+                    <span style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.5rem',marginTop: '.4rem', }}>{topSPs[0].authors}</span>
                     <p style={{ margin: '0', fontSize: '0.9rem', color: '#444', lineHeight: '1.5', paddingRight: '2rem' }}> {/* Increased paddingRight to make abstract smaller and create space */}
                       {topSPs[0].description || topSPs[0].abstractText || 'No description available.'}
                     </p>
@@ -741,9 +744,13 @@ const handleDiscoverClick = () => {
                 <div className="document-details">
                   <h3 className="card-title">{sp.title || 'Untitled Project'}</h3>
                   <div className="card-meta">
-                    <span>{sp.year || 'N/A'} | {sp.semester || 'N/A'}</span>
+                    {sp.authors && Array.isArray(sp.authors) && sp.authors.length > 0 && (
+              <span className="author-info" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <FontAwesomeIcon icon={faEdit} className="author-icon" />{sp.authors.join('; ')} 
+              </span>
+          )}
                     <span className="view-count">
-                      {sp.viewCount || 0} <i className="fa-solid fa-chart-simple"></i>
+                      {sp.viewCount} <i className="fa-solid fa-chart-simple"></i>
                     </span>
                   </div>
                   <p className="card-description">{sp.description || sp.abstractText || 'No description available.'}</p>
